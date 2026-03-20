@@ -1,15 +1,8 @@
 import { InferSelectModel } from "drizzle-orm";
-import { materials } from "@/db/schema";
+import { materials, topics } from "@/db/schema";
 
 type Material = InferSelectModel<typeof materials>;
-
-export const THEMES = [
-  { value: "people", label: "Люди" },
-  { value: "war", label: "Война" },
-  { value: "documents", label: "Документы" },
-  { value: "photos", label: "Фото" },
-  { value: "factory_today", label: "Завод сегодня" },
-] as const;
+type Topic = InferSelectModel<typeof topics>;
 
 export const STATUSES = [
   { value: "draft", label: "Черновик" },
@@ -40,9 +33,10 @@ export function Field({
 type Props = {
   action: (formData: FormData) => Promise<void>;
   material?: Material;
+  topics: Topic[];
 };
 
-export function MaterialForm({ action, material }: Props) {
+export function MaterialForm({ action, material, topics }: Props) {
   return (
     <form action={action} className="flex flex-col gap-4">
       <Field label="Заголовок *">
@@ -56,10 +50,10 @@ export function MaterialForm({ action, material }: Props) {
       </Field>
 
       <Field label="Тема *">
-        <select name="theme" required defaultValue={material?.theme ?? ""} className={inputClass}>
+        <select name="topicId" required defaultValue={material?.topicId ?? ""} className={inputClass}>
           <option value="">— выбрать —</option>
-          {THEMES.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
+          {topics.map((topic) => (
+            <option key={topic.id} value={topic.id}>{topic.label}</option>
           ))}
         </select>
       </Field>

@@ -12,7 +12,7 @@ function parseFormData(formData: FormData) {
 
   return {
     title: formData.get("title") as string,
-    theme: formData.get("theme") as typeof materials.$inferInsert["theme"],
+    topicId: Number(formData.get("topicId")),
     status: formData.get("status") as typeof materials.$inferInsert["status"],
     summary: (formData.get("summary") as string) || null,
     content: (formData.get("content") as string) || null,

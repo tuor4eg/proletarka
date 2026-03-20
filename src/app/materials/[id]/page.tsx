@@ -1,19 +1,8 @@
 import { db } from "@/db";
-import { materials } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { materials, topics } from "@/db/schema";
+import { eq, getTableColumns } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { InferSelectModel } from "drizzle-orm";
-
-type Material = InferSelectModel<typeof materials>;
-
-const THEME_LABELS: Record<Material["theme"], string> = {
-  people: "Люди",
-  war: "Война",
-  documents: "Документы",
-  photos: "Фото",
-  factory_today: "Завод сегодня",
-};
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -28,8 +17,12 @@ export default async function MaterialPage({ params }: Props) {
   }
 
   const [material] = await db
-    .select()
+    .select({
+      ...getTableColumns(materials),
+      topicLabel: topics.label,
+    })
     .from(materials)
+    .innerJoin(topics, eq(materials.topicId, topics.id))
     .where(eq(materials.id, numericId))
     .limit(1);
 
@@ -37,7 +30,7 @@ export default async function MaterialPage({ params }: Props) {
     notFound();
   }
 
-  const { title, theme, yearFrom, yearTo, content, sourceUrl } = material;
+  const { title, topicLabel, yearFrom, yearTo, content, sourceUrl } = material;
 
   const yearLabel =
     yearFrom && yearTo
@@ -52,7 +45,7 @@ export default async function MaterialPage({ params }: Props) {
         ← Назад
       </Link>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <span>{THEME_LABELS[theme]}</span>
+        <span>{topicLabel}</span>
         {yearLabel && <span>· {yearLabel}</span>}
       </div>
       <h1 className="text-xl font-bold leading-snug mb-4">{title}</h1>

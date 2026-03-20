@@ -1,12 +1,16 @@
 import { db } from "@/db";
-import { materials } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { materials, topics } from "@/db/schema";
+import { eq, desc, getTableColumns } from "drizzle-orm";
 import { MaterialCard } from "@/components/MaterialCard";
 
 export default async function HomePage() {
   const items = await db
-    .select()
+    .select({
+      ...getTableColumns(materials),
+      topicLabel: topics.label,
+    })
     .from(materials)
+    .innerJoin(topics, eq(materials.topicId, topics.id))
     .where(eq(materials.status, "published"))
     .orderBy(desc(materials.createdAt));
 

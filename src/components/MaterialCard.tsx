@@ -1,23 +1,15 @@
 import Link from "next/link";
-import { materials } from "@/db/schema";
 import { InferSelectModel } from "drizzle-orm";
+import { materials } from "@/db/schema";
 
-type Material = InferSelectModel<typeof materials>;
-
-const THEME_LABELS: Record<Material["theme"], string> = {
-  people: "Люди",
-  war: "Война",
-  documents: "Документы",
-  photos: "Фото",
-  factory_today: "Завод сегодня",
-};
+type MaterialWithTopic = InferSelectModel<typeof materials> & { topicLabel: string };
 
 type Props = {
-  material: Material;
+  material: MaterialWithTopic;
 };
 
 export function MaterialCard({ material }: Props) {
-  const { title, summary, theme, yearFrom, yearTo } = material;
+  const { title, summary, topicLabel, yearFrom, yearTo } = material;
 
   const yearLabel =
     yearFrom && yearTo
@@ -30,7 +22,7 @@ export function MaterialCard({ material }: Props) {
     <Link href={`/materials/${material.id}`}>
       <div className="rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 hover:border-gray-400 transition-colors">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>{THEME_LABELS[theme]}</span>
+          <span>{topicLabel}</span>
           {yearLabel && <span>· {yearLabel}</span>}
         </div>
         <h2 className="text-base font-semibold leading-snug">{title}</h2>

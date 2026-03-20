@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { db } from "@/db";
-import { materials } from "@/db/schema";
+import { materials, topics } from "@/db/schema";
 import { updateMaterial } from "../actions";
 import { MaterialForm } from "@/components/MaterialForm";
 
@@ -18,11 +18,10 @@ export default async function EditMaterialPage({ params }: Props) {
     notFound();
   }
 
-  const [material] = await db
-    .select()
-    .from(materials)
-    .where(eq(materials.id, numericId))
-    .limit(1);
+  const [[material], topicsList] = await Promise.all([
+    db.select().from(materials).where(eq(materials.id, numericId)).limit(1),
+    db.select().from(topics).orderBy(asc(topics.label)),
+  ]);
 
   if (!material) {
     notFound();
@@ -36,7 +35,7 @@ export default async function EditMaterialPage({ params }: Props) {
         ← Все материалы
       </Link>
       <h1 className="text-xl font-bold mb-6">Редактировать материал</h1>
-      <MaterialForm action={action} material={material} />
+      <MaterialForm action={action} material={material} topics={topicsList} />
     </main>
   );
 }
