@@ -1,4 +1,4 @@
-.PHONY: deploy migrate logs restart stop ps
+.PHONY: deploy migrate logs restart stop ps create-user
 
 # Пересобрать и перезапустить приложение
 deploy:
@@ -6,6 +6,7 @@ deploy:
 
 # Применить миграции
 migrate:
+	docker compose build migrate
 	docker compose --profile migrate run --rm migrate
 
 # Логи приложения (следить в реальном времени)
@@ -26,4 +27,5 @@ ps:
 
 # Создать пользователя: make create-user EMAIL=... HASH=...
 create-user:
+	docker compose build migrate
 	USER_EMAIL='$(EMAIL)' USER_HASH='$(HASH)' docker compose --profile migrate run --rm migrate node scripts/create-user.mjs
