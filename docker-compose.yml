@@ -13,6 +13,7 @@ services:
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_PUBLIC_URL: ${S3_PUBLIC_URL}
+      SECURE_COOKIES: ${SECURE_COOKIES:-false}
 
   # Запускать явно перед деплоем: docker compose --profile migrate run --rm migrate
   migrate:
