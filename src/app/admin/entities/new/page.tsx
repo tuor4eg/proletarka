@@ -1,0 +1,41 @@
+import Link from "next/link";
+import { createEntity } from "../actions";
+import { inputClass, Field } from "@/components/MaterialForm";
+import { ImageUpload } from "@/components/ImageUpload";
+
+export default function NewEntityPage() {
+  return (
+    <main className="max-w-lg mx-auto px-4 py-6">
+      <Link href="/admin/entities" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
+        ← Все карточки
+      </Link>
+      <h1 className="text-xl font-bold mb-6">Новый человек</h1>
+      <form action={createEntity} className="flex flex-col gap-4">
+        <Field label="Имя *">
+          <input name="name" type="text" required className={inputClass} />
+        </Field>
+        <Field label="Краткая биография">
+          <textarea name="shortBio" rows={3} className={inputClass} />
+        </Field>
+        <div className="flex gap-4">
+          <Field label="Год рождения">
+            <input name="birthYear" type="number" min={1800} max={2100} className={inputClass} />
+          </Field>
+          <Field label="Год смерти">
+            <input name="deathYear" type="number" min={1800} max={2100} className={inputClass} />
+          </Field>
+        </div>
+        <Field label="Годы жизни (если точные неизвестны)" hint="Например: «не позднее 1917» или «ок. 1890–1943»">
+          <input name="yearsLabel" type="text" className={inputClass} />
+        </Field>
+        <ImageUpload fileInputName="mainPhotoFile" urlInputName="mainPhotoPath" label="Фото" />
+        <button
+          type="submit"
+          className="mt-2 bg-black text-white text-sm font-medium rounded-xl px-4 py-3 hover:bg-gray-800 transition-colors"
+        >
+          Сохранить
+        </button>
+      </form>
+    </main>
+  );
+}

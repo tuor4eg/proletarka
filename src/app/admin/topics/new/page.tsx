@@ -14,7 +14,7 @@ export default function NewTopicPage() {
           <input name="code" type="text" required pattern="[a-z0-9_]+" className={inputClass} />
         </Field>
         <Field label="Название *">
-          <input name="label" type="text" required className={inputClass} />
+          <input name="title" type="text" required className={inputClass} />
         </Field>
         <button
           type="submit"

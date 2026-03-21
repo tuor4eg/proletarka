@@ -8,7 +8,7 @@ import { topics } from "@/db/schema";
 function parseTopicForm(formData: FormData) {
   return {
     code: (formData.get("code") as string).trim(),
-    label: (formData.get("label") as string).trim(),
+    title: (formData.get("title") as string).trim(),
   };
 }
 

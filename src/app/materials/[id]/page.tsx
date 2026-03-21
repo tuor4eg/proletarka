@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { materials, topics } from "@/db/schema";
-import { eq, getTableColumns } from "drizzle-orm";
+import { materials } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -17,12 +17,8 @@ export default async function MaterialPage({ params }: Props) {
   }
 
   const [material] = await db
-    .select({
-      ...getTableColumns(materials),
-      topicLabel: topics.label,
-    })
+    .select()
     .from(materials)
-    .innerJoin(topics, eq(materials.topicId, topics.id))
     .where(eq(materials.id, numericId))
     .limit(1);
 
@@ -30,7 +26,7 @@ export default async function MaterialPage({ params }: Props) {
     notFound();
   }
 
-  const { title, topicLabel, yearFrom, yearTo, content, sourceUrl } = material;
+  const { title, yearFrom, yearTo, content, sourceUrl, coverImagePath } = material;
 
   const yearLabel =
     yearFrom && yearTo
@@ -44,11 +40,17 @@ export default async function MaterialPage({ params }: Props) {
       <Link href="/" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
         ← Назад
       </Link>
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <span>{topicLabel}</span>
-        {yearLabel && <span>· {yearLabel}</span>}
-      </div>
+      {yearLabel && (
+        <p className="text-sm text-gray-500 mb-2">{yearLabel}</p>
+      )}
       <h1 className="text-xl font-bold leading-snug mb-4">{title}</h1>
+      {coverImagePath && (
+        <img
+          src={coverImagePath}
+          alt={title}
+          className="w-full rounded-xl mb-4 object-cover max-h-80"
+        />
+      )}
       {content && (
         <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
           {content}

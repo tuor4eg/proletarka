@@ -1,12 +1,36 @@
+"use client";
+
+import { useState } from "react";
 import { InferSelectModel } from "drizzle-orm";
-import { materials, topics } from "@/db/schema";
+import { materials } from "@/db/schema";
+import { ImageUpload } from "@/components/ImageUpload";
 
 type Material = InferSelectModel<typeof materials>;
-type Topic = InferSelectModel<typeof topics>;
+
+export type EntityOption = {
+  id: number;
+  type: "person";
+  displayName: string;
+};
+
+export type TopicOption = {
+  id: number;
+  title: string;
+};
 
 export const STATUSES = [
   { value: "draft", label: "Черновик" },
   { value: "published", label: "Опубликовано" },
+] as const;
+
+export const MATERIAL_TYPES = [
+  { value: "article", label: "Статья" },
+  { value: "photo", label: "Фото" },
+  { value: "document", label: "Документ" },
+] as const;
+
+const ENTITY_TYPES = [
+  { value: "person", label: "Человек" },
 ] as const;
 
 export const inputClass =
@@ -33,10 +57,30 @@ export function Field({
 type Props = {
   action: (formData: FormData) => Promise<void>;
   material?: Material;
-  topics: Topic[];
+  entities: EntityOption[];
+  topics: TopicOption[];
+  selectedTopicIds?: number[];
 };
 
-export function MaterialForm({ action, material, topics }: Props) {
+export function MaterialForm({ action, material, entities, topics, selectedTopicIds = [] }: Props) {
+  const initialEntity = material?.entityId
+    ? entities.find((e) => e.id === material.entityId) ?? null
+    : null;
+
+  const [entityType, setEntityType] = useState<"person" | "">(
+    initialEntity?.type ?? ""
+  );
+  const [entityId, setEntityId] = useState<string>(
+    material?.entityId?.toString() ?? ""
+  );
+
+  const filteredEntities = entities.filter((e) => e.type === entityType);
+
+  function handleEntityTypeChange(value: "person" | "") {
+    setEntityType(value);
+    setEntityId("");
+  }
+
   return (
     <form action={action} className="flex flex-col gap-4">
       <Field label="Заголовок *">
@@ -49,14 +93,63 @@ export function MaterialForm({ action, material, topics }: Props) {
         />
       </Field>
 
-      <Field label="Тема *">
-        <select name="topicId" required defaultValue={material?.topicId ?? ""} className={inputClass}>
-          <option value="">— выбрать —</option>
-          {topics.map((topic) => (
-            <option key={topic.id} value={topic.id}>{topic.label}</option>
+      <Field label="Тип *">
+        <select name="materialType" required defaultValue={material?.materialType ?? "article"} className={inputClass}>
+          {MATERIAL_TYPES.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
           ))}
         </select>
       </Field>
+
+      <Field label="Тип карточки">
+        <select
+          value={entityType}
+          onChange={(e) => handleEntityTypeChange(e.target.value as "person" | "")}
+          className={inputClass}
+        >
+          <option value="">— без карточки —</option>
+          {ENTITY_TYPES.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+      </Field>
+
+      {entityType && (
+        <Field label="Карточка">
+          <select
+            name="entityId"
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">— выбрать —</option>
+            {filteredEntities.map((entity) => (
+              <option key={entity.id} value={entity.id}>{entity.displayName}</option>
+            ))}
+          </select>
+        </Field>
+      )}
+
+      {!entityType && <input type="hidden" name="entityId" value="" />}
+
+      {topics.length > 0 && (
+        <Field label="Темы">
+          <div className="flex flex-col gap-1.5 pt-0.5">
+            {topics.map((topic) => (
+              <label key={topic.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="topicIds"
+                  value={topic.id}
+                  defaultChecked={selectedTopicIds.includes(topic.id)}
+                  className="rounded"
+                />
+                {topic.title}
+              </label>
+            ))}
+          </div>
+        </Field>
+      )}
 
       <Field label="Краткое описание">
         <textarea
@@ -98,6 +191,13 @@ export function MaterialForm({ action, material, topics }: Props) {
           />
         </Field>
       </div>
+
+      <ImageUpload
+        fileInputName="coverImageFile"
+        urlInputName="coverImagePath"
+        defaultUrl={material?.coverImagePath}
+        label="Обложка"
+      />
 
       <Field label="Ссылка на источник">
         <input

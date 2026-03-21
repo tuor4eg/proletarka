@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq, asc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { materials, topics } from "@/db/schema";
+import { materials, entities, people, topics, materialTopics } from "@/db/schema";
 import { updateMaterial } from "../actions";
 import { MaterialForm } from "@/components/MaterialForm";
 
@@ -18,15 +18,30 @@ export default async function EditMaterialPage({ params }: Props) {
     notFound();
   }
 
-  const [[material], topicsList] = await Promise.all([
+  const [[material], entityRows, topicRows, selectedRows] = await Promise.all([
     db.select().from(materials).where(eq(materials.id, numericId)).limit(1),
-    db.select().from(topics).orderBy(asc(topics.label)),
+    db
+      .select({ id: entities.id, type: entities.type, personName: people.name })
+      .from(entities)
+      .leftJoin(people, eq(entities.personId, people.id)),
+    db.select({ id: topics.id, title: topics.title }).from(topics),
+    db
+      .select({ topicId: materialTopics.topicId })
+      .from(materialTopics)
+      .where(eq(materialTopics.materialId, numericId)),
   ]);
 
   if (!material) {
     notFound();
   }
 
+  const entitiesList = entityRows.map((r) => ({
+    id: r.id,
+    type: r.type,
+    displayName: r.personName ?? r.id.toString(),
+  }));
+
+  const selectedTopicIds = selectedRows.map((r) => r.topicId);
   const action = updateMaterial.bind(null, numericId);
 
   return (
@@ -35,7 +50,7 @@ export default async function EditMaterialPage({ params }: Props) {
         ← Все материалы
       </Link>
       <h1 className="text-xl font-bold mb-6">Редактировать материал</h1>
-      <MaterialForm action={action} material={material} topics={topicsList} />
+      <MaterialForm action={action} material={material} entities={entitiesList} topics={topicRows} selectedTopicIds={selectedTopicIds} />
     </main>
   );
 }

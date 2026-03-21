@@ -3,5 +3,5 @@ import { deleteSession } from "@/lib/session";
 
 export async function POST() {
   await deleteSession();
-  redirect("/admin/login");
+  redirect("/login");
 }

@@ -1,15 +1,21 @@
 import Link from "next/link";
-import { InferSelectModel } from "drizzle-orm";
-import { materials } from "@/db/schema";
 
-type MaterialWithTopic = InferSelectModel<typeof materials> & { topicLabel: string };
+type MaterialCardProps = {
+  id: number;
+  title: string;
+  summary: string | null;
+  yearFrom: number | null;
+  yearTo: number | null;
+  personName: string | null;
+  topics: string[];
+};
 
 type Props = {
-  material: MaterialWithTopic;
+  material: MaterialCardProps;
 };
 
 export function MaterialCard({ material }: Props) {
-  const { title, summary, topicLabel, yearFrom, yearTo } = material;
+  const { id, title, summary, yearFrom, yearTo, personName, topics } = material;
 
   const yearLabel =
     yearFrom && yearTo
@@ -18,13 +24,28 @@ export function MaterialCard({ material }: Props) {
       ? `${yearFrom}`
       : null;
 
+  const hasMeta = personName || topics.length > 0 || yearLabel;
+
   return (
-    <Link href={`/materials/${material.id}`}>
+    <Link href={`/materials/${id}`}>
       <div className="rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 hover:border-gray-400 transition-colors">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>{topicLabel}</span>
-          {yearLabel && <span>· {yearLabel}</span>}
-        </div>
+        {hasMeta && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {personName && (
+              <span className="text-xs bg-gray-100 text-gray-700 rounded-full px-2.5 py-0.5">
+                {personName}
+              </span>
+            )}
+            {topics.map((t) => (
+              <span key={t} className="text-xs bg-gray-100 text-gray-700 rounded-full px-2.5 py-0.5">
+                {t}
+              </span>
+            ))}
+            {yearLabel && (
+              <span className="text-xs text-gray-400">{yearLabel}</span>
+            )}
+          </div>
+        )}
         <h2 className="text-base font-semibold leading-snug">{title}</h2>
         {summary && <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>}
       </div>

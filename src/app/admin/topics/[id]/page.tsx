@@ -38,7 +38,7 @@ export default async function EditTopicPage({ params }: Props) {
           <input name="code" type="text" required pattern="[a-z0-9_]+" defaultValue={topic.code} className={inputClass} />
         </Field>
         <Field label="Название *">
-          <input name="label" type="text" required defaultValue={topic.label} className={inputClass} />
+          <input name="title" type="text" required defaultValue={topic.title} className={inputClass} />
         </Field>
         <button
           type="submit"
