@@ -27,9 +27,12 @@ export default async function AdminPage() {
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-800">← Сайт</Link>
           <Link href="/admin/entities" className="text-sm text-gray-500 hover:text-gray-800">Карточки</Link>
           <Link href="/admin/topics" className="text-sm text-gray-500 hover:text-gray-800">Темы</Link>
-          <form action="/admin/logout" method="POST" className="ml-auto">
-            <button type="submit" className="text-sm text-gray-500 hover:text-gray-800">Выйти</button>
-          </form>
+          <div className="ml-auto flex items-center gap-4">
+            <Link href="/admin/settings" className="text-sm text-gray-500 hover:text-gray-800">Настройки</Link>
+            <form action="/admin/logout" method="POST">
+              <button type="submit" className="text-sm text-gray-500 hover:text-gray-800">Выйти</button>
+            </form>
+          </div>
         </div>
       </div>
       {items.length === 0 ? (
