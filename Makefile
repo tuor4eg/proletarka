@@ -25,7 +25,7 @@ stop:
 ps:
 	docker compose ps
 
-# Создать пользователя: make create-user EMAIL=... HASH=...
+# Создать первого администратора (отредактировать scripts/seed-admin.sql перед запуском)
 create-user:
 	docker compose build migrate
-	USER_EMAIL='$(EMAIL)' USER_HASH='$(HASH)' docker compose --profile migrate run --rm migrate node scripts/create-user.mjs
+	docker compose --profile migrate run --rm migrate node scripts/seed-admin.mjs
