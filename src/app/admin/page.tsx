@@ -1,16 +1,37 @@
 import Link from "next/link";
-import { desc } from "drizzle-orm";
+import { desc, asc, ilike, eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { materials } from "@/db/schema";
+import { AdminFilters } from "@/components/AdminFilters";
+import { Suspense } from "react";
 
 const STATUS_LABEL: Record<string, string> = { draft: "Черновик", published: "Опубл." };
 const TYPE_LABEL: Record<string, string> = { article: "Статья", photo: "Фото", document: "Документ" };
 
-export default async function AdminPage() {
-  const items = await db.select().from(materials).orderBy(desc(materials.createdAt));
+type SearchParams = Promise<{ q?: string; status?: string; type?: string; sort?: string }>;
 
-  const published = items.filter((i) => i.status === "published").length;
-  const drafts = items.filter((i) => i.status === "draft").length;
+export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
+  const { q, status, type, sort = "date_desc" } = await searchParams;
+
+  const conditions = [
+    q ? ilike(materials.title, `%${q}%`) : undefined,
+    status ? eq(materials.status, status as typeof materials.$inferSelect["status"]) : undefined,
+    type ? eq(materials.materialType, type as typeof materials.$inferSelect["materialType"]) : undefined,
+  ].filter(Boolean) as Parameters<typeof and>;
+
+  const orderBy =
+    sort === "date_asc" ? asc(materials.createdAt) :
+    sort === "title_asc" ? asc(materials.title) :
+    sort === "title_desc" ? desc(materials.title) :
+    desc(materials.createdAt);
+
+  const [items, allItems] = await Promise.all([
+    db.select().from(materials).where(conditions.length ? and(...conditions) : undefined).orderBy(orderBy),
+    db.select({ status: materials.status }).from(materials),
+  ]);
+
+  const published = allItems.filter((i) => i.status === "published").length;
+  const drafts = allItems.filter((i) => i.status === "draft").length;
 
   return (
     <div className="py-6">
@@ -24,10 +45,13 @@ export default async function AdminPage() {
         </Link>
       </div>
       <p className="text-xs text-gray-400 mb-5">
-        {items.length} всего · {published} опубликовано · {drafts} черновиков
+        {allItems.length} всего · {published} опубликовано · {drafts} черновиков
       </p>
+      <Suspense>
+        <AdminFilters q={q ?? ""} status={status ?? ""} type={type ?? ""} sort={sort} showStatus showType />
+      </Suspense>
       {items.length === 0 ? (
-        <p className="text-sm text-gray-500">Материалов пока нет.</p>
+        <p className="text-sm text-gray-500">Ничего не найдено.</p>
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
           {items.map((item) => (
