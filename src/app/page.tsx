@@ -1,14 +1,18 @@
 import { db } from "@/db";
 import { materials, entities, people, materialTopics, topics } from "@/db/schema";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, count } from "drizzle-orm";
 import { MaterialCard } from "@/components/MaterialCard";
 import { FilterBar } from "@/components/FilterBar";
 import { PublicNavWrapper } from "@/components/PublicNavWrapper";
+import { Pagination } from "@/components/Pagination";
 
-type SearchParams = Promise<{ topic?: string }>;
+const PAGE_SIZE = 12;
+
+type SearchParams = Promise<{ topic?: string; page?: string }>;
 
 export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
-  const { topic } = await searchParams;
+  const { topic, page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
 
   const activeTopics = topic ? topic.split(",").filter(Boolean) : [];
 
@@ -24,8 +28,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         )
       : undefined;
 
-  const [allTopics, rows] = await Promise.all([
+  const where = and(eq(materials.status, "published"), topicFilter);
+
+  const [allTopics, [{ total }], rows] = await Promise.all([
     db.select({ code: topics.code, title: topics.title }).from(topics).orderBy(topics.title),
+    db.select({ total: count() }).from(materials).where(where),
     db
       .select({
         id: materials.id,
@@ -41,9 +48,13 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       .leftJoin(people, eq(entities.personId, people.id))
       .leftJoin(materialTopics, eq(materials.id, materialTopics.materialId))
       .leftJoin(topics, eq(materialTopics.topicId, topics.id))
-      .where(and(eq(materials.status, "published"), topicFilter))
-      .orderBy(desc(materials.createdAt)),
+      .where(where)
+      .orderBy(desc(materials.createdAt))
+      .limit(PAGE_SIZE)
+      .offset((page - 1) * PAGE_SIZE),
   ]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const order: number[] = [];
   const itemsMap = new Map<number, {
@@ -81,11 +92,14 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         {items.length === 0 ? (
           <p className="text-gray-500 text-sm mt-6">Материалов пока нет.</p>
         ) : (
-          <div className="flex flex-col gap-4 mt-6">
-            {items.map((material) => (
-              <MaterialCard key={material.id} material={material} />
-            ))}
-          </div>
+          <>
+            <div className="flex flex-col gap-4 mt-6">
+              {items.map((material) => (
+                <MaterialCard key={material.id} material={material} />
+              ))}
+            </div>
+            <Pagination page={page} totalPages={totalPages} searchParams={{ topic }} />
+          </>
         )}
       </main>
     </>

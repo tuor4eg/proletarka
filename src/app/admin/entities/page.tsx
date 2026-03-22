@@ -1,15 +1,19 @@
 import Link from "next/link";
-import { eq, ilike, asc, desc, and, sql } from "drizzle-orm";
+import { eq, ilike, asc, desc, and, sql, count } from "drizzle-orm";
 import { Suspense } from "react";
 import { db } from "@/db";
 import { entities, people } from "@/db/schema";
 import { AdminFilters } from "@/components/AdminFilters";
 import { LetterFilter } from "@/components/LetterFilter";
+import { Pagination } from "@/components/Pagination";
 
-type SearchParams = Promise<{ q?: string; sort?: string; letter?: string }>;
+const PAGE_SIZE = 20;
+
+type SearchParams = Promise<{ q?: string; sort?: string; letter?: string; page?: string }>;
 
 export default async function EntitiesPage({ searchParams }: { searchParams: SearchParams }) {
-  const { q, sort = "title_asc", letter } = await searchParams;
+  const { q, sort = "title_asc", letter, page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
 
   const orderBy =
     sort === "title_desc" ? desc(people.name) :
@@ -22,18 +26,28 @@ export default async function EntitiesPage({ searchParams }: { searchParams: Sea
     letter ? ilike(people.name, `${letter}%`) : undefined,
   ].filter(Boolean) as Parameters<typeof and>;
 
-  const [rows, letterRows] = await Promise.all([
+  const where = conditions.length ? and(...conditions) : undefined;
+
+  const [rows, [{ total }], letterRows] = await Promise.all([
     db
       .select({ id: entities.id, type: entities.type, personName: people.name })
       .from(entities)
       .leftJoin(people, eq(entities.personId, people.id))
-      .where(conditions.length ? and(...conditions) : undefined)
-      .orderBy(orderBy),
+      .where(where)
+      .orderBy(orderBy)
+      .limit(PAGE_SIZE)
+      .offset((page - 1) * PAGE_SIZE),
+    db
+      .select({ total: count() })
+      .from(entities)
+      .leftJoin(people, eq(entities.personId, people.id))
+      .where(where),
     db
       .selectDistinct({ letter: sql<string>`UPPER(LEFT(${people.name}, 1))` })
       .from(people),
   ]);
 
+  const totalPages = Math.ceil(total / PAGE_SIZE);
   const availableLetters = letterRows.map((r) => r.letter).filter(Boolean);
 
   return (
@@ -54,18 +68,21 @@ export default async function EntitiesPage({ searchParams }: { searchParams: Sea
       {rows.length === 0 ? (
         <p className="text-sm text-gray-500">Ничего не найдено.</p>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
-          {rows.map((row) => (
-            <Link
-              key={row.id}
-              href={`/admin/entities/${row.id}`}
-              className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-sm font-medium flex-1">{row.personName ?? `#${row.id}`}</span>
-              <span className="text-xs text-gray-400">Человек</span>
-            </Link>
-          ))}
-        </div>
+        <>
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+            {rows.map((row) => (
+              <Link
+                key={row.id}
+                href={`/admin/entities/${row.id}`}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm font-medium flex-1">{row.personName ?? `#${row.id}`}</span>
+                <span className="text-xs text-gray-400">Человек</span>
+              </Link>
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} searchParams={{ q, sort, letter }} />
+        </>
       )}
     </div>
   );
