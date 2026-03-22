@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { User } from "lucide-react";
 import { db } from "@/db";
 import { entities, people } from "@/db/schema";
 import { eq, asc, desc, ilike, and, sql } from "drizzle-orm";
@@ -70,26 +71,20 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
         {rows.length === 0 ? (
           <p className="text-sm text-gray-500">Ничего не найдено.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="flex flex-col divide-y divide-gray-100">
             {rows.map((row) => {
               const years = formatYears(row.birthYear, row.deathYear, row.yearsLabel);
               return (
-                <Link key={row.entityId} href={`/people/${row.entityId}`} className="flex flex-col gap-2 group">
-                  <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+                <Link key={row.entityId} href={`/people/${row.entityId}`} className="flex items-center gap-3 py-3 hover:opacity-70 transition-opacity">
+                  <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
                     {row.mainPhotoPath ? (
-                      <img
-                        src={row.mainPhotoPath}
-                        alt={row.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      <img src={row.mainPhotoPath} alt={row.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-3xl font-light">
-                        {row.name[0]}
-                      </div>
+                      <User size={18} className="text-gray-300" />
                     )}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium group-hover:text-gray-600 transition-colors">{row.name}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{row.name}</p>
                     {years && <p className="text-xs text-gray-400">{years}</p>}
                   </div>
                 </Link>

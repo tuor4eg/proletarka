@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { BackButton } from "@/components/BackButton";
 import { PublicNavWrapper } from "@/components/PublicNavWrapper";
+import { CoverImage } from "@/components/CoverImage";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -48,11 +49,7 @@ export default async function MaterialPage({ params }: Props) {
       )}
       <h1 className="text-xl font-bold leading-snug mb-4">{title}</h1>
       {coverImagePath && (
-        <img
-          src={coverImagePath}
-          alt={title}
-          className="w-full rounded-xl mb-4 object-cover max-h-80"
-        />
+        <CoverImage src={coverImagePath} alt={title} />
       )}
       {content && (
         <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
