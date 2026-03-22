@@ -48,25 +48,13 @@ function DocumentList({ items }: { items: Material[] }) {
   return (
     <div className="flex flex-col divide-y divide-gray-100">
       {items.map((item) => (
-        <div key={item.id} className="py-3 flex items-center gap-3">
+        <Link key={item.id} href={`/materials/${item.id}`} className="py-3 flex items-center gap-3 hover:opacity-70 transition-opacity">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">{item.title}</p>
             {item.summary && <p className="text-xs text-gray-500 mt-0.5">{item.summary}</p>}
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <YearRange yearFrom={item.yearFrom} yearTo={item.yearTo} />
-            {item.sourceUrl && (
-              <a
-                href={item.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-500 hover:text-gray-900 underline underline-offset-2"
-              >
-                Источник
-              </a>
-            )}
-          </div>
-        </div>
+          <YearRange yearFrom={item.yearFrom} yearTo={item.yearTo} />
+        </Link>
       ))}
     </div>
   );
