@@ -185,7 +185,7 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
             name="status"
             required
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => setStatus(e.target.value as Status)}
             className={inputClass}
           >
             {STATUSES.map(({ value, label }) => (
@@ -199,7 +199,7 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
             name="materialType"
             required
             value={materialType}
-            onChange={(e) => setMaterialType(e.target.value)}
+            onChange={(e) => setMaterialType(e.target.value as MaterialType)}
             className={inputClass}
           >
             {MATERIAL_TYPES.map(({ value, label }) => (
