@@ -9,6 +9,7 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { DeleteButton } from "@/components/DeleteButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { EditPageHeader } from "@/components/EditPageHeader";
+import { PublishToggle } from "@/components/PublishToggle";
 
 const TYPE_LABEL: Record<string, string> = { article: "Статья", photo: "Фото", document: "Документ" };
 const STATUS_LABEL: Record<string, string> = { draft: "Черновик", published: "Опубл." };
@@ -97,19 +98,21 @@ export default async function EditEntityPage({ params }: Props) {
         ) : (
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
             {linkedMaterials.map((m) => (
-              <Link
-                key={m.id}
-                href={`/admin/${m.id}`}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-sm font-medium flex-1 min-w-0 truncate">{m.title}</span>
-                <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[m.materialType]}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-                  m.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-                }`}>
-                  {STATUS_LABEL[m.status]}
-                </span>
-              </Link>
+              <div key={m.id} className="flex items-center gap-2 px-4 hover:bg-gray-50 transition-colors">
+                <Link
+                  href={`/admin/${m.id}`}
+                  className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
+                >
+                  <span className="text-sm font-medium flex-1 min-w-0 truncate">{m.title}</span>
+                  <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[m.materialType]}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                    m.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {STATUS_LABEL[m.status]}
+                  </span>
+                </Link>
+                <PublishToggle id={m.id} status={m.status} />
+              </div>
             ))}
           </div>
         )}

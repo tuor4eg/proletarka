@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { materials, materialTopics } from "@/db/schema";
@@ -31,7 +32,7 @@ function parseTopicIds(formData: FormData): number[] {
   return formData.getAll("topicIds").map(Number).filter(Boolean);
 }
 
-export async function createMaterial(formData: FormData) {
+export async function createMaterial(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const values = await parseFormData(formData);
   const topicIds = parseTopicIds(formData);
   const code = generateCode(values.title);
@@ -50,7 +51,9 @@ export async function createMaterial(formData: FormData) {
   redirect(`/admin/${inserted.id}${flashParam("Материал создан")}`);
 }
 
-export async function updateMaterial(id: number, formData: FormData) {
+export type ActionResult = { message: string; type: "success" | "error"; status?: string; materialType?: string } | null;
+
+export async function updateMaterial(id: number, _prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const [current] = await db
     .select({ coverImagePath: materials.coverImagePath })
     .from(materials)
@@ -76,7 +79,8 @@ export async function updateMaterial(id: number, formData: FormData) {
     );
   }
 
-  redirect(`/admin/${id}${flashParam("Сохранено")}`);
+  revalidatePath("/admin", "layout");
+  return { message: "Сохранено", type: "success", status: values.status, materialType: values.materialType };
 }
 
 export async function toggleMaterialStatus(id: number, currentStatus: string) {

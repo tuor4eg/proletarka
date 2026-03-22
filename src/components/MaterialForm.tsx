@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
+import type { ActionResult } from "@/app/admin/actions";
 import { InferSelectModel } from "drizzle-orm";
 import { materials } from "@/db/schema";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -57,7 +59,7 @@ export function Field({
 }
 
 type Props = {
-  action: (formData: FormData) => Promise<void>;
+  action: (prev: ActionResult, formData: FormData) => Promise<ActionResult>;
   deleteAction?: () => Promise<void>;
   material?: Material;
   entities: EntityOption[];
@@ -84,11 +86,34 @@ function FormActions({ deleteAction }: { deleteAction?: () => Promise<void> }) {
 }
 
 export function MaterialForm({ action, deleteAction, material, entities, topics, selectedTopicIds = [], defaultEntityId, defaultMaterialType }: Props) {
+  const [state, formAction] = useActionState(action, null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Prevent React 19's automatic form.reset() after action — we want edit forms to keep their values
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const prevent = (e: Event) => e.preventDefault();
+    form.addEventListener("reset", prevent);
+    return () => form.removeEventListener("reset", prevent);
+  }, []);
+
+  // After successful save, sync controlled fields from returned values and show toast
+  useEffect(() => {
+    if (!state) return;
+    if (state.type === "error") { toast.error(state.message); return; }
+    toast.success(state.message);
+    if (state.status) setStatus(state.status);
+    if (state.materialType) setMaterialType(state.materialType);
+  }, [state]);
+
   const initialEntityId = material?.entityId ?? defaultEntityId;
   const initialEntity = initialEntityId
     ? entities.find((e) => e.id === initialEntityId) ?? null
     : null;
 
+  const [status, setStatus] = useState(material?.status ?? "draft");
+  const [materialType, setMaterialType] = useState(material?.materialType ?? defaultMaterialType ?? "article");
   const [entityType, setEntityType] = useState<"person" | "">(
     initialEntity?.type ?? ""
   );
@@ -105,7 +130,7 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
 
   return (
     <>
-    <form action={action} className="grid grid-cols-[1fr_240px] gap-5 items-start w-full">
+    <form ref={formRef} action={formAction} className="grid grid-cols-[1fr_240px] gap-5 items-start w-full">
       {/* Left: main content */}
       <div className="flex flex-col gap-4">
         <Field label="Заголовок *">
@@ -159,7 +184,8 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
           <select
             name="status"
             required
-            defaultValue={material?.status ?? "draft"}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
             className={inputClass}
           >
             {STATUSES.map(({ value, label }) => (
@@ -172,7 +198,8 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
           <select
             name="materialType"
             required
-            defaultValue={material?.materialType ?? defaultMaterialType ?? "article"}
+            value={materialType}
+            onChange={(e) => setMaterialType(e.target.value)}
             className={inputClass}
           >
             {MATERIAL_TYPES.map(({ value, label }) => (
