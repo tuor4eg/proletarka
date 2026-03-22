@@ -1,14 +1,10 @@
-import Link from "next/link";
 import { createEntity } from "../actions";
 import { inputClass, Field } from "@/components/MaterialForm";
 import { ImageUpload } from "@/components/ImageUpload";
 
 export default function NewEntityPage() {
   return (
-    <main className="max-w-lg mx-auto px-4 py-6">
-      <Link href="/admin/entities" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
-        ← Все карточки
-      </Link>
+    <div className="py-6">
       <h1 className="text-xl font-bold mb-6">Новый человек</h1>
       <form action={createEntity} className="flex flex-col gap-4">
         <Field label="Имя *">
@@ -28,7 +24,7 @@ export default function NewEntityPage() {
         <Field label="Годы жизни (если точные неизвестны)" hint="Например: «не позднее 1917» или «ок. 1890–1943»">
           <input name="yearsLabel" type="text" className={inputClass} />
         </Field>
-        <ImageUpload fileInputName="mainPhotoFile" urlInputName="mainPhotoPath" label="Фото" />
+        <ImageUpload fileInputName="mainPhotoFile" urlInputName="mainPhotoPath" label="Обложка" />
         <button
           type="submit"
           className="mt-2 bg-black text-white text-sm font-medium rounded-xl px-4 py-3 hover:bg-gray-800 transition-colors"
@@ -36,6 +32,6 @@ export default function NewEntityPage() {
           Сохранить
         </button>
       </form>
-    </main>
+    </div>
   );
 }

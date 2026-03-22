@@ -4,6 +4,7 @@ import { useState } from "react";
 import { InferSelectModel } from "drizzle-orm";
 import { materials } from "@/db/schema";
 import { ImageUpload } from "@/components/ImageUpload";
+import { DeleteButton } from "@/components/DeleteButton";
 
 type Material = InferSelectModel<typeof materials>;
 
@@ -47,7 +48,7 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</label>
       {hint && <p className="text-xs text-gray-400">{hint}</p>}
       {children}
     </div>
@@ -56,22 +57,26 @@ export function Field({
 
 type Props = {
   action: (formData: FormData) => Promise<void>;
+  deleteAction?: () => Promise<void>;
   material?: Material;
   entities: EntityOption[];
   topics: TopicOption[];
   selectedTopicIds?: number[];
+  defaultEntityId?: number;
+  defaultMaterialType?: string;
 };
 
-export function MaterialForm({ action, material, entities, topics, selectedTopicIds = [] }: Props) {
-  const initialEntity = material?.entityId
-    ? entities.find((e) => e.id === material.entityId) ?? null
+export function MaterialForm({ action, deleteAction, material, entities, topics, selectedTopicIds = [], defaultEntityId, defaultMaterialType }: Props) {
+  const initialEntityId = material?.entityId ?? defaultEntityId;
+  const initialEntity = initialEntityId
+    ? entities.find((e) => e.id === initialEntityId) ?? null
     : null;
 
   const [entityType, setEntityType] = useState<"person" | "">(
     initialEntity?.type ?? ""
   );
   const [entityId, setEntityId] = useState<string>(
-    material?.entityId?.toString() ?? ""
+    initialEntityId?.toString() ?? ""
   );
 
   const filteredEntities = entities.filter((e) => e.type === entityType);
@@ -82,151 +87,175 @@ export function MaterialForm({ action, material, entities, topics, selectedTopic
   }
 
   return (
-    <form action={action} className="flex flex-col gap-4">
-      <Field label="Заголовок *">
-        <input
-          name="title"
-          type="text"
-          required
-          defaultValue={material?.title ?? ""}
-          className={inputClass}
-        />
-      </Field>
-
-      <Field label="Тип *">
-        <select name="materialType" required defaultValue={material?.materialType ?? "article"} className={inputClass}>
-          {MATERIAL_TYPES.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-      </Field>
-
-      <Field label="Тип карточки">
-        <select
-          value={entityType}
-          onChange={(e) => handleEntityTypeChange(e.target.value as "person" | "")}
-          className={inputClass}
-        >
-          <option value="">— без карточки —</option>
-          {ENTITY_TYPES.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-      </Field>
-
-      {entityType && (
-        <Field label="Карточка">
-          <select
-            name="entityId"
-            value={entityId}
-            onChange={(e) => setEntityId(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">— выбрать —</option>
-            {filteredEntities.map((entity) => (
-              <option key={entity.id} value={entity.id}>{entity.displayName}</option>
-            ))}
-          </select>
-        </Field>
-      )}
-
-      {!entityType && <input type="hidden" name="entityId" value="" />}
-
-      {topics.length > 0 && (
-        <Field label="Темы">
-          <div className="flex flex-col gap-1.5 pt-0.5">
-            {topics.map((topic) => (
-              <label key={topic.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="topicIds"
-                  value={topic.id}
-                  defaultChecked={selectedTopicIds.includes(topic.id)}
-                  className="rounded"
-                />
-                {topic.title}
-              </label>
-            ))}
-          </div>
-        </Field>
-      )}
-
-      <Field label="Краткое описание">
-        <textarea
-          name="summary"
-          rows={2}
-          defaultValue={material?.summary ?? ""}
-          className={inputClass}
-        />
-      </Field>
-
-      <Field label="Текст">
-        <textarea
-          name="content"
-          rows={6}
-          defaultValue={material?.content ?? ""}
-          className={inputClass}
-        />
-      </Field>
-
-      <div className="flex gap-4">
-        <Field label="Год (от)">
+    <>
+    <form id="material-form" action={action} className="grid grid-cols-[1fr_240px] gap-5 items-start w-full">
+      {/* Left: main content */}
+      <div className="flex flex-col gap-4">
+        <Field label="Заголовок *">
           <input
-            name="yearFrom"
-            type="number"
-            min={1800}
-            max={2100}
-            defaultValue={material?.yearFrom ?? ""}
+            name="title"
+            type="text"
+            required
+            defaultValue={material?.title ?? ""}
             className={inputClass}
           />
         </Field>
-        <Field label="Год (до)">
+
+        <Field label="Краткое описание">
+          <textarea
+            name="summary"
+            rows={2}
+            defaultValue={material?.summary ?? ""}
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="Текст">
+          <textarea
+            name="content"
+            rows={10}
+            defaultValue={material?.content ?? ""}
+            className={inputClass}
+          />
+        </Field>
+
+        <ImageUpload
+          fileInputName="coverImageFile"
+          urlInputName="coverImagePath"
+          defaultUrl={material?.coverImagePath}
+          label="Обложка"
+        />
+
+        <Field label="Ссылка на источник">
           <input
-            name="yearTo"
-            type="number"
-            min={1800}
-            max={2100}
-            defaultValue={material?.yearTo ?? ""}
+            name="sourceUrl"
+            type="url"
+            defaultValue={material?.sourceUrl ?? ""}
             className={inputClass}
           />
         </Field>
       </div>
 
-      <ImageUpload
-        fileInputName="coverImageFile"
-        urlInputName="coverImagePath"
-        defaultUrl={material?.coverImagePath}
-        label="Обложка"
-      />
+      {/* Right: meta sidebar */}
+      <div className="flex flex-col gap-3 bg-white border border-gray-200 rounded-xl p-4">
+        <Field label="Статус">
+          <select
+            name="status"
+            required
+            defaultValue={material?.status ?? "draft"}
+            className={inputClass}
+          >
+            {STATUSES.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </Field>
 
-      <Field label="Ссылка на источник">
-        <input
-          name="sourceUrl"
-          type="url"
-          defaultValue={material?.sourceUrl ?? ""}
-          className={inputClass}
-        />
-      </Field>
+        <Field label="Тип *">
+          <select
+            name="materialType"
+            required
+            defaultValue={material?.materialType ?? defaultMaterialType ?? "article"}
+            className={inputClass}
+          >
+            {MATERIAL_TYPES.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </Field>
 
-      <Field label="Статус">
-        <select
-          name="status"
-          required
-          defaultValue={material?.status ?? "draft"}
-          className={inputClass}
-        >
-          {STATUSES.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-      </Field>
+        <Field label="Тип карточки">
+          <select
+            value={entityType}
+            onChange={(e) => handleEntityTypeChange(e.target.value as "person" | "")}
+            className={inputClass}
+          >
+            <option value="">— без карточки —</option>
+            {ENTITY_TYPES.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </Field>
 
+        {entityType && (
+          <Field label="Карточка">
+            <select
+              name="entityId"
+              value={entityId}
+              onChange={(e) => setEntityId(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">— выбрать —</option>
+              {filteredEntities.map((entity) => (
+                <option key={entity.id} value={entity.id}>{entity.displayName}</option>
+              ))}
+            </select>
+          </Field>
+        )}
+
+        {!entityType && <input type="hidden" name="entityId" value="" />}
+
+        {topics.length > 0 && (
+          <Field label="Темы">
+            <div className="flex flex-col gap-1.5 pt-0.5">
+              {topics.map((topic) => (
+                <label key={topic.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="topicIds"
+                    value={topic.id}
+                    defaultChecked={selectedTopicIds.includes(topic.id)}
+                    className="rounded"
+                  />
+                  {topic.title}
+                </label>
+              ))}
+            </div>
+          </Field>
+        )}
+
+        <div className="flex gap-2">
+          <Field label="Год (от)">
+            <input
+              name="yearFrom"
+              type="number"
+              min={1800}
+              max={2100}
+              defaultValue={material?.yearFrom ?? ""}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Год (до)">
+            <input
+              name="yearTo"
+              type="number"
+              min={1800}
+              max={2100}
+              defaultValue={material?.yearTo ?? ""}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+
+      </div>
+
+    </form>
+    <div className="flex items-center gap-3 mt-5">
       <button
         type="submit"
-        className="mt-2 bg-black text-white text-sm font-medium rounded-xl px-4 py-3 hover:bg-gray-800 transition-colors"
+        form="material-form"
+        className="bg-black text-white text-sm font-medium rounded-xl px-5 py-2.5 hover:bg-gray-800 transition-colors"
       >
         Сохранить
       </button>
-    </form>
+      <a
+        href="/admin"
+        className="text-sm font-medium text-gray-500 border border-gray-200 rounded-xl px-5 py-2.5 hover:border-gray-400 hover:text-gray-700 transition-colors"
+      >
+        Отмена
+      </a>
+      {deleteAction && <DeleteButton action={deleteAction} />}
+    </div>
+    </>
   );
 }

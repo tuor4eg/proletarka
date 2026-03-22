@@ -77,3 +77,20 @@ export async function updateMaterial(id: number, formData: FormData) {
 
   redirect(`/admin`);
 }
+
+export async function deleteMaterial(id: number) {
+  const [current] = await db
+    .select({ coverImagePath: materials.coverImagePath })
+    .from(materials)
+    .where(eq(materials.id, id))
+    .limit(1);
+
+  if (current?.coverImagePath) {
+    await deleteImage(current.coverImagePath);
+  }
+
+  await db.delete(materialTopics).where(eq(materialTopics.materialId, id));
+  await db.delete(materials).where(eq(materials.id, id));
+
+  redirect("/admin");
+}

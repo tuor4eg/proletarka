@@ -1,13 +1,9 @@
-import Link from "next/link";
 import { createTopic } from "../actions";
 import { inputClass, Field } from "@/components/MaterialForm";
 
 export default function NewTopicPage() {
   return (
-    <main className="max-w-lg mx-auto px-4 py-6">
-      <Link href="/admin/topics" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
-        ← Все темы
-      </Link>
+    <div className="py-6">
       <h1 className="text-xl font-bold mb-6">Новая тема</h1>
       <form action={createTopic} className="flex flex-col gap-4">
         <Field label="Код *" hint="Латиница, без пробелов. Например: factory_today">
@@ -23,6 +19,6 @@ export default function NewTopicPage() {
           Сохранить
         </button>
       </form>
-    </main>
+    </div>
   );
 }

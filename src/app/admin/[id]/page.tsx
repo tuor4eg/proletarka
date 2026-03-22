@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { materials, entities, people, topics, materialTopics } from "@/db/schema";
-import { updateMaterial } from "../actions";
+import { updateMaterial, deleteMaterial } from "../actions";
 import { MaterialForm } from "@/components/MaterialForm";
 
 type Props = {
@@ -43,14 +42,12 @@ export default async function EditMaterialPage({ params }: Props) {
 
   const selectedTopicIds = selectedRows.map((r) => r.topicId);
   const action = updateMaterial.bind(null, numericId);
+  const deleteAction = deleteMaterial.bind(null, numericId);
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-6">
-      <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
-        ← Все материалы
-      </Link>
+    <div className="py-6">
       <h1 className="text-xl font-bold mb-6">Редактировать материал</h1>
-      <MaterialForm action={action} material={material} entities={entitiesList} topics={topicRows} selectedTopicIds={selectedTopicIds} />
-    </main>
+      <MaterialForm action={action} deleteAction={deleteAction} material={material} entities={entitiesList} topics={topicRows} selectedTopicIds={selectedTopicIds} />
+    </div>
   );
 }

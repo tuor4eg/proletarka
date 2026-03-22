@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { topics } from "@/db/schema";
 import { updateTopic, deleteTopic } from "../actions";
 import { inputClass, Field } from "@/components/MaterialForm";
+import { DeleteButton } from "@/components/DeleteButton";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -28,33 +28,32 @@ export default async function EditTopicPage({ params }: Props) {
   const deleteAction = deleteTopic.bind(null, numericId);
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-6">
-      <Link href="/admin/topics" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
-        ← Все темы
-      </Link>
+    <div className="py-6">
       <h1 className="text-xl font-bold mb-6">Редактировать тему</h1>
-      <form action={action} className="flex flex-col gap-4">
+      <form id="topic-update-form" action={action} className="flex flex-col gap-4">
         <Field label="Код *" hint="Латиница, без пробелов">
           <input name="code" type="text" required pattern="[a-z0-9_]+" defaultValue={topic.code} className={inputClass} />
         </Field>
         <Field label="Название *">
           <input name="title" type="text" required defaultValue={topic.title} className={inputClass} />
         </Field>
+      </form>
+      <div className="flex items-center gap-3 mt-4">
         <button
           type="submit"
-          className="mt-2 bg-black text-white text-sm font-medium rounded-xl px-4 py-3 hover:bg-gray-800 transition-colors"
+          form="topic-update-form"
+          className="bg-black text-white text-sm font-medium rounded-xl px-4 py-2.5 hover:bg-gray-800 transition-colors"
         >
           Сохранить
         </button>
-      </form>
-      <form action={deleteAction} className="mt-4">
-        <button
-          type="submit"
-          className="w-full text-sm text-red-600 border border-red-200 rounded-xl px-4 py-3 hover:bg-red-50 transition-colors"
+        <a
+          href="/admin/topics"
+          className="text-sm font-medium text-gray-500 border border-gray-200 rounded-xl px-4 py-2.5 hover:border-gray-400 hover:text-gray-700 transition-colors"
         >
-          Удалить тему
-        </button>
-      </form>
-    </main>
+          Отмена
+        </a>
+        <DeleteButton action={deleteAction} />
+      </div>
+    </div>
   );
 }
