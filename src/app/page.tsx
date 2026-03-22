@@ -72,6 +72,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
     <>
       <PublicNavWrapper />
       <main className="max-w-lg mx-auto px-4 py-6">
+        <img
+          src="/proletarka.jpg"
+          alt="Пролетарка"
+          className="w-full rounded-2xl mb-6 object-cover max-h-64"
+        />
         <FilterBar topics={allTopics} activeTopics={activeTopics} />
         {items.length === 0 ? (
           <p className="text-gray-500 text-sm mt-6">Материалов пока нет.</p>

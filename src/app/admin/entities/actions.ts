@@ -1,9 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { entities, people } from "@/db/schema";
+import { entities, people, materials, materialTopics } from "@/db/schema";
 import { generateCode } from "@/lib/generateCode";
 import { resolveImageUpload, deleteImage } from "@/lib/s3";
 import { flashParam } from "@/lib/flash";
@@ -62,6 +62,20 @@ export async function updateEntity(personId: number, formData: FormData) {
 }
 
 export async function deleteEntity(entityId: number, personId: number) {
+  const linkedMaterials = await db
+    .select({ id: materials.id, coverImagePath: materials.coverImagePath })
+    .from(materials)
+    .where(eq(materials.entityId, entityId));
+
+  if (linkedMaterials.length > 0) {
+    const materialIds = linkedMaterials.map((m) => m.id);
+    await db.delete(materialTopics).where(inArray(materialTopics.materialId, materialIds));
+    await db.delete(materials).where(inArray(materials.id, materialIds));
+
+    const imagesToDelete = linkedMaterials.map((m) => m.coverImagePath).filter(Boolean) as string[];
+    await Promise.all(imagesToDelete.map((path) => deleteImage(path)));
+  }
+
   await db.delete(entities).where(eq(entities.id, entityId));
   await db.delete(people).where(eq(people.id, personId));
   redirect(`/admin/entities${flashParam("Запись удалена")}`);

@@ -71,7 +71,14 @@ export default async function EditEntityPage({ params }: Props) {
         <ImageUpload fileInputName="mainPhotoFile" urlInputName="mainPhotoPath" defaultUrl={person?.mainPhotoPath} label="Обложка" />
         <div className="flex items-center gap-3 mt-0">
           <SubmitButton label="Сохранить" />
-          <DeleteButton action={deleteAction} />
+          <DeleteButton
+            action={deleteAction}
+            confirmBody={
+              linkedMaterials.length > 0
+                ? `Будут удалены все связанные материалы (${linkedMaterials.length} шт.). Это действие нельзя отменить.`
+                : "Это действие нельзя отменить."
+            }
+          />
         </div>
       </form>
 

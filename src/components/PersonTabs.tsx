@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Material = {
@@ -30,13 +31,13 @@ function ArticleList({ items }: { items: Material[] }) {
   return (
     <div className="flex flex-col divide-y divide-gray-100">
       {items.map((item) => (
-        <div key={item.id} className="py-4">
+        <Link key={item.id} href={`/materials/${item.id}`} className="py-4 block hover:opacity-70 transition-opacity">
           <div className="flex items-start gap-2 mb-1">
             <span className="text-sm font-medium flex-1">{item.title}</span>
             <YearRange yearFrom={item.yearFrom} yearTo={item.yearTo} />
           </div>
           {item.summary && <p className="text-sm text-gray-500">{item.summary}</p>}
-        </div>
+        </Link>
       ))}
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useFormStatus } from "react-dom";
 import { Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ type Props = {
   icon?: boolean;
   disabled?: boolean;
   disabledTooltip?: string;
+  confirmBody?: string;
 };
 
 function DeleteSubmitButton() {
@@ -26,7 +28,7 @@ function DeleteSubmitButton() {
   );
 }
 
-export function DeleteButton({ action, label = "Удалить", icon = false, disabled = false, disabledTooltip }: Props) {
+export function DeleteButton({ action, label = "Удалить", icon = false, disabled = false, disabledTooltip, confirmBody = "Это действие нельзя отменить." }: Props) {
   const [open, setOpen] = useState(false);
 
   const triggerButton = icon ? (
@@ -64,12 +66,12 @@ export function DeleteButton({ action, label = "Удалить", icon = false, d
         triggerButton
       )}
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
             <h2 className="text-base font-semibold mb-2">Удалить?</h2>
-            <p className="text-sm text-gray-500 mb-6">Это действие нельзя отменить.</p>
+            <p className="text-sm text-gray-500 mb-6">{confirmBody}</p>
             <div className="flex gap-3">
               <button
                 type="button"
@@ -83,7 +85,8 @@ export function DeleteButton({ action, label = "Удалить", icon = false, d
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
