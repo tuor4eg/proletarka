@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useRef } from "react";
+import { triggerNavigationStart } from "@/components/NavigationProgress";
 
 const STATUSES = [
   { value: "", label: "Все статусы" },
@@ -61,6 +62,7 @@ export function AdminFilters({
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
+    triggerNavigationStart();
     router.push(`${pathname}?${params.toString()}`);
   }
 

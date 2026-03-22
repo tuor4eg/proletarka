@@ -9,11 +9,13 @@ export function NavigationProgress() {
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Hide when navigation completes
   useEffect(() => {
     setVisible(false);
   }, [pathname, searchParams]);
 
   useEffect(() => {
+    // Show on link clicks
     function handleClick(e: MouseEvent) {
       const target = (e.target as HTMLElement).closest("a");
       if (!target) return;
@@ -22,9 +24,17 @@ export function NavigationProgress() {
       timerRef.current = setTimeout(() => setVisible(true), 100);
     }
 
+    // Show on programmatic navigation (router.push)
+    function handleNavigationStart() {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setVisible(true);
+    }
+
     document.addEventListener("click", handleClick);
+    window.addEventListener("navigation-start", handleNavigationStart);
     return () => {
       document.removeEventListener("click", handleClick);
+      window.removeEventListener("navigation-start", handleNavigationStart);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
@@ -36,4 +46,8 @@ export function NavigationProgress() {
       <div className="h-full bg-gray-900 animate-progress" />
     </div>
   );
+}
+
+export function triggerNavigationStart() {
+  window.dispatchEvent(new Event("navigation-start"));
 }
