@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import type { ActionResult } from "@/app/admin/actions";
 import { InferSelectModel } from "drizzle-orm";
-import { materials } from "@/db/schema";
+import { materials, type MaterialType, type Status } from "@/db/schema";
 import { ImageUpload } from "@/components/ImageUpload";
 import { DeleteButton } from "@/components/DeleteButton";
 
@@ -66,7 +66,7 @@ type Props = {
   topics: TopicOption[];
   selectedTopicIds?: number[];
   defaultEntityId?: number;
-  defaultMaterialType?: string;
+  defaultMaterialType?: MaterialType;
 };
 
 function FormActions({ deleteAction }: { deleteAction?: () => Promise<void> }) {
@@ -103,8 +103,8 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
     if (!state) return;
     if (state.type === "error") { toast.error(state.message); return; }
     toast.success(state.message);
-    if (state.status) setStatus(state.status as "draft" | "published");
-    if (state.materialType) setMaterialType(state.materialType as "article" | "photo" | "document");
+    if (state.status) setStatus(state.status as Status);
+    if (state.materialType) setMaterialType(state.materialType as MaterialType);
   }, [state]);
 
   const initialEntityId = material?.entityId ?? defaultEntityId;
@@ -112,8 +112,8 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
     ? entities.find((e) => e.id === initialEntityId) ?? null
     : null;
 
-  const [status, setStatus] = useState<"draft" | "published">(material?.status ?? "draft");
-  const [materialType, setMaterialType] = useState<"article" | "photo" | "document">(material?.materialType ?? defaultMaterialType ?? "article");
+  const [status, setStatus] = useState<Status>(material?.status ?? "draft");
+  const [materialType, setMaterialType] = useState<MaterialType>(material?.materialType ?? defaultMaterialType ?? "article");
   const [entityType, setEntityType] = useState<"person" | "">(
     initialEntity?.type ?? ""
   );

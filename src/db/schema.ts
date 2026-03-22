@@ -5,6 +5,9 @@ export const statusEnum = pgEnum("status", ["draft", "published"]);
 export const roleEnum = pgEnum("role", ["admin"]);
 export const materialTypeEnum = pgEnum("material_type", ["article", "photo", "document"]);
 
+export type MaterialType = (typeof materialTypeEnum.enumValues)[number];
+export type Status = (typeof statusEnum.enumValues)[number];
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),

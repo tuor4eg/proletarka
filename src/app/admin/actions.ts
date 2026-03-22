@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { materials, materialTopics } from "@/db/schema";
+import { materials, materialTopics, type MaterialType, type Status } from "@/db/schema";
 import { generateCode } from "@/lib/generateCode";
 import { resolveImageUpload, deleteImage } from "@/lib/s3";
 import { flashParam } from "@/lib/flash";
@@ -51,7 +51,7 @@ export async function createMaterial(_prev: ActionResult, formData: FormData): P
   redirect(`/admin/${inserted.id}${flashParam("Материал создан")}`);
 }
 
-export type ActionResult = { message: string; type: "success" | "error"; status?: string; materialType?: string } | null;
+export type ActionResult = { message: string; type: "success" | "error"; status?: Status; materialType?: MaterialType } | null;
 
 export async function updateMaterial(id: number, _prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const [current] = await db
