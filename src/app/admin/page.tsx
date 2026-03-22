@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { desc, asc, ilike, eq, and, count } from "drizzle-orm";
 import { db } from "@/db";
-import { materials } from "@/db/schema";
+import { materials, type MaterialType, type Status } from "@/db/schema";
 import { AdminFilters } from "@/components/AdminFilters";
 import { PublishToggle } from "@/components/PublishToggle";
 import { Pagination } from "@/components/Pagination";
 import { Suspense } from "react";
 
-const STATUS_LABEL: Record<string, string> = { draft: "Черновик", published: "Опубл." };
-const TYPE_LABEL: Record<string, string> = { article: "Статья", photo: "Фото", document: "Документ" };
+const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." };
+const TYPE_LABEL: Record<MaterialType, string> = { article: "Статья", photo: "Фото", document: "Документ" };
 const PAGE_SIZE = 20;
 
-type SearchParams = Promise<{ q?: string; status?: string; type?: string; sort?: string; page?: string }>;
+type SearchParams = Promise<{ q?: string; status?: Status; type?: MaterialType; sort?: string; page?: string }>;
 
 export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
   const { q, status, type, sort = "date_desc", page: pageParam } = await searchParams;
@@ -19,8 +19,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
   const conditions = [
     q ? ilike(materials.title, `%${q}%`) : undefined,
-    status ? eq(materials.status, status as typeof materials.$inferSelect["status"]) : undefined,
-    type ? eq(materials.materialType, type as typeof materials.$inferSelect["materialType"]) : undefined,
+    status ? eq(materials.status, status) : undefined,
+    type ? eq(materials.materialType, type) : undefined,
   ].filter(Boolean) as Parameters<typeof and>;
 
   const where = conditions.length ? and(...conditions) : undefined;

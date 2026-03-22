@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { entities, people, topics } from "@/db/schema";
+import { entities, people, topics, type MaterialType } from "@/db/schema";
 import { createMaterial } from "../actions";
 import { MaterialForm } from "@/components/MaterialForm";
 
 type Props = {
-  searchParams: Promise<{ entityId?: string; materialType?: string }>;
+  searchParams: Promise<{ entityId?: string; materialType?: MaterialType }>;
 };
 
 export default async function NewMaterialPage({ searchParams }: Props) {

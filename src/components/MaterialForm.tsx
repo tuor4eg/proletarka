@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import type { ActionResult } from "@/app/admin/actions";
 import { InferSelectModel } from "drizzle-orm";
-import { materials, type MaterialType, type Status } from "@/db/schema";
+import { materials, type MaterialType, type Status, type EntityType } from "@/db/schema";
 import { ImageUpload } from "@/components/ImageUpload";
 import { DeleteButton } from "@/components/DeleteButton";
 
@@ -13,7 +13,7 @@ type Material = InferSelectModel<typeof materials>;
 
 export type EntityOption = {
   id: number;
-  type: "person";
+  type: EntityType;
   displayName: string;
 };
 
@@ -114,7 +114,7 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
 
   const [status, setStatus] = useState<Status>(material?.status ?? "draft");
   const [materialType, setMaterialType] = useState<MaterialType>(material?.materialType ?? defaultMaterialType ?? "article");
-  const [entityType, setEntityType] = useState<"person" | "">(
+  const [entityType, setEntityType] = useState<EntityType | "">(
     initialEntity?.type ?? ""
   );
   const [entityId, setEntityId] = useState<string>(
@@ -123,7 +123,7 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
 
   const filteredEntities = entities.filter((e) => e.type === entityType);
 
-  function handleEntityTypeChange(value: "person" | "") {
+  function handleEntityTypeChange(value: EntityType | "") {
     setEntityType(value);
     setEntityId("");
   }
@@ -211,7 +211,7 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
         <Field label="Тип карточки">
           <select
             value={entityType}
-            onChange={(e) => handleEntityTypeChange(e.target.value as "person" | "")}
+            onChange={(e) => handleEntityTypeChange(e.target.value as EntityType | "")}
             className={inputClass}
           >
             <option value="">— без карточки —</option>

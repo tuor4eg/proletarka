@@ -7,6 +7,7 @@ export const materialTypeEnum = pgEnum("material_type", ["article", "photo", "do
 
 export type MaterialType = (typeof materialTypeEnum.enumValues)[number];
 export type Status = (typeof statusEnum.enumValues)[number];
+export type EntityType = (typeof entityTypeEnum.enumValues)[number];
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),

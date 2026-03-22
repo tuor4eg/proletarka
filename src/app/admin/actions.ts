@@ -16,8 +16,8 @@ async function parseFormData(formData: FormData) {
 
   return {
     title: formData.get("title") as string,
-    materialType: formData.get("materialType") as typeof materials.$inferInsert["materialType"],
-    status: formData.get("status") as typeof materials.$inferInsert["status"],
+    materialType: formData.get("materialType") as MaterialType,
+    status: formData.get("status") as Status,
     entityId: entityIdRaw ? Number(entityIdRaw) : null,
     summary: (formData.get("summary") as string) || null,
     content: (formData.get("content") as string) || null,

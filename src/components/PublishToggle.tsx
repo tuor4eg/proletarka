@@ -4,10 +4,11 @@ import { useFormStatus } from "react-dom";
 import { Globe, GlobeLock } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toggleMaterialStatus } from "@/app/admin/actions";
+import { type Status } from "@/db/schema";
 
 type Props = {
   id: number;
-  status: string;
+  status: Status;
 };
 
 function ToggleButton({ isPublished }: { isPublished: boolean }) {
