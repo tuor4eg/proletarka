@@ -8,6 +8,7 @@ import { inputClass, Field } from "@/components/MaterialForm";
 import { ImageUpload } from "@/components/ImageUpload";
 import { DeleteButton } from "@/components/DeleteButton";
 import { SubmitButton } from "@/components/SubmitButton";
+import { EditPageHeader } from "@/components/EditPageHeader";
 
 const TYPE_LABEL: Record<string, string> = { article: "Статья", photo: "Фото", document: "Документ" };
 const STATUS_LABEL: Record<string, string> = { draft: "Черновик", published: "Опубл." };
@@ -47,6 +48,7 @@ export default async function EditEntityPage({ params }: Props) {
 
   return (
     <div className="py-6">
+      <EditPageHeader publicUrl={`/people/${numericId}`} isPublished />
       <h1 className="text-xl font-bold mb-6">Редактировать человека</h1>
       <form action={updateAction} className="flex flex-col gap-4">
         <Field label="Имя *">
@@ -69,12 +71,6 @@ export default async function EditEntityPage({ params }: Props) {
         <ImageUpload fileInputName="mainPhotoFile" urlInputName="mainPhotoPath" defaultUrl={person?.mainPhotoPath} label="Обложка" />
         <div className="flex items-center gap-3 mt-0">
           <SubmitButton label="Сохранить" />
-          <a
-            href="/admin/entities"
-            className="text-sm font-medium text-gray-500 border border-gray-200 rounded-xl px-4 py-2.5 hover:border-gray-400 hover:text-gray-700 transition-colors"
-          >
-            Отмена
-          </a>
           <DeleteButton action={deleteAction} />
         </div>
       </form>

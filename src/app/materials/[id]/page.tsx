@@ -1,8 +1,9 @@
 import { db } from "@/db";
 import { materials } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackButton } from "@/components/BackButton";
+import { PublicNavWrapper } from "@/components/PublicNavWrapper";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -36,10 +37,12 @@ export default async function MaterialPage({ params }: Props) {
       : null;
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-6">
-      <Link href="/" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
-        ← Назад
-      </Link>
+    <>
+      <PublicNavWrapper />
+      <main className="max-w-lg mx-auto px-4 py-6">
+      <div className="mb-6">
+        <BackButton />
+      </div>
       {yearLabel && (
         <p className="text-sm text-gray-500 mb-2">{yearLabel}</p>
       )}
@@ -67,5 +70,6 @@ export default async function MaterialPage({ params }: Props) {
         </a>
       )}
     </main>
+    </>
   );
 }

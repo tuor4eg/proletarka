@@ -1,10 +1,17 @@
 import Link from "next/link";
-import { asc } from "drizzle-orm";
+import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { topics } from "@/db/schema";
+import { topics, materialTopics } from "@/db/schema";
+import { deleteTopic } from "./actions";
+import { DeleteButton } from "@/components/DeleteButton";
 
 export default async function TopicsPage() {
-  const list = await db.select().from(topics).orderBy(asc(topics.title));
+  const list = await db
+    .select({ id: topics.id, title: topics.title, code: topics.code, materialCount: count(materialTopics.materialId) })
+    .from(topics)
+    .leftJoin(materialTopics, eq(materialTopics.topicId, topics.id))
+    .groupBy(topics.id)
+    .orderBy(asc(topics.title));
 
   return (
     <div className="py-6">
@@ -21,16 +28,24 @@ export default async function TopicsPage() {
         <p className="text-sm text-gray-500">Тем пока нет.</p>
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
-          {list.map((topic) => (
-            <Link
-              key={topic.id}
-              href={`/admin/topics/${topic.id}`}
-              className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-sm font-medium flex-1">{topic.title}</span>
-              <span className="text-xs text-gray-400">{topic.code}</span>
-            </Link>
-          ))}
+          {list.map((topic) => {
+            const deleteAction = deleteTopic.bind(null, topic.id);
+            return (
+              <div key={topic.id} className="flex items-center gap-3 px-4 py-2.5">
+                <Link
+                  href={`/admin/topics/${topic.id}`}
+                  className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-70 transition-opacity"
+                >
+                  <span className="text-sm font-medium flex-1 truncate">{topic.title}</span>
+                  <span className="text-xs text-gray-400">{topic.code}</span>
+                </Link>
+                <span className="text-xs text-gray-400 shrink-0 min-w-[3ch] text-right">
+                  {topic.materialCount > 0 ? topic.materialCount : ""}
+                </span>
+                <DeleteButton action={deleteAction} icon disabled={topic.materialCount > 0} disabledTooltip="Есть материалы" />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

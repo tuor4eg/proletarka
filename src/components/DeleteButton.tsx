@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
+import { Trash2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Props = {
   action: () => Promise<void>;
   label?: string;
+  icon?: boolean;
+  disabled?: boolean;
+  disabledTooltip?: string;
 };
 
 function DeleteSubmitButton() {
@@ -21,18 +26,43 @@ function DeleteSubmitButton() {
   );
 }
 
-export function DeleteButton({ action, label = "Удалить" }: Props) {
+export function DeleteButton({ action, label = "Удалить", icon = false, disabled = false, disabledTooltip }: Props) {
   const [open, setOpen] = useState(false);
+
+  const triggerButton = icon ? (
+    <button
+      type="button"
+      onClick={() => !disabled && setOpen(true)}
+      disabled={disabled}
+      className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-red-400"
+    >
+      <Trash2 size={15} />
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={() => !disabled && setOpen(true)}
+      disabled={disabled}
+      className="ml-auto text-sm text-red-600 border border-red-200 rounded-xl px-4 py-2.5 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+    >
+      {label}
+    </button>
+  );
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="ml-auto text-sm text-red-600 border border-red-200 rounded-xl px-4 py-2.5 hover:bg-red-50 transition-colors"
-      >
-        {label}
-      </button>
+      {icon ? (
+        <Tooltip>
+          <TooltipTrigger render={<div />}>
+            {triggerButton}
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            {disabled && disabledTooltip ? disabledTooltip : label}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        triggerButton
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">

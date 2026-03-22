@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { entities, people, materials } from "@/db/schema";
 import { PublicNavWrapper } from "@/components/PublicNavWrapper";
 import { PersonTabs } from "@/components/PersonTabs";
+import { BackButton } from "@/components/BackButton";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -45,7 +46,7 @@ export default async function PersonPage({ params }: Props) {
       materialType: materials.materialType,
     })
     .from(materials)
-    .where(eq(materials.entityId, numericId));
+    .where(and(eq(materials.entityId, numericId), eq(materials.status, "published")));
 
   const articles = linkedMaterials.filter((m) => m.materialType === "article");
   const photos = linkedMaterials.filter((m) => m.materialType === "photo");
@@ -57,6 +58,9 @@ export default async function PersonPage({ params }: Props) {
     <>
       <PublicNavWrapper />
       <main className="max-w-2xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <BackButton />
+        </div>
         <div className="flex gap-6 mb-8">
           <div className="w-28 h-28 shrink-0 rounded-2xl overflow-hidden bg-gray-100">
             {person.mainPhotoPath ? (

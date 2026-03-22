@@ -6,6 +6,7 @@ import { updateTopic, deleteTopic } from "../actions";
 import { inputClass, Field } from "@/components/MaterialForm";
 import { DeleteButton } from "@/components/DeleteButton";
 import { SubmitButton } from "@/components/SubmitButton";
+import { EditPageHeader } from "@/components/EditPageHeader";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -30,6 +31,7 @@ export default async function EditTopicPage({ params }: Props) {
 
   return (
     <div className="py-6">
+      <EditPageHeader />
       <h1 className="text-xl font-bold mb-6">Редактировать тему</h1>
       <form action={action} className="flex flex-col gap-4">
         <Field label="Код *" hint="Латиница, без пробелов">
@@ -40,12 +42,6 @@ export default async function EditTopicPage({ params }: Props) {
         </Field>
         <div className="flex items-center gap-3 mt-0">
           <SubmitButton label="Сохранить" />
-          <a
-            href="/admin/topics"
-            className="text-sm font-medium text-gray-500 border border-gray-200 rounded-xl px-4 py-2.5 hover:border-gray-400 hover:text-gray-700 transition-colors"
-          >
-            Отмена
-          </a>
           <DeleteButton action={deleteAction} />
         </div>
       </form>

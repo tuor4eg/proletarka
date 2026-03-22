@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/db";
 import { materials, entities, people } from "@/db/schema";
 import { eq, desc, asc, and, ilike } from "drizzle-orm";
@@ -59,7 +60,8 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
         ) : (
           <div className="flex flex-col divide-y divide-gray-100">
             {articles.map((item) => (
-              <div key={item.id} className="py-5">
+              <div key={item.id} className="relative py-5 hover:opacity-75 transition-opacity">
+                <Link href={`/materials/${item.id}`} className="absolute inset-0" aria-label={item.title} />
                 <div className="flex items-start gap-4">
                   {item.coverImagePath && (
                     <img
@@ -73,7 +75,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
                     {item.summary && (
                       <p className="text-sm text-gray-500 mb-2">{item.summary}</p>
                     )}
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <div className="relative z-10 flex items-center gap-3 text-xs text-gray-400">
                       {item.personName && item.entityId && (
                         <a href={`/people/${item.entityId}`} className="hover:text-gray-700 transition-colors">
                           {item.personName}

@@ -1,9 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { db } from "@/db";
-import { topics } from "@/db/schema";
+import { topics, materialTopics } from "@/db/schema";
 import { flashParam } from "@/lib/flash";
 
 function parseTopicForm(formData: FormData) {
@@ -26,6 +26,15 @@ export async function updateTopic(id: number, formData: FormData) {
 }
 
 export async function deleteTopic(id: number) {
+  const [{ materialCount }] = await db
+    .select({ materialCount: count(materialTopics.materialId) })
+    .from(materialTopics)
+    .where(eq(materialTopics.topicId, id));
+
+  if (materialCount > 0) {
+    redirect(`/admin/topics${flashParam("Нельзя удалить тему с материалами", "error")}`);
+  }
+
   await db.delete(topics).where(eq(topics.id, id));
   redirect(`/admin/topics${flashParam("Тема удалена")}`);
 }
