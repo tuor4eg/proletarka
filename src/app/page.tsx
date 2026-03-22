@@ -1,13 +1,33 @@
 import Link from "next/link";
 import { db } from "@/db";
 import { materials, entities, people, materialTopics, topics } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { MaterialCard } from "@/components/MaterialCard";
+import { FilterBar } from "@/components/FilterBar";
 import { getSession } from "@/lib/session";
 
-export default async function HomePage() {
-  const [session, rows] = await Promise.all([
+type SearchParams = Promise<{ topic?: string }>;
+
+export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
+  const { topic } = await searchParams;
+
+  const activeTopics = topic ? topic.split(",").filter(Boolean) : [];
+
+  const topicFilter =
+    activeTopics.length > 0
+      ? inArray(
+          materials.id,
+          db
+            .select({ id: materialTopics.materialId })
+            .from(materialTopics)
+            .innerJoin(topics, eq(materialTopics.topicId, topics.id))
+            .where(inArray(topics.code, activeTopics))
+        )
+      : undefined;
+
+  const [session, allTopics, rows] = await Promise.all([
     getSession(),
+    db.select({ code: topics.code, title: topics.title }).from(topics).orderBy(topics.title),
     db
       .select({
         id: materials.id,
@@ -23,7 +43,7 @@ export default async function HomePage() {
       .leftJoin(people, eq(entities.personId, people.id))
       .leftJoin(materialTopics, eq(materials.id, materialTopics.materialId))
       .leftJoin(topics, eq(materialTopics.topicId, topics.id))
-      .where(eq(materials.status, "published"))
+      .where(and(eq(materials.status, "published"), topicFilter))
       .orderBy(desc(materials.createdAt)),
   ]);
 
@@ -52,7 +72,7 @@ export default async function HomePage() {
 
   return (
     <main className="max-w-lg mx-auto px-4 py-6">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-4">
         <div>
           <h1 className="text-xl font-bold mb-1">Память завода</h1>
           <p className="text-sm text-gray-500">Люди, события и находки из истории завода</p>
@@ -73,10 +93,11 @@ export default async function HomePage() {
           </Link>
         )}
       </div>
+      <FilterBar topics={allTopics} activeTopics={activeTopics} />
       {items.length === 0 ? (
-        <p className="text-gray-500 text-sm">Материалов пока нет.</p>
+        <p className="text-gray-500 text-sm mt-6">Материалов пока нет.</p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 mt-6">
           {items.map((material) => (
             <MaterialCard key={material.id} material={material} />
           ))}

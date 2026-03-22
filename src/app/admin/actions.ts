@@ -46,7 +46,7 @@ export async function createMaterial(formData: FormData) {
     );
   }
 
-  redirect(`/materials/${inserted.id}`);
+  redirect(`/admin/materials/${inserted.id}`);
 }
 
 export async function updateMaterial(id: number, formData: FormData) {
