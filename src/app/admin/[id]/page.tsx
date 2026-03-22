@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { materials, entities, people, topics, materialTopics } from "@/db/schema";
 import { updateMaterial, deleteMaterial } from "../actions";
 import { MaterialForm } from "@/components/MaterialForm";
+import { BackButton } from "@/components/BackButton";
+import { ExternalLink } from "lucide-react";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -46,7 +48,28 @@ export default async function EditMaterialPage({ params }: Props) {
 
   return (
     <div className="py-6">
-      <h1 className="text-xl font-bold mb-6">Редактировать материал</h1>
+      <div className="flex items-center justify-between mb-6">
+        <BackButton />
+        {material.status === "published" ? (
+          <a
+            href={`/materials/${numericId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            На сайте
+            <ExternalLink size={13} />
+          </a>
+        ) : (
+          <span
+            title="Черновик — страница недоступна публично"
+            className="flex items-center gap-1.5 text-sm text-gray-300 cursor-not-allowed select-none"
+          >
+            На сайте
+            <ExternalLink size={13} />
+          </span>
+        )}
+      </div>
       <MaterialForm action={action} deleteAction={deleteAction} material={material} entities={entitiesList} topics={topicRows} selectedTopicIds={selectedTopicIds} />
     </div>
   );

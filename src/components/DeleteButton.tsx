@@ -1,11 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 
 type Props = {
   action: () => Promise<void>;
   label?: string;
 };
+
+function DeleteSubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full text-sm font-medium bg-red-600 text-white rounded-xl px-4 py-2.5 hover:bg-red-700 disabled:opacity-60 transition-colors"
+    >
+      {pending ? "Удаление…" : "Удалить"}
+    </button>
+  );
+}
 
 export function DeleteButton({ action, label = "Удалить" }: Props) {
   const [open, setOpen] = useState(false);
@@ -35,12 +49,7 @@ export function DeleteButton({ action, label = "Удалить" }: Props) {
                 Отмена
               </button>
               <form action={action} className="flex-1">
-                <button
-                  type="submit"
-                  className="w-full text-sm font-medium bg-red-600 text-white rounded-xl px-4 py-2.5 hover:bg-red-700 transition-colors"
-                >
-                  Удалить
-                </button>
+                <DeleteSubmitButton />
               </form>
             </div>
           </div>

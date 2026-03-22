@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { entities, people } from "@/db/schema";
 import { generateCode } from "@/lib/generateCode";
 import { resolveImageUpload, deleteImage } from "@/lib/s3";
+import { flashParam } from "@/lib/flash";
 
 async function parsePersonForm(formData: FormData) {
   const birthYearRaw = formData.get("birthYear") as string;
@@ -23,7 +24,6 @@ async function parsePersonForm(formData: FormData) {
 
 export async function createEntity(formData: FormData) {
   const personValues = await parsePersonForm(formData);
-
   const code = generateCode(personValues.name);
 
   const [person] = await db
@@ -31,13 +31,12 @@ export async function createEntity(formData: FormData) {
     .values({ ...personValues, code })
     .returning({ id: people.id });
 
-  await db.insert(entities).values({
-    type: "person",
-    personId: person.id,
-    code,
-  });
+  const [entity] = await db
+    .insert(entities)
+    .values({ type: "person", personId: person.id, code })
+    .returning({ id: entities.id });
 
-  redirect("/admin/entities");
+  redirect(`/admin/entities/${entity.id}${flashParam("Человек добавлен")}`);
 }
 
 export async function updateEntity(personId: number, formData: FormData) {
@@ -53,16 +52,17 @@ export async function updateEntity(personId: number, formData: FormData) {
     await deleteImage(current.mainPhotoPath);
   }
 
-  await db
-    .update(people)
-    .set({ ...personValues, updatedAt: new Date() })
-    .where(eq(people.id, personId));
+  const [[entity]] = await Promise.all([
+    db.select({ id: entities.id }).from(entities).where(eq(entities.personId, personId)).limit(1),
+    db.update(people).set({ ...personValues, updatedAt: new Date() }).where(eq(people.id, personId)),
+  ]);
 
-  redirect("/admin/entities");
+  if (!entity?.id) redirect("/admin/entities");
+  redirect(`/admin/entities/${entity.id}${flashParam("Сохранено")}`);
 }
 
 export async function deleteEntity(entityId: number, personId: number) {
   await db.delete(entities).where(eq(entities.id, entityId));
   await db.delete(people).where(eq(people.id, personId));
-  redirect("/admin/entities");
+  redirect(`/admin/entities${flashParam("Запись удалена")}`);
 }

@@ -6,6 +6,7 @@ import { compare, hash } from "bcryptjs";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getSession } from "@/lib/session";
+import { flashParam } from "@/lib/flash";
 
 async function currentUser() {
   const session = await getSession();
@@ -21,7 +22,7 @@ export async function updateProfile(formData: FormData) {
   const email = (formData.get("email") as string).trim().toLowerCase();
 
   await db.update(users).set({ name, email }).where(eq(users.id, user.id));
-  redirect("/admin/settings?success=profile");
+  redirect(`/admin/settings${flashParam("Данные сохранены")}`);
 }
 
 export async function updatePassword(formData: FormData) {
@@ -30,10 +31,13 @@ export async function updatePassword(formData: FormData) {
   const next = formData.get("next") as string;
   const confirm = formData.get("confirm") as string;
 
-  if (!(await compare(current, user.password))) redirect("/admin/settings?error=wrong");
-  if (next.length < 8) redirect("/admin/settings?error=short");
-  if (next !== confirm) redirect("/admin/settings?error=mismatch");
+  if (!(await compare(current, user.password)))
+    redirect(`/admin/settings${flashParam("Неверный текущий пароль", "error")}`);
+  if (next.length < 8)
+    redirect(`/admin/settings${flashParam("Новый пароль должен быть не короче 8 символов", "error")}`);
+  if (next !== confirm)
+    redirect(`/admin/settings${flashParam("Новые пароли не совпадают", "error")}`);
 
   await db.update(users).set({ password: await hash(next, 12) }).where(eq(users.id, user.id));
-  redirect("/admin/settings?success=password");
+  redirect(`/admin/settings${flashParam("Пароль изменён")}`);
 }

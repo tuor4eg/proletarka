@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { InferSelectModel } from "drizzle-orm";
 import { materials } from "@/db/schema";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -66,6 +67,28 @@ type Props = {
   defaultMaterialType?: string;
 };
 
+function FormActions({ deleteAction }: { deleteAction?: () => Promise<void> }) {
+  const { pending } = useFormStatus();
+  return (
+    <div className="flex items-center gap-3 mt-5">
+      <button
+        type="submit"
+        disabled={pending}
+        className="bg-black text-white text-sm font-medium rounded-xl px-5 py-2.5 hover:bg-gray-800 disabled:opacity-60 transition-colors"
+      >
+        {pending ? "Сохранение…" : "Сохранить"}
+      </button>
+      <a
+        href="/admin"
+        className="text-sm font-medium text-gray-500 border border-gray-200 rounded-xl px-5 py-2.5 hover:border-gray-400 hover:text-gray-700 transition-colors"
+      >
+        Отмена
+      </a>
+      {deleteAction && <DeleteButton action={deleteAction} />}
+    </div>
+  );
+}
+
 export function MaterialForm({ action, deleteAction, material, entities, topics, selectedTopicIds = [], defaultEntityId, defaultMaterialType }: Props) {
   const initialEntityId = material?.entityId ?? defaultEntityId;
   const initialEntity = initialEntityId
@@ -88,7 +111,7 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
 
   return (
     <>
-    <form id="material-form" action={action} className="grid grid-cols-[1fr_240px] gap-5 items-start w-full">
+    <form action={action} className="grid grid-cols-[1fr_240px] gap-5 items-start w-full">
       {/* Left: main content */}
       <div className="flex flex-col gap-4">
         <Field label="Заголовок *">
@@ -239,23 +262,8 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
 
       </div>
 
+      <FormActions deleteAction={deleteAction} />
     </form>
-    <div className="flex items-center gap-3 mt-5">
-      <button
-        type="submit"
-        form="material-form"
-        className="bg-black text-white text-sm font-medium rounded-xl px-5 py-2.5 hover:bg-gray-800 transition-colors"
-      >
-        Сохранить
-      </button>
-      <a
-        href="/admin"
-        className="text-sm font-medium text-gray-500 border border-gray-200 rounded-xl px-5 py-2.5 hover:border-gray-400 hover:text-gray-700 transition-colors"
-      >
-        Отмена
-      </a>
-      {deleteAction && <DeleteButton action={deleteAction} />}
-    </div>
     </>
   );
 }

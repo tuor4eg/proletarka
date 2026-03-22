@@ -3,6 +3,7 @@ import { desc, asc, ilike, eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { materials } from "@/db/schema";
 import { AdminFilters } from "@/components/AdminFilters";
+import { PublishToggle } from "@/components/PublishToggle";
 import { Suspense } from "react";
 
 const STATUS_LABEL: Record<string, string> = { draft: "Черновик", published: "Опубл." };
@@ -55,23 +56,25 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
           {items.map((item) => (
-            <Link
-              key={item.id}
-              href={`/admin/${item.id}`}
-              className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-sm font-medium flex-1 min-w-0 truncate">{item.title}</span>
-              <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[item.materialType]}</span>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-                  item.status === "published"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-500"
-                }`}
+            <div key={item.id} className="flex items-center gap-2 px-4 hover:bg-gray-50 transition-colors">
+              <Link
+                href={`/admin/${item.id}`}
+                className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
               >
-                {STATUS_LABEL[item.status]}
-              </span>
-            </Link>
+                <span className="text-sm font-medium flex-1 min-w-0 truncate">{item.title}</span>
+                <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[item.materialType]}</span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                    item.status === "published"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-500"
+                  }`}
+                >
+                  {STATUS_LABEL[item.status]}
+                </span>
+              </Link>
+              <PublishToggle id={item.id} status={item.status} />
+            </div>
           ))}
         </div>
       )}

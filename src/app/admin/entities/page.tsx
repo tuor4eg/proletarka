@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { eq, ilike, asc, desc } from "drizzle-orm";
+import { eq, ilike, asc, desc, and, sql } from "drizzle-orm";
 import { Suspense } from "react";
 import { db } from "@/db";
 import { entities, people } from "@/db/schema";
 import { AdminFilters } from "@/components/AdminFilters";
+import { LetterFilter } from "@/components/LetterFilter";
 
-type SearchParams = Promise<{ q?: string; sort?: string }>;
+type SearchParams = Promise<{ q?: string; sort?: string; letter?: string }>;
 
 export default async function EntitiesPage({ searchParams }: { searchParams: SearchParams }) {
-  const { q, sort = "title_asc" } = await searchParams;
+  const { q, sort = "title_asc", letter } = await searchParams;
 
   const orderBy =
     sort === "title_desc" ? desc(people.name) :
@@ -16,12 +17,24 @@ export default async function EntitiesPage({ searchParams }: { searchParams: Sea
     sort === "date_asc" ? asc(entities.id) :
     asc(people.name);
 
-  const rows = await db
-    .select({ id: entities.id, type: entities.type, personName: people.name })
-    .from(entities)
-    .leftJoin(people, eq(entities.personId, people.id))
-    .where(q ? ilike(people.name, `%${q}%`) : undefined)
-    .orderBy(orderBy);
+  const conditions = [
+    q ? ilike(people.name, `%${q}%`) : undefined,
+    letter ? ilike(people.name, `${letter}%`) : undefined,
+  ].filter(Boolean) as Parameters<typeof and>;
+
+  const [rows, letterRows] = await Promise.all([
+    db
+      .select({ id: entities.id, type: entities.type, personName: people.name })
+      .from(entities)
+      .leftJoin(people, eq(entities.personId, people.id))
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(orderBy),
+    db
+      .selectDistinct({ letter: sql<string>`UPPER(LEFT(${people.name}, 1))` })
+      .from(people),
+  ]);
+
+  const availableLetters = letterRows.map((r) => r.letter).filter(Boolean);
 
   return (
     <div className="py-6">
@@ -34,6 +47,7 @@ export default async function EntitiesPage({ searchParams }: { searchParams: Sea
           + Добавить
         </Link>
       </div>
+      <LetterFilter availableLetters={availableLetters} compact />
       <Suspense>
         <AdminFilters q={q ?? ""} sort={sort} sortOptions="title_only" />
       </Suspense>

@@ -1,6 +1,7 @@
 import { createEntity } from "../actions";
 import { inputClass, Field } from "@/components/MaterialForm";
 import { ImageUpload } from "@/components/ImageUpload";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default function NewEntityPage() {
   return (
@@ -25,12 +26,7 @@ export default function NewEntityPage() {
           <input name="yearsLabel" type="text" className={inputClass} />
         </Field>
         <ImageUpload fileInputName="mainPhotoFile" urlInputName="mainPhotoPath" label="Обложка" />
-        <button
-          type="submit"
-          className="mt-2 bg-black text-white text-sm font-medium rounded-xl px-4 py-3 hover:bg-gray-800 transition-colors"
-        >
-          Сохранить
-        </button>
+        <SubmitButton label="Сохранить" className="mt-2" />
       </form>
     </div>
   );

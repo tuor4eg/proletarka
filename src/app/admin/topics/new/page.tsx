@@ -1,5 +1,6 @@
 import { createTopic } from "../actions";
 import { inputClass, Field } from "@/components/MaterialForm";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default function NewTopicPage() {
   return (
@@ -12,12 +13,7 @@ export default function NewTopicPage() {
         <Field label="Название *">
           <input name="title" type="text" required className={inputClass} />
         </Field>
-        <button
-          type="submit"
-          className="mt-2 bg-black text-white text-sm font-medium rounded-xl px-4 py-3 hover:bg-gray-800 transition-colors"
-        >
-          Сохранить
-        </button>
+        <SubmitButton label="Сохранить" className="mt-2" />
       </form>
     </div>
   );

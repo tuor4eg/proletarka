@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { db } from "@/db";
 import { entities, people } from "@/db/schema";
-import { eq, asc, desc, ilike } from "drizzle-orm";
+import { eq, asc, desc, ilike, and, sql } from "drizzle-orm";
 import { Suspense } from "react";
 import { PublicNavWrapper } from "@/components/PublicNavWrapper";
 import { PublicFilters } from "@/components/PublicFilters";
+import { LetterFilter } from "@/components/LetterFilter";
 
 const SORT_OPTIONS = [
   { value: "title_asc", label: "По имени А→Я" },
@@ -13,7 +14,7 @@ const SORT_OPTIONS = [
   { value: "date_asc", label: "Старые сначала" },
 ];
 
-type SearchParams = Promise<{ q?: string; sort?: string }>;
+type SearchParams = Promise<{ q?: string; sort?: string; letter?: string }>;
 
 function formatYears(birthYear: number | null, deathYear: number | null, yearsLabel: string | null) {
   if (birthYear || deathYear) {
@@ -23,7 +24,7 @@ function formatYears(birthYear: number | null, deathYear: number | null, yearsLa
 }
 
 export default async function PeoplePage({ searchParams }: { searchParams: SearchParams }) {
-  const { q, sort = "title_asc" } = await searchParams;
+  const { q, sort = "title_asc", letter } = await searchParams;
 
   const orderBy =
     sort === "title_desc" ? desc(people.name) :
@@ -31,25 +32,38 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
     sort === "date_asc" ? asc(entities.id) :
     asc(people.name);
 
-  const rows = await db
-    .select({
-      entityId: entities.id,
-      name: people.name,
-      birthYear: people.birthYear,
-      deathYear: people.deathYear,
-      yearsLabel: people.yearsLabel,
-      mainPhotoPath: people.mainPhotoPath,
-    })
-    .from(entities)
-    .innerJoin(people, eq(entities.personId, people.id))
-    .where(q ? ilike(people.name, `%${q}%`) : undefined)
-    .orderBy(orderBy);
+  const conditions = [
+    q ? ilike(people.name, `%${q}%`) : undefined,
+    letter ? ilike(people.name, `${letter}%`) : undefined,
+  ].filter(Boolean) as Parameters<typeof and>;
+
+  const [rows, letterRows] = await Promise.all([
+    db
+      .select({
+        entityId: entities.id,
+        name: people.name,
+        birthYear: people.birthYear,
+        deathYear: people.deathYear,
+        yearsLabel: people.yearsLabel,
+        mainPhotoPath: people.mainPhotoPath,
+      })
+      .from(entities)
+      .innerJoin(people, eq(entities.personId, people.id))
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(orderBy),
+    db
+      .selectDistinct({ letter: sql<string>`UPPER(LEFT(${people.name}, 1))` })
+      .from(people),
+  ]);
+
+  const availableLetters = letterRows.map((r) => r.letter).filter(Boolean);
 
   return (
     <>
       <PublicNavWrapper />
       <main className="max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Люди</h1>
+        <LetterFilter availableLetters={availableLetters} />
         <Suspense>
           <PublicFilters q={q ?? ""} sort={sort} sortOptions={SORT_OPTIONS} />
         </Suspense>

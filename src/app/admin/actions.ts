@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { materials, materialTopics } from "@/db/schema";
 import { generateCode } from "@/lib/generateCode";
 import { resolveImageUpload, deleteImage } from "@/lib/s3";
+import { flashParam } from "@/lib/flash";
 
 async function parseFormData(formData: FormData) {
   const yearFromRaw = formData.get("yearFrom") as string;
@@ -46,7 +47,7 @@ export async function createMaterial(formData: FormData) {
     );
   }
 
-  redirect(`/admin/${inserted.id}`);
+  redirect(`/admin/${inserted.id}${flashParam("Материал создан")}`);
 }
 
 export async function updateMaterial(id: number, formData: FormData) {
@@ -75,7 +76,14 @@ export async function updateMaterial(id: number, formData: FormData) {
     );
   }
 
-  redirect(`/admin`);
+  redirect(`/admin/${id}${flashParam("Сохранено")}`);
+}
+
+export async function toggleMaterialStatus(id: number, currentStatus: string) {
+  const newStatus = currentStatus === "published" ? "draft" : "published";
+  await db.update(materials).set({ status: newStatus, updatedAt: new Date() }).where(eq(materials.id, id));
+  const label = newStatus === "published" ? "Опубликовано" : "Снято с публикации";
+  redirect(`/admin${flashParam(label)}`);
 }
 
 export async function deleteMaterial(id: number) {
@@ -92,5 +100,5 @@ export async function deleteMaterial(id: number) {
   await db.delete(materialTopics).where(eq(materialTopics.materialId, id));
   await db.delete(materials).where(eq(materials.id, id));
 
-  redirect("/admin");
+  redirect(`/admin${flashParam("Материал удалён")}`);
 }
