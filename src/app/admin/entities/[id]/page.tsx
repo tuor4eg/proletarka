@@ -91,7 +91,7 @@ export default async function EditEntityPage({ params }: Props) {
             href={`/admin/new?entityId=${numericId}&materialType=photo`}
             className="text-sm bg-black text-white rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors"
           >
-            + Добавить фото
+            + Добавить материал
           </Link>
         </div>
         {linkedMaterials.length === 0 ? (
