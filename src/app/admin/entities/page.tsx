@@ -26,7 +26,7 @@ export default async function EntitiesPage({ searchParams }: { searchParams: Sea
   return (
     <div className="py-6">
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-xl font-bold">Карточки</h1>
+        <h1 className="text-xl font-bold">Картотека</h1>
         <Link
           href="/admin/entities/new"
           className="text-sm bg-black text-white rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors"

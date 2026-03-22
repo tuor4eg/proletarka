@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { db } from "@/db";
 import { materials, entities, people, materialTopics, topics } from "@/db/schema";
 import { eq, desc, and, inArray } from "drizzle-orm";
 import { MaterialCard } from "@/components/MaterialCard";
 import { FilterBar } from "@/components/FilterBar";
-import { getSession } from "@/lib/session";
+import { PublicNavWrapper } from "@/components/PublicNavWrapper";
 
 type SearchParams = Promise<{ topic?: string }>;
 
@@ -25,8 +24,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         )
       : undefined;
 
-  const [session, allTopics, rows] = await Promise.all([
-    getSession(),
+  const [allTopics, rows] = await Promise.all([
     db.select({ code: topics.code, title: topics.title }).from(topics).orderBy(topics.title),
     db
       .select({
@@ -71,38 +69,20 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   const items = order.map((id) => itemsMap.get(id)!);
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-6">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h1 className="text-xl font-bold mb-1">Память завода</h1>
-          <p className="text-sm text-gray-500">Люди, события и находки из истории завода</p>
-        </div>
-        {session ? (
-          <Link
-            href="/admin"
-            className="text-sm bg-black text-white rounded-xl px-4 py-2 hover:bg-gray-800 transition-colors shrink-0"
-          >
-            Админка
-          </Link>
+    <>
+      <PublicNavWrapper />
+      <main className="max-w-lg mx-auto px-4 py-6">
+        <FilterBar topics={allTopics} activeTopics={activeTopics} />
+        {items.length === 0 ? (
+          <p className="text-gray-500 text-sm mt-6">Материалов пока нет.</p>
         ) : (
-          <Link
-            href="/login"
-            className="text-sm text-gray-500 hover:text-gray-800 transition-colors shrink-0"
-          >
-            Войти
-          </Link>
+          <div className="flex flex-col gap-4 mt-6">
+            {items.map((material) => (
+              <MaterialCard key={material.id} material={material} />
+            ))}
+          </div>
         )}
-      </div>
-      <FilterBar topics={allTopics} activeTopics={activeTopics} />
-      {items.length === 0 ? (
-        <p className="text-gray-500 text-sm mt-6">Материалов пока нет.</p>
-      ) : (
-        <div className="flex flex-col gap-4 mt-6">
-          {items.map((material) => (
-            <MaterialCard key={material.id} material={material} />
-          ))}
-        </div>
-      )}
-    </main>
+      </main>
+    </>
   );
 }
