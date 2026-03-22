@@ -103,8 +103,8 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
     if (!state) return;
     if (state.type === "error") { toast.error(state.message); return; }
     toast.success(state.message);
-    if (state.status) setStatus(state.status);
-    if (state.materialType) setMaterialType(state.materialType);
+    if (state.status) setStatus(state.status as "draft" | "published");
+    if (state.materialType) setMaterialType(state.materialType as "article" | "photo" | "document");
   }, [state]);
 
   const initialEntityId = material?.entityId ?? defaultEntityId;
@@ -112,8 +112,8 @@ export function MaterialForm({ action, deleteAction, material, entities, topics,
     ? entities.find((e) => e.id === initialEntityId) ?? null
     : null;
 
-  const [status, setStatus] = useState(material?.status ?? "draft");
-  const [materialType, setMaterialType] = useState(material?.materialType ?? defaultMaterialType ?? "article");
+  const [status, setStatus] = useState<"draft" | "published">(material?.status ?? "draft");
+  const [materialType, setMaterialType] = useState<"article" | "photo" | "document">(material?.materialType ?? defaultMaterialType ?? "article");
   const [entityType, setEntityType] = useState<"person" | "">(
     initialEntity?.type ?? ""
   );
