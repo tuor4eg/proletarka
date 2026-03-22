@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import "./globals.css";
 import { NavigationProgress } from "@/components/NavigationProgress";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Музей завода «Пролетарская Свобода»",
@@ -14,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
+    <html lang="ru" className={cn("font-sans", geist.variable)}>
       <body>
         <Suspense>
           <NavigationProgress />
