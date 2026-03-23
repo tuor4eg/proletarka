@@ -2,14 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq, desc } from "drizzle-orm";
 import { db } from "@/db";
-import { entities, people, materials, type MaterialType, type Status } from "@/db/schema";
-import { updateEntity, deleteEntity } from "../actions";
+import { entities, people, materials, topics, type MaterialType, type Status } from "@/db/schema";
+import { updateEntity, deleteEntity, getEventsByEntityId } from "../actions";
 import { inputClass, Field } from "@/components/MaterialForm";
 import { ImageUpload } from "@/components/ImageUpload";
 import { DeleteButton } from "@/components/DeleteButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { EditPageHeader } from "@/components/EditPageHeader";
 import { PublishToggle } from "@/components/PublishToggle";
+import { EventsBlock } from "@/components/EventsBlock";
 
 const TYPE_LABEL: Record<MaterialType, string> = { article: "Статья", photo: "Фото", document: "Документ" };
 const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." };
@@ -37,11 +38,15 @@ export default async function EditEntityPage({ params }: Props) {
     notFound();
   }
 
-  const linkedMaterials = await db
-    .select({ id: materials.id, title: materials.title, materialType: materials.materialType, status: materials.status })
-    .from(materials)
-    .where(eq(materials.entityId, numericId))
-    .orderBy(desc(materials.createdAt));
+  const [linkedMaterials, allTopics, entityEvents] = await Promise.all([
+    db
+      .select({ id: materials.id, title: materials.title, materialType: materials.materialType, status: materials.status })
+      .from(materials)
+      .where(eq(materials.entityId, numericId))
+      .orderBy(desc(materials.createdAt)),
+    db.select({ id: topics.id, title: topics.title }).from(topics).orderBy(topics.title),
+    getEventsByEntityId(numericId),
+  ]);
 
   const { entity, person } = row;
   const updateAction = updateEntity.bind(null, person!.id);
@@ -70,6 +75,9 @@ export default async function EditEntityPage({ params }: Props) {
           <input name="yearsLabel" type="text" defaultValue={person?.yearsLabel ?? ""} className={inputClass} />
         </Field>
         <ImageUpload fileInputName="mainPhotoFile" urlInputName="mainPhotoPath" defaultUrl={person?.mainPhotoPath} label="Обложка" />
+        <Field label="События">
+          <EventsBlock entityId={numericId} initialEvents={entityEvents} topics={allTopics} />
+        </Field>
         <div className="flex items-center gap-3 mt-0">
           <SubmitButton label="Сохранить" />
           <DeleteButton

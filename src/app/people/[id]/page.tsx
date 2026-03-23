@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { db } from "@/db";
-import { entities, people, materials } from "@/db/schema";
+import { entities, people, materials, events, eventTopics, topics } from "@/db/schema";
 import { PublicNavWrapper } from "@/components/PublicNavWrapper";
 import { PersonTabs } from "@/components/PersonTabs";
+import { PersonTimeline } from "@/components/PersonTimeline";
 import { BackButton } from "@/components/BackButton";
 
 type Props = {
@@ -34,19 +35,45 @@ export default async function PersonPage({ params }: Props) {
 
   const { person } = row;
 
-  const linkedMaterials = await db
-    .select({
-      id: materials.id,
-      title: materials.title,
-      summary: materials.summary,
-      coverImagePath: materials.coverImagePath,
-      yearFrom: materials.yearFrom,
-      yearTo: materials.yearTo,
-      sourceUrl: materials.sourceUrl,
-      materialType: materials.materialType,
-    })
-    .from(materials)
-    .where(and(eq(materials.entityId, numericId), eq(materials.status, "published")));
+  const [linkedMaterials, eventRows] = await Promise.all([
+    db
+      .select({
+        id: materials.id,
+        title: materials.title,
+        summary: materials.summary,
+        coverImagePath: materials.coverImagePath,
+        yearFrom: materials.yearFrom,
+        yearTo: materials.yearTo,
+        sourceUrl: materials.sourceUrl,
+        materialType: materials.materialType,
+      })
+      .from(materials)
+      .where(and(eq(materials.entityId, numericId), eq(materials.status, "published"))),
+    db
+      .select({
+        id: events.id,
+        text: events.text,
+        yearFrom: events.yearFrom,
+        yearTo: events.yearTo,
+        yearsLabel: events.yearsLabel,
+        topicTitle: topics.title,
+      })
+      .from(events)
+      .leftJoin(eventTopics, eq(eventTopics.eventId, events.id))
+      .leftJoin(topics, eq(topics.id, eventTopics.topicId))
+      .where(eq(events.entityId, numericId))
+      .orderBy(asc(events.yearFrom), asc(events.id)),
+  ]);
+
+  // Группируем темы по событию
+  const eventsMap = new Map<number, { id: number; text: string; yearFrom: number | null; yearTo: number | null; yearsLabel: string | null; topicTitles: string[] }>();
+  for (const row of eventRows) {
+    if (!eventsMap.has(row.id)) {
+      eventsMap.set(row.id, { id: row.id, text: row.text, yearFrom: row.yearFrom, yearTo: row.yearTo, yearsLabel: row.yearsLabel, topicTitles: [] });
+    }
+    if (row.topicTitle) eventsMap.get(row.id)!.topicTitles.push(row.topicTitle);
+  }
+  const entityEvents = Array.from(eventsMap.values());
 
   const articles = linkedMaterials.filter((m) => m.materialType === "article");
   const photos = linkedMaterials.filter((m) => m.materialType === "photo");
@@ -83,6 +110,8 @@ export default async function PersonPage({ params }: Props) {
             )}
           </div>
         </div>
+
+        <PersonTimeline events={entityEvents} />
 
         <PersonTabs articles={articles} photos={photos} documents={documents} />
       </main>
