@@ -72,6 +72,23 @@ export const materialTopics = pgTable("material_topics", {
   topicId: integer("topic_id").notNull().references(() => topics.id),
 }, (t) => [primaryKey({ columns: [t.materialId, t.topicId] })]);
 
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  entityId: integer("entity_id").notNull().references(() => entities.id, { onDelete: "cascade" }),
+  text: text("text").notNull(),
+  yearFrom: integer("year_from"),
+  yearTo: integer("year_to"),
+  yearsLabel: text("years_label"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const eventTopics = pgTable("event_topics", {
+  eventId: integer("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  topicId: integer("topic_id").notNull().references(() => topics.id, { onDelete: "cascade" }),
+}, (t) => [primaryKey({ columns: [t.eventId, t.topicId] })]);
+
 export const peopleRelations = relations(people, ({ many }) => ({
   entities: many(entities),
 }));
@@ -79,6 +96,7 @@ export const peopleRelations = relations(people, ({ many }) => ({
 export const entitiesRelations = relations(entities, ({ one, many }) => ({
   person: one(people, { fields: [entities.personId], references: [people.id] }),
   materials: many(materials),
+  events: many(events),
 }));
 
 export const materialsRelations = relations(materials, ({ one, many }) => ({
@@ -86,11 +104,22 @@ export const materialsRelations = relations(materials, ({ one, many }) => ({
   materialTopics: many(materialTopics),
 }));
 
-export const topicsRelations = relations(topics, ({ many }) => ({
-  materialTopics: many(materialTopics),
-}));
-
 export const materialTopicsRelations = relations(materialTopics, ({ one }) => ({
   material: one(materials, { fields: [materialTopics.materialId], references: [materials.id] }),
   topic: one(topics, { fields: [materialTopics.topicId], references: [topics.id] }),
+}));
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  entity: one(entities, { fields: [events.entityId], references: [entities.id] }),
+  eventTopics: many(eventTopics),
+}));
+
+export const topicsRelations = relations(topics, ({ many }) => ({
+  materialTopics: many(materialTopics),
+  eventTopics: many(eventTopics),
+}));
+
+export const eventTopicsRelations = relations(eventTopics, ({ one }) => ({
+  event: one(events, { fields: [eventTopics.eventId], references: [events.id] }),
+  topic: one(topics, { fields: [eventTopics.topicId], references: [topics.id] }),
 }));

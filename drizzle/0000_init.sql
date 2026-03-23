@@ -1,24 +1,22 @@
--- clean slate
-DROP TABLE IF EXISTS "material_topics";
-DROP TABLE IF EXISTS "materials";
-DROP TABLE IF EXISTS "entities";
-DROP TABLE IF EXISTS "people";
-DROP TABLE IF EXISTS "topics";
-DROP TABLE IF EXISTS "users";
-DROP TYPE IF EXISTS "public"."material_type";
-DROP TYPE IF EXISTS "public"."entity_type";
-DROP TYPE IF EXISTS "public"."status";
-DROP TYPE IF EXISTS "public"."role";
-DROP TYPE IF EXISTS "public"."theme";
-
 -- types
-CREATE TYPE "public"."role" AS ENUM('admin');
-CREATE TYPE "public"."status" AS ENUM('draft', 'published');
-CREATE TYPE "public"."entity_type" AS ENUM('person');
-CREATE TYPE "public"."material_type" AS ENUM('article', 'photo', 'document');
+DO $$ BEGIN
+  CREATE TYPE "public"."role" AS ENUM('admin');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "public"."status" AS ENUM('draft', 'published');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "public"."entity_type" AS ENUM('person');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "public"."material_type" AS ENUM('article', 'photo', 'document');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- users
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
 	"name" text NOT NULL,
@@ -29,7 +27,7 @@ CREATE TABLE "users" (
 );
 
 -- topics
-CREATE TABLE "topics" (
+CREATE TABLE IF NOT EXISTS "topics" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"code" text NOT NULL,
 	"title" text NOT NULL,
@@ -39,7 +37,7 @@ CREATE TABLE "topics" (
 );
 
 -- people
-CREATE TABLE "people" (
+CREATE TABLE IF NOT EXISTS "people" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"code" text NOT NULL,
 	"name" text NOT NULL,
@@ -54,7 +52,7 @@ CREATE TABLE "people" (
 );
 
 -- entities
-CREATE TABLE "entities" (
+CREATE TABLE IF NOT EXISTS "entities" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"type" "entity_type" NOT NULL,
 	"person_id" integer REFERENCES "people"("id"),
@@ -65,7 +63,7 @@ CREATE TABLE "entities" (
 );
 
 -- materials
-CREATE TABLE "materials" (
+CREATE TABLE IF NOT EXISTS "materials" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"code" text NOT NULL,
 	"title" text NOT NULL,
@@ -84,7 +82,7 @@ CREATE TABLE "materials" (
 );
 
 -- material_topics
-CREATE TABLE "material_topics" (
+CREATE TABLE IF NOT EXISTS "material_topics" (
 	"material_id" integer NOT NULL REFERENCES "materials"("id"),
 	"topic_id" integer NOT NULL REFERENCES "topics"("id"),
 	PRIMARY KEY ("material_id", "topic_id")
@@ -96,7 +94,8 @@ INSERT INTO "topics" ("code", "title") VALUES
   ('war',           'Война'),
   ('documents',     'Документы'),
   ('photos',        'Фото'),
-  ('factory-today', 'Завод сегодня');
+  ('factory-today', 'Завод сегодня')
+ON CONFLICT (code) DO NOTHING;
 
 -- seed: people
 INSERT INTO "people" ("code", "name", "short_bio", "birth_year", "death_year", "years_label") VALUES
@@ -115,12 +114,17 @@ INSERT INTO "people" ("code", "name", "short_bio", "birth_year", "death_year", "
     NULL,
     NULL,
     'не позднее 1935 — после 1990'
-  );
+  )
+ON CONFLICT (code) DO NOTHING;
 
 -- seed: entities
-INSERT INTO "entities" ("type", "person_id", "code") VALUES
-  ('person', (SELECT id FROM people WHERE code = 'evdokimov-nikolay'), 'entity-evdokimov-nikolay'),
-  ('person', (SELECT id FROM people WHERE code = 'sinitsyna-mariya'),  'entity-sinitsyna-mariya');
+INSERT INTO "entities" ("type", "person_id", "code")
+SELECT 'person', (SELECT id FROM people WHERE code = 'evdokimov-nikolay'), 'entity-evdokimov-nikolay'
+WHERE NOT EXISTS (SELECT 1 FROM entities WHERE code = 'entity-evdokimov-nikolay');
+
+INSERT INTO "entities" ("type", "person_id", "code")
+SELECT 'person', (SELECT id FROM people WHERE code = 'sinitsyna-mariya'), 'entity-sinitsyna-mariya'
+WHERE NOT EXISTS (SELECT 1 FROM entities WHERE code = 'entity-sinitsyna-mariya');
 
 -- seed: materials
 INSERT INTO "materials" ("code", "title", "summary", "content", "material_type", "status", "entity_id", "year_from", "year_to") VALUES
@@ -167,12 +171,31 @@ INSERT INTO "materials" ("code", "title", "summary", "content", "material_type",
     NULL,
     1943,
     1945
-  );
+  )
+ON CONFLICT (code) DO NOTHING;
 
 -- seed: material_topics
-INSERT INTO "material_topics" ("material_id", "topic_id") VALUES
-  ((SELECT id FROM materials WHERE code = 'evdokimov-vospominaniya'), (SELECT id FROM topics WHERE code = 'people')),
-  ((SELECT id FROM materials WHERE code = 'evdokimov-photo-1965'),    (SELECT id FROM topics WHERE code = 'people')),
-  ((SELECT id FROM materials WHERE code = 'evdokimov-photo-1965'),    (SELECT id FROM topics WHERE code = 'photos')),
-  ((SELECT id FROM materials WHERE code = 'sinitsyna-plan-1960'),     (SELECT id FROM topics WHERE code = 'people')),
-  ((SELECT id FROM materials WHERE code = 'ceh3-vojna'),              (SELECT id FROM topics WHERE code = 'war'));
+INSERT INTO "material_topics" ("material_id", "topic_id")
+SELECT m.id, t.id FROM materials m, topics t
+WHERE m.code = 'evdokimov-vospominaniya' AND t.code = 'people'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO "material_topics" ("material_id", "topic_id")
+SELECT m.id, t.id FROM materials m, topics t
+WHERE m.code = 'evdokimov-photo-1965' AND t.code = 'people'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO "material_topics" ("material_id", "topic_id")
+SELECT m.id, t.id FROM materials m, topics t
+WHERE m.code = 'evdokimov-photo-1965' AND t.code = 'photos'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO "material_topics" ("material_id", "topic_id")
+SELECT m.id, t.id FROM materials m, topics t
+WHERE m.code = 'sinitsyna-plan-1960' AND t.code = 'people'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO "material_topics" ("material_id", "topic_id")
+SELECT m.id, t.id FROM materials m, topics t
+WHERE m.code = 'ceh3-vojna' AND t.code = 'war'
+ON CONFLICT DO NOTHING;
