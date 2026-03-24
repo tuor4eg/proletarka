@@ -135,12 +135,6 @@ export default async function WarPage() {
         (p) => p.deathYear !== null && p.deathYear >= WAR_YEAR_FROM && p.deathYear <= WAR_YEAR_TO,
     )
 
-    // Первое war-событие на человека — для контекста в блоке «Люди войны»
-    const warContextMap = new Map<number, string>()
-    for (const ev of timelineEvents) {
-        if (!warContextMap.has(ev.entityId)) warContextMap.set(ev.entityId, ev.text)
-    }
-
     return (
         <>
             <PublicNavWrapper />
@@ -192,7 +186,6 @@ export default async function WarPage() {
                                 entityId: p.entityId,
                                 name: p.name,
                                 years: formatYears(p.birthYear, p.deathYear, p.yearsLabel),
-                                context: warContextMap.get(p.entityId),
                                 mainPhotoPath: p.mainPhotoPath,
                             }))}
                         />

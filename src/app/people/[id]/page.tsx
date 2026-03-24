@@ -45,6 +45,7 @@ export default async function PersonPage({ params }: Props) {
                 id: materials.id,
                 title: materials.title,
                 summary: materials.summary,
+                content: materials.content,
                 coverImagePath: materials.coverImagePath,
                 yearFrom: materials.yearFrom,
                 yearTo: materials.yearTo,
