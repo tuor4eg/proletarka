@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-const NAV_LINKS = [
+const NAV_LINKS: { href: string; label: string; exact?: boolean }[] = [
     { href: "/admin/entities", label: "Картотека" },
     { href: "/admin/materials", label: "Материалы" },
     { href: "/admin/topics", label: "Темы" },
