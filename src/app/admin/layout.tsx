@@ -1,24 +1,22 @@
-import { AdminNav } from "@/components/AdminNav";
-import { getSession } from "@/lib/session";
-import { Toaster } from "@/components/ui/sonner";
-import { FlashToast } from "@/components/FlashToast";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { AdminNav } from "@/components/AdminNav"
+import { getSession } from "@/lib/session"
+import { Toaster } from "@/components/ui/sonner"
+import { FlashToast } from "@/components/FlashToast"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+    const session = await getSession()
 
-  return (
-    <TooltipProvider delay={300}>
-      <div className="min-h-screen bg-gray-50">
-        {session && <AdminNav />}
-        <div className="max-w-4xl mx-auto px-4">
-          {children}
-        </div>
-        <Toaster position="bottom-right" richColors />
-        <FlashToast />
-      </div>
-    </TooltipProvider>
-  );
+    return (
+        <TooltipProvider delay={300}>
+            <div className="min-h-screen bg-gray-50">
+                {session && <AdminNav />}
+                <div className="max-w-4xl mx-auto px-4">{children}</div>
+                <Toaster position="bottom-right" richColors />
+                <FlashToast />
+            </div>
+        </TooltipProvider>
+    )
 }

@@ -1,30 +1,30 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import "./globals.css";
-import { NavigationProgress } from "@/components/NavigationProgress";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import type { Metadata } from "next"
+import { Suspense } from "react"
+import "./globals.css"
+import { NavigationProgress } from "@/components/NavigationProgress"
+import { Geist } from "next/font/google"
+import { cn } from "@/lib/utils"
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "Музей завода «Пролетарская Свобода»",
-  description: "Люди, события и находки из истории завода",
-};
+    title: "Музей завода «Пролетарская Свобода»",
+    description: "Люди, события и находки из истории завода",
+}
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode
 }>) {
-  return (
-    <html lang="ru" className={cn("font-sans", geist.variable)}>
-      <body>
-        <Suspense>
-          <NavigationProgress />
-        </Suspense>
-        {children}
-      </body>
-    </html>
-  );
+    return (
+        <html lang="ru" className={cn("font-sans", geist.variable)}>
+            <body>
+                <Suspense>
+                    <NavigationProgress />
+                </Suspense>
+                {children}
+            </body>
+        </html>
+    )
 }

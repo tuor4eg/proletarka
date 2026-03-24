@@ -1,7 +1,7 @@
-import { getSession } from "@/lib/session";
-import { PublicNav } from "./PublicNav";
+import { getSession } from "@/lib/session"
+import { PublicNav } from "./PublicNav"
 
 export async function PublicNavWrapper() {
-  const session = await getSession();
-  return <PublicNav isAdmin={!!session} />;
+    const session = await getSession()
+    return <PublicNav isAdmin={!!session} />
 }

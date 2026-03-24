@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
-import { deleteSession } from "@/lib/session";
+import { redirect } from "next/navigation"
+import { deleteSession } from "@/lib/session"
 
 export async function POST() {
-  await deleteSession();
-  redirect("/login");
+    await deleteSession()
+    redirect("/login")
 }

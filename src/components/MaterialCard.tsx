@@ -1,54 +1,50 @@
-import Link from "next/link";
+import Link from "next/link"
 
 type MaterialCardProps = {
-  id: number;
-  title: string;
-  summary: string | null;
-  yearFrom: number | null;
-  yearTo: number | null;
-  personName: string | null;
-  topics: string[];
-};
+    id: number
+    title: string
+    summary: string | null
+    yearFrom: number | null
+    yearTo: number | null
+    personName: string | null
+    topics: string[]
+}
 
 type Props = {
-  material: MaterialCardProps;
-};
+    material: MaterialCardProps
+}
 
 export function MaterialCard({ material }: Props) {
-  const { id, title, summary, yearFrom, yearTo, personName, topics } = material;
+    const { id, title, summary, yearFrom, yearTo, personName, topics } = material
 
-  const yearLabel =
-    yearFrom && yearTo
-      ? `${yearFrom}–${yearTo}`
-      : yearFrom
-      ? `${yearFrom}`
-      : null;
+    const yearLabel = yearFrom && yearTo ? `${yearFrom}–${yearTo}` : yearFrom ? `${yearFrom}` : null
 
-  const hasMeta = personName || topics.length > 0 || yearLabel;
+    const hasMeta = personName || topics.length > 0 || yearLabel
 
-  return (
-    <Link href={`/materials/${id}`}>
-      <div className="rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 hover:border-gray-400 transition-colors">
-        {hasMeta && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {personName && (
-              <span className="text-xs bg-gray-100 text-gray-700 rounded-full px-2.5 py-0.5">
-                {personName}
-              </span>
-            )}
-            {topics.map((t) => (
-              <span key={t} className="text-xs bg-gray-100 text-gray-700 rounded-full px-2.5 py-0.5">
-                {t}
-              </span>
-            ))}
-            {yearLabel && (
-              <span className="text-xs text-gray-400">{yearLabel}</span>
-            )}
-          </div>
-        )}
-        <h2 className="text-base font-semibold leading-snug">{title}</h2>
-        {summary && <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>}
-      </div>
-    </Link>
-  );
+    return (
+        <Link href={`/materials/${id}`}>
+            <div className="rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 hover:border-gray-400 transition-colors">
+                {hasMeta && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        {personName && (
+                            <span className="text-xs bg-gray-100 text-gray-700 rounded-full px-2.5 py-0.5">
+                                {personName}
+                            </span>
+                        )}
+                        {topics.map((t) => (
+                            <span
+                                key={t}
+                                className="text-xs bg-gray-100 text-gray-700 rounded-full px-2.5 py-0.5"
+                            >
+                                {t}
+                            </span>
+                        ))}
+                        {yearLabel && <span className="text-xs text-gray-400">{yearLabel}</span>}
+                    </div>
+                )}
+                <h2 className="text-base font-semibold leading-snug">{title}</h2>
+                {summary && <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>}
+            </div>
+        </Link>
+    )
 }

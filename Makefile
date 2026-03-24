@@ -1,4 +1,4 @@
-.PHONY: deploy migrate logs restart stop ps create-user
+.PHONY: deploy migrate logs restart stop ps create-user lint
 
 # Пересобрать и перезапустить приложение
 deploy:
@@ -29,3 +29,7 @@ ps:
 create-user:
 	docker compose build migrate
 	docker compose --profile migrate run --rm migrate node scripts/seed-admin.mjs
+
+# Форматировать весь код (prettier)
+lint:
+	npx prettier --write "src/**/*.{ts,tsx}"
