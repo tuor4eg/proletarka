@@ -4,8 +4,8 @@ import { useState, useTransition } from "react"
 import { X, Plus } from "lucide-react"
 import { inputClass, Field } from "@/components/MaterialForm"
 import type { TopicOption } from "@/components/MaterialForm"
-import { deleteEvent } from "@/app/admin/entities/actions"
-import type { EventInput } from "@/app/admin/entities/actions"
+import { deleteEvent } from "@/app/admin/people/actions"
+import type { EventInput } from "@/app/admin/people/actions"
 
 type ExistingEvent = {
     id: number

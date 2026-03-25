@@ -33,7 +33,10 @@ export const MATERIAL_TYPES = [
     { value: "document", label: "Документ" },
 ] as const
 
-const ENTITY_TYPES = [{ value: "person", label: "Человек" }] as const
+const ENTITY_TYPES = [
+    { value: "person", label: "Человек" },
+    { value: "artifact", label: "Исторический объект" },
+] as const
 
 export const inputClass =
     "w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-gray-400"
@@ -123,8 +126,9 @@ export function MaterialForm({
     const initialEntity = initialEntityId
         ? (entities.find((e) => e.id === initialEntityId) ?? null)
         : null
+    const entityTypeLocked = initialEntity !== null
 
-    const [status, setStatus] = useState<Status>(material?.status ?? "draft")
+    const [status, setStatus] = useState<Status>(material?.status ?? "published")
     const [materialType, setMaterialType] = useState<MaterialType>(
         material?.materialType ?? defaultMaterialType ?? "article",
     )
@@ -232,7 +236,8 @@ export function MaterialForm({
                             onChange={(e) =>
                                 handleEntityTypeChange(e.target.value as EntityType | "")
                             }
-                            className={inputClass}
+                            disabled={entityTypeLocked}
+                            className={`${inputClass} disabled:bg-gray-50 disabled:text-gray-400`}
                         >
                             <option value="">— без карточки —</option>
                             {ENTITY_TYPES.map(({ value, label }) => (
@@ -249,6 +254,7 @@ export function MaterialForm({
                                 name="entityId"
                                 value={entityId}
                                 onChange={(e) => setEntityId(e.target.value)}
+                                required
                                 className={inputClass}
                             >
                                 <option value="">— выбрать —</option>

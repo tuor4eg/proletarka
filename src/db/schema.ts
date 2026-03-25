@@ -26,7 +26,18 @@ export const topics = pgTable("topics", {
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
-export const entityTypeEnum = pgEnum("entity_type", ["person"])
+export const entityTypeEnum = pgEnum("entity_type", ["person", "artifact"])
+
+export const artifacts = pgTable("artifacts", {
+    id: serial("id").primaryKey(),
+    code: text("code").notNull().unique(),
+    title: text("title").notNull(),
+    description: text("description"),
+    yearsLabel: text("years_label"),
+    coverImagePath: text("cover_image_path"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+})
 
 export const people = pgTable("people", {
     id: serial("id").primaryKey(),
@@ -45,6 +56,7 @@ export const entities = pgTable("entities", {
     id: serial("id").primaryKey(),
     type: entityTypeEnum("type").notNull(),
     personId: integer("person_id").references(() => people.id),
+    artifactId: integer("artifact_id").references(() => artifacts.id, { onDelete: "cascade" }),
     code: text("code").notNull().unique(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -63,6 +75,7 @@ export const materials = pgTable("materials", {
     yearTo: integer("year_to"),
     coverImagePath: text("cover_image_path"),
     sourceUrl: text("source_url"),
+    position: integer("position"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
@@ -107,12 +120,17 @@ export const eventTopics = pgTable(
     (t) => [primaryKey({ columns: [t.eventId, t.topicId] })],
 )
 
+export const artifactsRelations = relations(artifacts, ({ many }) => ({
+    entities: many(entities),
+}))
+
 export const peopleRelations = relations(people, ({ many }) => ({
     entities: many(entities),
 }))
 
 export const entitiesRelations = relations(entities, ({ one, many }) => ({
     person: one(people, { fields: [entities.personId], references: [people.id] }),
+    artifact: one(artifacts, { fields: [entities.artifactId], references: [artifacts.id] }),
     materials: many(materials),
     events: many(events),
 }))

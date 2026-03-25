@@ -1,0 +1,83 @@
+"use server"
+
+import { redirect } from "next/navigation"
+import { eq } from "drizzle-orm"
+import { db } from "@/db"
+import { artifacts, entities, materials } from "@/db/schema"
+import { generateCode } from "@/lib/generateCode"
+import { flashParam } from "@/lib/flash"
+
+const CODE_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+
+export async function createArtifact(formData: FormData) {
+    const title = (formData.get("title") as string).trim()
+    const description = (formData.get("description") as string) || null
+    const yearsLabel = (formData.get("yearsLabel") as string) || null
+
+    const customCodeRaw = (formData.get("customCode") as string)?.trim()
+    let code: string
+
+    if (customCodeRaw) {
+        if (!CODE_PATTERN.test(customCodeRaw)) {
+            redirect(`/admin/artifacts/new${flashParam("Недопустимый формат code")}`)
+        }
+        const existing = await db
+            .select({ id: artifacts.id })
+            .from(artifacts)
+            .where(eq(artifacts.code, customCodeRaw))
+            .limit(1)
+        if (existing.length > 0) {
+            redirect(`/admin/artifacts/new${flashParam("Этот code уже занят")}`)
+        }
+        code = customCodeRaw
+    } else {
+        code = generateCode(title)
+    }
+
+    const [artifact] = await db
+        .insert(artifacts)
+        .values({ code, title, description, yearsLabel })
+        .returning({ id: artifacts.id })
+
+    const [entity] = await db
+        .insert(entities)
+        .values({ type: "artifact", artifactId: artifact.id, code })
+        .returning({ id: entities.id })
+
+    redirect(`/admin/artifacts/${entity.id}${flashParam("Исторический объект добавлен")}`)
+}
+
+export async function updateArtifact(artifactId: number, formData: FormData) {
+    const title = (formData.get("title") as string).trim()
+    const description = (formData.get("description") as string) || null
+    const yearsLabel = (formData.get("yearsLabel") as string) || null
+
+    const [[entity]] = await Promise.all([
+        db
+            .select({ id: entities.id })
+            .from(entities)
+            .where(eq(entities.artifactId, artifactId))
+            .limit(1),
+        db
+            .update(artifacts)
+            .set({ title, description, yearsLabel, updatedAt: new Date() })
+            .where(eq(artifacts.id, artifactId)),
+    ])
+
+    if (!entity?.id) redirect("/admin/artifacts")
+
+    redirect(`/admin/artifacts/${entity.id}${flashParam("Сохранено")}`)
+}
+
+export async function deleteArtifact(entityId: number) {
+    await db.delete(entities).where(eq(entities.id, entityId))
+    redirect(`/admin/artifacts${flashParam("Удалено")}`)
+}
+
+export async function updateMaterialPositions(items: { id: number; position: number }[]) {
+    await db.transaction(async (tx) => {
+        for (const { id, position } of items) {
+            await tx.update(materials).set({ position }).where(eq(materials.id, id))
+        }
+    })
+}

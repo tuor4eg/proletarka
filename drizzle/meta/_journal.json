@@ -15,6 +15,13 @@
       "when": 1774291361577,
       "tag": "0001_thick_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774429252673,
+      "tag": "0002_hot_morg",
+      "breakpoints": true
     }
   ]
 }

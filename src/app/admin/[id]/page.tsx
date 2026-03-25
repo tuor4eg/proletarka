@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { db } from "@/db"
-import { materials, entities, people, topics, materialTopics } from "@/db/schema"
+import { materials, entities, people, artifacts, topics, materialTopics } from "@/db/schema"
 import { updateMaterial, deleteMaterial } from "../actions"
 import { MaterialForm } from "@/components/MaterialForm"
 import { EditPageHeader } from "@/components/EditPageHeader"
@@ -21,9 +21,15 @@ export default async function EditMaterialPage({ params }: Props) {
     const [[material], entityRows, topicRows, selectedRows] = await Promise.all([
         db.select().from(materials).where(eq(materials.id, numericId)).limit(1),
         db
-            .select({ id: entities.id, type: entities.type, personName: people.name })
+            .select({
+                id: entities.id,
+                type: entities.type,
+                personName: people.name,
+                artifactTitle: artifacts.title,
+            })
             .from(entities)
-            .leftJoin(people, eq(entities.personId, people.id)),
+            .leftJoin(people, eq(entities.personId, people.id))
+            .leftJoin(artifacts, eq(entities.artifactId, artifacts.id)),
         db.select({ id: topics.id, title: topics.title }).from(topics),
         db
             .select({ topicId: materialTopics.topicId })
@@ -38,7 +44,7 @@ export default async function EditMaterialPage({ params }: Props) {
     const entitiesList = entityRows.map((r) => ({
         id: r.id,
         type: r.type,
-        displayName: r.personName ?? r.id.toString(),
+        displayName: r.personName ?? r.artifactTitle ?? r.id.toString(),
     }))
 
     const selectedTopicIds = selectedRows.map((r) => r.topicId)
