@@ -5,6 +5,7 @@ import { MaterialCard } from "@/components/MaterialCard"
 import { FilterBar } from "@/components/FilterBar"
 import { PublicNavWrapper } from "@/components/PublicNavWrapper"
 import { Pagination } from "@/components/Pagination"
+import { ArtifactShowcase } from "@/components/ArtifactShowcase"
 
 const PAGE_SIZE = 12
 
@@ -91,6 +92,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                     alt="Пролетарка"
                     className="w-full rounded-2xl mb-6 object-cover max-h-64"
                 />
+                <ArtifactShowcase />
                 <FilterBar topics={allTopics} activeTopics={activeTopics} />
                 {items.length === 0 ? (
                     <p className="text-gray-500 text-sm mt-6">Материалов пока нет.</p>
