@@ -32,5 +32,5 @@ export async function ArtifactShowcase({ code }: Props) {
         .where(and(eq(materials.entityId, row.entity.id), eq(materials.status, "published")))
         .orderBy(sql`${materials.position} ASC NULLS LAST`, asc(materials.id))
 
-    return <ArtifactShowcaseView artifact={row.artifact} materials={linkedMaterials} />
+    return <ArtifactShowcaseView artifact={row.artifact} materials={linkedMaterials} code={code} />
 }

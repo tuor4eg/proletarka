@@ -2,6 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@theme {
+  --color-paper:        #F7F4EE;
+  --color-paper-dark:   #EDE9E0;
+  --color-paper-border: #DDD8CC;
+  --color-ink:          #1C1917;
+  --color-ink-secondary:#57524A;
+  --color-ink-muted:    #9C9488;
+  --color-sepia:        #8B7355;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @keyframes progress {
@@ -28,7 +38,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-paper text-ink;
   }
   html {
     @apply font-sans;

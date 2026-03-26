@@ -14,12 +14,10 @@ type Props = {
 
 export function PersonCardRow({ people }: Props) {
     return (
-        <div className="overflow-x-auto -mx-4 px-4">
-            <div className="flex gap-4 pb-2" style={{ width: "max-content" }}>
-                {people.map((person) => (
-                    <PersonCard key={person.entityId} {...person} />
-                ))}
-            </div>
+        <div className="grid grid-cols-4 gap-3">
+            {people.map((person) => (
+                <PersonCard key={person.entityId} {...person} />
+            ))}
         </div>
     )
 }
