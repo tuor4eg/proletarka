@@ -22,6 +22,20 @@
       "when": 1774429252673,
       "tag": "0002_hot_morg",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774624554569,
+      "tag": "0003_rainy_marrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774625173793,
+      "tag": "0004_closed_lady_mastermind",
+      "breakpoints": true
     }
   ]
 }

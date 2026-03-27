@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { db } from "@/db"
-import { artifacts, entities, materials } from "@/db/schema"
+import { artifacts, entities, materials, entityTopics } from "@/db/schema"
 import { generateCode } from "@/lib/generateCode"
 import { flashParam } from "@/lib/flash"
 
@@ -13,6 +13,8 @@ export async function createArtifact(formData: FormData) {
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
+    const artifactType = (formData.get("artifactType") as string) === "stand" ? "stand" : "general"
+    const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
     const customCodeRaw = (formData.get("customCode") as string)?.trim()
     let code: string
@@ -36,13 +38,19 @@ export async function createArtifact(formData: FormData) {
 
     const [artifact] = await db
         .insert(artifacts)
-        .values({ code, title, description, yearsLabel })
+        .values({ code, title, description, yearsLabel, artifactType })
         .returning({ id: artifacts.id })
 
     const [entity] = await db
         .insert(entities)
         .values({ type: "artifact", artifactId: artifact.id, code })
         .returning({ id: entities.id })
+
+    if (topicIds.length > 0) {
+        await db
+            .insert(entityTopics)
+            .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
+    }
 
     redirect(`/admin/artifacts/${entity.id}${flashParam("Исторический объект добавлен")}`)
 }
@@ -51,6 +59,8 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
+    const artifactType = (formData.get("artifactType") as string) === "stand" ? "stand" : "general"
+    const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
     const [[entity]] = await Promise.all([
         db
@@ -60,11 +70,18 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
             .limit(1),
         db
             .update(artifacts)
-            .set({ title, description, yearsLabel, updatedAt: new Date() })
+            .set({ title, description, yearsLabel, artifactType, updatedAt: new Date() })
             .where(eq(artifacts.id, artifactId)),
     ])
 
     if (!entity?.id) redirect("/admin/artifacts")
+
+    await db.delete(entityTopics).where(eq(entityTopics.entityId, entity.id))
+    if (topicIds.length > 0) {
+        await db
+            .insert(entityTopics)
+            .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
+    }
 
     redirect(`/admin/artifacts/${entity.id}${flashParam("Сохранено")}`)
 }

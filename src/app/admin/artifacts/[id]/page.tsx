@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { eq, asc, sql } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, artifacts, materials } from "@/db/schema"
+import { entities, artifacts, materials, topics, entityTopics } from "@/db/schema"
 import { updateArtifact, deleteArtifact } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { DeleteButton } from "@/components/DeleteButton"
@@ -27,6 +27,16 @@ export default async function EditArtifactPage({ params }: Props) {
         .limit(1)
 
     if (!row) notFound()
+
+    const [allTopics, selectedTopicRows] = await Promise.all([
+        db.select({ id: topics.id, title: topics.title }).from(topics),
+        db
+            .select({ topicId: entityTopics.topicId })
+            .from(entityTopics)
+            .where(eq(entityTopics.entityId, numericId)),
+    ])
+
+    const selectedTopicIds = selectedTopicRows.map((r) => r.topicId)
 
     const linkedMaterials = await db
         .select({
@@ -75,6 +85,33 @@ export default async function EditArtifactPage({ params }: Props) {
                         defaultValue={artifact.yearsLabel ?? ""}
                         className={inputClass}
                     />
+                </Field>
+                {allTopics.length > 0 && (
+                    <Field label="Темы">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-0.5">
+                            {allTopics.map((topic) => (
+                                <label
+                                    key={topic.id}
+                                    className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="topicIds"
+                                        value={topic.id}
+                                        defaultChecked={selectedTopicIds.includes(topic.id)}
+                                        className="rounded"
+                                    />
+                                    {topic.title}
+                                </label>
+                            ))}
+                        </div>
+                    </Field>
+                )}
+                <Field label="Тип">
+                    <select name="artifactType" defaultValue={artifact.artifactType} className={inputClass}>
+                        <option value="general">Обычный</option>
+                        <option value="stand">Стенд</option>
+                    </select>
                 </Field>
                 <div className="flex items-center gap-3 mt-0">
                     <SubmitButton label="Сохранить" />
