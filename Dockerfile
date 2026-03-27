@@ -6,6 +6,13 @@ FROM base AS deps
 COPY package.json package-lock.json* ./
 RUN npm ci
 
+# Лёгкий образ для миграций — без сборки Next.js
+FROM base AS migrator
+COPY --from=deps /app/node_modules ./node_modules
+COPY drizzle ./drizzle
+COPY src/db ./src/db
+COPY tsconfig.json ./
+
 # Сборка Next.js
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
