@@ -9,6 +9,7 @@ RUN npm ci
 # Лёгкий образ для миграций — без сборки Next.js
 FROM base AS migrator
 COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
 COPY drizzle ./drizzle
 COPY src/db ./src/db
 COPY tsconfig.json ./
