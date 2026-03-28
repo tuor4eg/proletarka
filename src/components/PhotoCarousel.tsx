@@ -3,6 +3,7 @@
 import useEmblaCarousel from "embla-carousel-react"
 import { useCallback, useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Lightbox } from "@/components/Lightbox"
 
 type Photo = {
     id: number
@@ -20,7 +21,7 @@ type Props = {
 export function PhotoCarousel({ photos }: Props) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
     const [current, setCurrent] = useState(0)
-    const [lightbox, setLightbox] = useState(false)
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
@@ -37,25 +38,13 @@ export function PhotoCarousel({ photos }: Props) {
 
     return (
         <>
-            {lightbox && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-                    onClick={() => setLightbox(false)}
-                >
-                    <img
-                        src={photo.coverImagePath}
-                        alt={photo.title}
-                        className="max-w-[95vw] max-h-[95vh] object-contain rounded-xl shadow-2xl"
-                        onClick={(e) => e.stopPropagation()}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setLightbox(false)}
-                        className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full w-9 h-9 flex items-center justify-center text-lg transition-colors"
-                    >
-                        ×
-                    </button>
-                </div>
+            {lightboxIndex !== null && (
+                <Lightbox
+                    items={photos}
+                    index={lightboxIndex}
+                    onClose={() => setLightboxIndex(null)}
+                    onNavigate={setLightboxIndex}
+                />
             )}
 
             <div className="flex flex-col gap-3">
@@ -68,7 +57,7 @@ export function PhotoCarousel({ photos }: Props) {
                                         src={p.coverImagePath}
                                         alt={p.title}
                                         className="w-full aspect-[4/3] object-cover cursor-zoom-in"
-                                        onClick={() => setLightbox(true)}
+                                        onClick={() => setLightboxIndex(current)}
                                     />
                                 </div>
                             ))}

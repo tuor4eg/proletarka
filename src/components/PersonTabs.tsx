@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { X, ChevronLeft, ChevronRight, FileText } from "lucide-react"
+import { X, FileText } from "lucide-react"
+import { Lightbox } from "@/components/Lightbox"
 
 type Material = {
     id: number
@@ -152,111 +153,6 @@ function DocumentGrid({
     )
 }
 
-type LightboxProps = {
-    photos: Material[]
-    index: number
-    onClose: () => void
-    onNavigate: (index: number) => void
-}
-
-function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) {
-    const photo = photos[index]
-    const hasPrev = index > 0
-    const hasNext = index < photos.length - 1
-
-    const prev = useCallback(() => {
-        if (hasPrev) onNavigate(index - 1)
-    }, [hasPrev, index, onNavigate])
-    const next = useCallback(() => {
-        if (hasNext) onNavigate(index + 1)
-    }, [hasNext, index, onNavigate])
-
-    useEffect(() => {
-        document.body.style.overflow = "hidden"
-        return () => {
-            document.body.style.overflow = ""
-        }
-    }, [])
-
-    useEffect(() => {
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === "ArrowLeft") prev()
-            if (e.key === "ArrowRight") next()
-            if (e.key === "Escape") onClose()
-        }
-        window.addEventListener("keydown", onKey)
-        return () => window.removeEventListener("keydown", onKey)
-    }, [prev, next, onClose])
-
-    if (!photo) return null
-
-    const yearLabel = photo.yearFrom
-        ? photo.yearFrom === photo.yearTo || !photo.yearTo
-            ? String(photo.yearFrom)
-            : `${photo.yearFrom}–${photo.yearTo}`
-        : null
-
-    return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-150"
-            onClick={onClose}
-        >
-            {/* Close */}
-            <button
-                onClick={onClose}
-                className="absolute top-4 right-4 p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-            >
-                <X size={20} />
-            </button>
-
-            {/* Counter */}
-            {photos.length > 1 && (
-                <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/40 text-xs tabular-nums">
-                    {index + 1} / {photos.length}
-                </div>
-            )}
-
-            {/* Prev */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation()
-                    prev()
-                }}
-                className={`absolute left-3 p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasPrev ? "opacity-0 pointer-events-none" : ""}`}
-            >
-                <ChevronLeft size={28} />
-            </button>
-
-            {/* Image + caption */}
-            <div
-                className="flex flex-col items-center gap-4 px-16 max-w-4xl w-full"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <img
-                    key={photo.id}
-                    src={photo.coverImagePath!}
-                    alt={photo.title}
-                    className="max-h-[78vh] max-w-full object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
-                />
-                <div className="text-center">
-                    <p className="text-white/90 text-sm font-medium">{photo.title}</p>
-                    {yearLabel && <p className="text-white/40 text-xs mt-0.5">{yearLabel}</p>}
-                </div>
-            </div>
-
-            {/* Next */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation()
-                    next()
-                }}
-                className={`absolute right-3 p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasNext ? "opacity-0 pointer-events-none" : ""}`}
-            >
-                <ChevronRight size={28} />
-            </button>
-        </div>
-    )
-}
 
 function PhotoGrid({ items, onOpen }: { items: Material[]; onOpen: (index: number) => void }) {
     if (items.length === 0) return <p className="text-sm text-gray-400">Нет фотографий.</p>
@@ -344,7 +240,7 @@ export function PersonTabs({ articles, photos, documents }: Props) {
 
             {lightboxIndex !== null && (
                 <Lightbox
-                    photos={photos}
+                    items={photos.filter(p => p.coverImagePath).map(p => ({ ...p, coverImagePath: p.coverImagePath! }))}
                     index={lightboxIndex}
                     onClose={() => setLightboxIndex(null)}
                     onNavigate={setLightboxIndex}
@@ -353,7 +249,7 @@ export function PersonTabs({ articles, photos, documents }: Props) {
 
             {docLightboxIndex !== null && (
                 <Lightbox
-                    photos={docPhotos}
+                    items={docPhotos.map(p => ({ ...p, coverImagePath: p.coverImagePath! }))}
                     index={docLightboxIndex}
                     onClose={() => setDocLightboxIndex(null)}
                     onNavigate={setDocLightboxIndex}
