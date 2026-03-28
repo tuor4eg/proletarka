@@ -128,7 +128,7 @@ export function PhotoCarousel({ photos }: Props) {
                         )}
                     </div>
                     {expanded && photo.content && (
-                        <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap mt-2">
+                        <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap break-all mt-2">
                             {photo.content}
                         </p>
                     )}
