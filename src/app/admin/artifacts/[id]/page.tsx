@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation"
 import { eq, asc, sql } from "drizzle-orm"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { db } from "@/db"
 import { entities, artifacts, materials, topics, entityTopics } from "@/db/schema"
 import { updateArtifact, deleteArtifact } from "../actions"
@@ -7,6 +9,7 @@ import { inputClass, Field } from "@/components/MaterialForm"
 import { DeleteButton } from "@/components/DeleteButton"
 import { SubmitButton } from "@/components/SubmitButton"
 import { LinkedMaterialsList } from "@/components/LinkedMaterialsList"
+import { ImageUpload } from "@/components/ImageUpload"
 import { CodeField } from "@/components/CodeField"
 
 type Props = {
@@ -56,6 +59,15 @@ export default async function EditArtifactPage({ params }: Props) {
 
     return (
         <div className="py-6">
+            <div className="mb-6">
+                <Link
+                    href="/admin/artifacts"
+                    className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors w-fit"
+                >
+                    <ArrowLeft size={15} />
+                    Назад
+                </Link>
+            </div>
             <h1 className="text-xl font-bold mb-6">Исторический объект</h1>
             <div className="mb-4">
                 <CodeField code={artifact.code} />
@@ -113,6 +125,12 @@ export default async function EditArtifactPage({ params }: Props) {
                         <option value="stand">Стенд</option>
                     </select>
                 </Field>
+                <ImageUpload
+                    fileInputName="coverImageFile"
+                    urlInputName="coverImagePath"
+                    label="Обложка"
+                    defaultUrl={artifact.coverImagePath ?? undefined}
+                />
                 <div className="flex items-center gap-3 mt-0">
                     <SubmitButton label="Сохранить" />
                     <DeleteButton

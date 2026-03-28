@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 const NAV_LINKS = [
     { href: "/people", label: "Люди" },
     { href: "/war", label: "Война" },
+    { href: "/stands", label: "Стенды" },
 ]
 
 export function PublicNav({ isAdmin = false }: { isAdmin?: boolean }) {

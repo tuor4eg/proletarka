@@ -2,6 +2,7 @@ import { db } from "@/db"
 import { topics } from "@/db/schema"
 import { createArtifact } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
+import { ImageUpload } from "@/components/ImageUpload"
 import { SubmitButton } from "@/components/SubmitButton"
 import { CodeField } from "@/components/CodeField"
 
@@ -50,6 +51,11 @@ export default async function NewArtifactPage() {
                         <option value="stand">Стенд</option>
                     </select>
                 </Field>
+                <ImageUpload
+                    fileInputName="coverImageFile"
+                    urlInputName="coverImagePath"
+                    label="Обложка"
+                />
                 <CodeField />
                 <SubmitButton label="Сохранить" className="mt-2" />
             </form>

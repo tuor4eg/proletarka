@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm"
 import { db } from "@/db"
 import { artifacts, entities, materials, entityTopics } from "@/db/schema"
 import { generateCode } from "@/lib/generateCode"
+import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 
 const CODE_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
@@ -14,6 +15,7 @@ export async function createArtifact(formData: FormData) {
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
     const artifactType = (formData.get("artifactType") as string) === "stand" ? "stand" : "general"
+    const coverImagePath = await resolveImageUpload(formData, "coverImageFile", "coverImagePath")
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
     const customCodeRaw = (formData.get("customCode") as string)?.trim()
@@ -38,7 +40,7 @@ export async function createArtifact(formData: FormData) {
 
     const [artifact] = await db
         .insert(artifacts)
-        .values({ code, title, description, yearsLabel, artifactType })
+        .values({ code, title, description, yearsLabel, artifactType, coverImagePath })
         .returning({ id: artifacts.id })
 
     const [entity] = await db
@@ -62,6 +64,18 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
     const artifactType = (formData.get("artifactType") as string) === "stand" ? "stand" : "general"
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
+    const [current] = await db
+        .select({ coverImagePath: artifacts.coverImagePath })
+        .from(artifacts)
+        .where(eq(artifacts.id, artifactId))
+        .limit(1)
+
+    const coverImagePath = await resolveImageUpload(formData, "coverImageFile", "coverImagePath")
+
+    if (current?.coverImagePath && current.coverImagePath !== coverImagePath) {
+        await deleteImage(current.coverImagePath)
+    }
+
     const [[entity]] = await Promise.all([
         db
             .select({ id: entities.id })
@@ -70,7 +84,7 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
             .limit(1),
         db
             .update(artifacts)
-            .set({ title, description, yearsLabel, artifactType, updatedAt: new Date() })
+            .set({ title, description, yearsLabel, artifactType, coverImagePath, updatedAt: new Date() })
             .where(eq(artifacts.id, artifactId)),
     ])
 
