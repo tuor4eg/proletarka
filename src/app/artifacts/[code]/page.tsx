@@ -34,6 +34,7 @@ export default async function ArtifactPage({ params }: Props) {
             yearTo: materials.yearTo,
             materialType: materials.materialType,
             coverImagePath: materials.coverImagePath,
+            content: materials.content,
         })
         .from(materials)
         .where(and(eq(materials.entityId, entity.id), eq(materials.status, "published")))
