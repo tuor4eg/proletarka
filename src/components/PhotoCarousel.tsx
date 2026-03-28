@@ -2,7 +2,7 @@
 
 import useEmblaCarousel from "embla-carousel-react"
 import { useCallback, useEffect, useState } from "react"
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 type Photo = {
     id: number
@@ -21,17 +21,13 @@ export function PhotoCarousel({ photos }: Props) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
     const [current, setCurrent] = useState(0)
     const [lightbox, setLightbox] = useState(false)
-    const [expanded, setExpanded] = useState(false)
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
     useEffect(() => {
         if (!emblaApi) return
-        emblaApi.on("select", () => {
-            setCurrent(emblaApi.selectedScrollSnap())
-            setExpanded(false)
-        })
+        emblaApi.on("select", () => setCurrent(emblaApi.selectedScrollSnap()))
     }, [emblaApi])
 
     const photo = photos[current]
@@ -109,25 +105,9 @@ export function PhotoCarousel({ photos }: Props) {
                 </div>
 
                 <div className="px-1">
-                    <div className="flex items-start justify-between gap-2">
-                        <div>
-                            <p className="text-sm font-medium leading-snug">{photo.title}</p>
-                            {yearLabel && <p className="text-xs text-ink-muted mt-0.5">{yearLabel}</p>}
-                        </div>
-                        {photo.content && (
-                            <button
-                                onClick={() => setExpanded((v) => !v)}
-                                className="shrink-0 flex items-center gap-1 text-xs text-ink-muted hover:text-ink transition-colors mt-0.5"
-                            >
-                                {expanded ? "Скрыть" : "Подробнее"}
-                                <ChevronDown
-                                    size={14}
-                                    className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-                                />
-                            </button>
-                        )}
-                    </div>
-                    {expanded && photo.content && (
+                    <p className="text-sm font-medium leading-snug">{photo.title}</p>
+                    {yearLabel && <p className="text-xs text-ink-muted mt-0.5">{yearLabel}</p>}
+                    {photo.content && (
                         <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap break-all mt-2">
                             {photo.content}
                         </p>
