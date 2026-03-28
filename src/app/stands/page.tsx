@@ -27,28 +27,28 @@ export default async function StandsPage() {
                 {rows.length === 0 ? (
                     <p className="text-sm text-gray-500">Стенды не найдены.</p>
                 ) : (
-                    <div className="flex flex-col divide-y divide-gray-100">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         {rows.map((row) => (
                             <Link
                                 key={row.code}
                                 href={`/artifacts/${row.code}`}
-                                className="flex items-center gap-3 py-3 hover:opacity-70 transition-opacity"
+                                className="group flex flex-col gap-2"
                             >
-                                <div className="w-14 h-14 shrink-0 rounded overflow-hidden bg-gray-100">
+                                <div className="aspect-[4/3] rounded-xl overflow-hidden bg-paper-dark">
                                     {row.coverImagePath ? (
                                         <img
                                             src={row.coverImagePath}
                                             alt={row.title}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />
                                     ) : (
                                         <div className="w-full h-full" />
                                     )}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">{row.title}</p>
+                                <div className="px-1">
+                                    <p className="text-sm font-medium leading-snug">{row.title}</p>
                                     {row.yearsLabel && (
-                                        <p className="text-xs text-gray-400">{row.yearsLabel}</p>
+                                        <p className="text-xs text-ink-muted mt-0.5">{row.yearsLabel}</p>
                                     )}
                                 </div>
                             </Link>

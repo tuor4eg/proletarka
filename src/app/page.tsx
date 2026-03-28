@@ -12,7 +12,7 @@ export default function HomePage() {
         <>
             <PublicNavWrapper />
             <HomeHero />
-            <main className="max-w-lg mx-auto px-4 lg:max-w-4xl">
+            <main className="max-w-lg mx-auto px-4 lg:max-w-4xl mt-3">
                 <div className="lg:grid lg:grid-cols-2 lg:gap-x-12">
                     {showcaseCodes.map((code) => (
                         <ArtifactShowcase key={code} code={code} />

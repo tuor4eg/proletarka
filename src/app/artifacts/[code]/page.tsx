@@ -5,6 +5,7 @@ import { entities, artifacts, materials } from "@/db/schema"
 import { PublicNavWrapper } from "@/components/PublicNavWrapper"
 import { BackButton } from "@/components/BackButton"
 import { MaterialCard } from "@/components/MaterialCard"
+import { PhotoCarousel } from "@/components/PhotoCarousel"
 
 type Props = {
     params: Promise<{ code: string }>
@@ -31,10 +32,18 @@ export default async function ArtifactPage({ params }: Props) {
             summary: materials.summary,
             yearFrom: materials.yearFrom,
             yearTo: materials.yearTo,
+            materialType: materials.materialType,
+            coverImagePath: materials.coverImagePath,
         })
         .from(materials)
         .where(and(eq(materials.entityId, entity.id), eq(materials.status, "published")))
         .orderBy(sql`${materials.position} ASC NULLS LAST`, asc(materials.id))
+
+    const photos = linkedMaterials.filter(
+        (m) => m.materialType === "photo" && m.coverImagePath
+    ) as (typeof linkedMaterials[number] & { coverImagePath: string })[]
+
+    const otherMaterials = linkedMaterials.filter((m) => m.materialType !== "photo")
 
     return (
         <>
@@ -55,9 +64,15 @@ export default async function ArtifactPage({ params }: Props) {
                     )}
                 </div>
 
-                {linkedMaterials.length > 0 && (
-                    <div className="flex flex-col gap-3">
-                        {linkedMaterials.map((m) => (
+                {photos.length > 0 && (
+                    <div className="mb-8">
+                        <PhotoCarousel photos={photos} />
+                    </div>
+                )}
+
+                {otherMaterials.length > 0 && (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {otherMaterials.map((m) => (
                             <MaterialCard
                                 key={m.id}
                                 material={{
