@@ -20,6 +20,15 @@ export default function RootLayout({
     return (
         <html lang="ru" className={cn("font-sans", geist.variable)}>
             <body>
+                <div className="fixed inset-0 [z-index:-10]">
+                    <img
+                        src="/bckg_main.jpg"
+                        alt=""
+                        className="w-full h-full object-cover opacity-20"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#1C1917] to-transparent" />
+                </div>
+                <div className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-4xl bg-paper [z-index:-1]" />
                 <Suspense>
                     <NavigationProgress />
                 </Suspense>
