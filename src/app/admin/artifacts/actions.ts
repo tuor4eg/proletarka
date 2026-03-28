@@ -1,9 +1,9 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { eq } from "drizzle-orm"
+import { eq, asc, max } from "drizzle-orm"
 import { db } from "@/db"
-import { artifacts, entities, materials, entityTopics } from "@/db/schema"
+import { artifacts, entities, materials, entityTopics, artifactSections } from "@/db/schema"
 import { generateCode } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
@@ -109,6 +109,76 @@ export async function updateMaterialPositions(items: { id: number; position: num
     await db.transaction(async (tx) => {
         for (const { id, position } of items) {
             await tx.update(materials).set({ position }).where(eq(materials.id, id))
+        }
+    })
+}
+
+export async function createSection(artifactId: number, formData: FormData) {
+    const title = (formData.get("title") as string).trim()
+    if (!title) return
+
+    const [result] = await db
+        .select({ maxPos: max(artifactSections.position) })
+        .from(artifactSections)
+        .where(eq(artifactSections.artifactId, artifactId))
+
+    const position = (result?.maxPos ?? 0) + 1
+
+    await db.insert(artifactSections).values({ artifactId, title, position })
+
+    const [entity] = await db
+        .select({ id: entities.id })
+        .from(entities)
+        .where(eq(entities.artifactId, artifactId))
+        .limit(1)
+
+    redirect(`/admin/artifacts/${entity.id}`)
+}
+
+export async function updateSection(sectionId: number, formData: FormData) {
+    const title = (formData.get("title") as string).trim()
+    if (!title) return
+
+    const [section] = await db
+        .select({ artifactId: artifactSections.artifactId })
+        .from(artifactSections)
+        .where(eq(artifactSections.id, sectionId))
+        .limit(1)
+
+    await db.update(artifactSections).set({ title }).where(eq(artifactSections.id, sectionId))
+
+    const [entity] = await db
+        .select({ id: entities.id })
+        .from(entities)
+        .where(eq(entities.artifactId, section.artifactId))
+        .limit(1)
+
+    redirect(`/admin/artifacts/${entity.id}`)
+}
+
+export async function deleteSection(sectionId: number) {
+    const [section] = await db
+        .select({ artifactId: artifactSections.artifactId })
+        .from(artifactSections)
+        .where(eq(artifactSections.id, sectionId))
+        .limit(1)
+
+    await db.update(materials).set({ sectionId: null }).where(eq(materials.sectionId, sectionId))
+    await db.delete(artifactSections).where(eq(artifactSections.id, sectionId))
+
+    const [entity] = await db
+        .select({ id: entities.id })
+        .from(entities)
+        .where(eq(entities.artifactId, section.artifactId))
+        .limit(1)
+
+    redirect(`/admin/artifacts/${entity.id}`)
+}
+
+export async function updateSectionPositions(items: { id: number; position: number }[]) {
+    await db.transaction(async (tx) => {
+        for (const { id, position } of items) {
+            await tx.update(artifactSections).set({ position }).where(eq(artifactSections.id, id))
         }
     })
 }

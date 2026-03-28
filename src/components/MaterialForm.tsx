@@ -70,6 +70,7 @@ type Props = {
     selectedTopicIds?: number[]
     defaultEntityId?: number
     defaultMaterialType?: MaterialType
+    defaultSectionId?: number
 }
 
 function FormActions({ deleteAction }: { deleteAction?: () => Promise<void> }) {
@@ -97,6 +98,7 @@ export function MaterialForm({
     selectedTopicIds = [],
     defaultEntityId,
     defaultMaterialType,
+    defaultSectionId,
 }: Props) {
     const [state, formAction] = useActionState(action, null)
     const formRef = useRef<HTMLFormElement>(null)
@@ -268,6 +270,7 @@ export function MaterialForm({
                     )}
 
                     {!entityType && <input type="hidden" name="entityId" value="" />}
+                    {defaultSectionId && <input type="hidden" name="sectionId" value={defaultSectionId} />}
 
                     {topics.length > 0 && (
                         <Field label="Темы">

@@ -7,11 +7,11 @@ import { createMaterial } from "../actions"
 import { MaterialForm } from "@/components/MaterialForm"
 
 type Props = {
-    searchParams: Promise<{ entityId?: string; materialType?: MaterialType }>
+    searchParams: Promise<{ entityId?: string; materialType?: MaterialType; sectionId?: string }>
 }
 
 export default async function NewMaterialPage({ searchParams }: Props) {
-    const { entityId, materialType } = await searchParams
+    const { entityId, materialType, sectionId } = await searchParams
 
     const [entityRows, topicRows] = await Promise.all([
         db
@@ -63,6 +63,7 @@ export default async function NewMaterialPage({ searchParams }: Props) {
                 topics={topicRows}
                 defaultEntityId={entityId ? Number(entityId) : undefined}
                 defaultMaterialType={materialType}
+                defaultSectionId={sectionId ? Number(sectionId) : undefined}
             />
         </div>
     )

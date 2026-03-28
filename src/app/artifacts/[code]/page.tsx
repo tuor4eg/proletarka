@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { eq, and, asc, sql } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, artifacts, materials } from "@/db/schema"
+import { entities, artifacts, materials, artifactSections } from "@/db/schema"
 import { PublicNavWrapper } from "@/components/PublicNavWrapper"
 import { BackButton } from "@/components/BackButton"
 import { MaterialCard } from "@/components/MaterialCard"
@@ -25,26 +25,65 @@ export default async function ArtifactPage({ params }: Props) {
 
     const { artifact, entity } = row
 
-    const linkedMaterials = await db
-        .select({
-            id: materials.id,
-            title: materials.title,
-            summary: materials.summary,
-            yearFrom: materials.yearFrom,
-            yearTo: materials.yearTo,
-            materialType: materials.materialType,
-            coverImagePath: materials.coverImagePath,
-            content: materials.content,
-        })
-        .from(materials)
-        .where(and(eq(materials.entityId, entity.id), eq(materials.status, "published")))
-        .orderBy(sql`${materials.position} ASC NULLS LAST`, asc(materials.id))
+    const [linkedMaterials, sections] = await Promise.all([
+        db
+            .select({
+                id: materials.id,
+                title: materials.title,
+                summary: materials.summary,
+                yearFrom: materials.yearFrom,
+                yearTo: materials.yearTo,
+                materialType: materials.materialType,
+                coverImagePath: materials.coverImagePath,
+                content: materials.content,
+                sectionId: materials.sectionId,
+            })
+            .from(materials)
+            .where(and(eq(materials.entityId, entity.id), eq(materials.status, "published")))
+            .orderBy(sql`${materials.position} ASC NULLS LAST`, asc(materials.id)),
+        db
+            .select()
+            .from(artifactSections)
+            .where(eq(artifactSections.artifactId, artifact.id))
+            .orderBy(asc(artifactSections.position)),
+    ])
 
-    const photos = linkedMaterials.filter(
-        (m) => m.materialType === "photo" && m.coverImagePath
-    ) as (typeof linkedMaterials[number] & { coverImagePath: string })[]
+    const isStand = artifact.artifactType === "stand"
 
-    const otherMaterials = linkedMaterials.filter((m) => m.materialType !== "photo")
+    function renderMaterials(items: typeof linkedMaterials) {
+        const photos = items.filter(
+            (m) => m.materialType === "photo" && m.coverImagePath
+        ) as (typeof items[number] & { coverImagePath: string })[]
+        const others = items.filter((m) => m.materialType !== "photo")
+
+        return (
+            <>
+                {photos.length > 0 && (
+                    <div className="mb-6">
+                        <PhotoCarousel photos={photos} />
+                    </div>
+                )}
+                {others.length > 0 && (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {others.map((m) => (
+                            <MaterialCard
+                                key={m.id}
+                                material={{
+                                    id: m.id,
+                                    title: m.title,
+                                    summary: m.summary,
+                                    yearFrom: m.yearFrom,
+                                    yearTo: m.yearTo,
+                                    personName: null,
+                                    topics: [],
+                                }}
+                            />
+                        ))}
+                    </div>
+                )}
+            </>
+        )
+    }
 
     return (
         <>
@@ -65,29 +104,27 @@ export default async function ArtifactPage({ params }: Props) {
                     )}
                 </div>
 
-                {photos.length > 0 && (
-                    <div className="mb-8">
-                        <PhotoCarousel photos={photos} />
+                {isStand && sections.length > 0 ? (
+                    <div className="flex flex-col gap-10">
+                        {sections.map((section) => {
+                            const sectionMaterials = linkedMaterials.filter(m => m.sectionId === section.id)
+                            if (sectionMaterials.length === 0) return null
+                            return (
+                                <div key={section.id}>
+                                    <h2 className="text-base font-semibold mb-4 pb-2 border-b border-gray-200">
+                                        {section.title}
+                                    </h2>
+                                    {renderMaterials(sectionMaterials)}
+                                </div>
+                            )
+                        })}
+                        {(() => {
+                            const unsectioned = linkedMaterials.filter(m => !m.sectionId)
+                            return unsectioned.length > 0 && renderMaterials(unsectioned)
+                        })()}
                     </div>
-                )}
-
-                {otherMaterials.length > 0 && (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        {otherMaterials.map((m) => (
-                            <MaterialCard
-                                key={m.id}
-                                material={{
-                                    id: m.id,
-                                    title: m.title,
-                                    summary: m.summary,
-                                    yearFrom: m.yearFrom,
-                                    yearTo: m.yearTo,
-                                    personName: null,
-                                    topics: [],
-                                }}
-                            />
-                        ))}
-                    </div>
+                ) : (
+                    renderMaterials(linkedMaterials)
                 )}
             </main>
         </>

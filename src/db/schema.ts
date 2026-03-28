@@ -65,6 +65,14 @@ export const entities = pgTable("entities", {
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
+export const artifactSections = pgTable("artifact_sections", {
+    id: serial("id").primaryKey(),
+    artifactId: integer("artifact_id").notNull().references(() => artifacts.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
 export const materials = pgTable("materials", {
     id: serial("id").primaryKey(),
     code: text("code").notNull().unique(),
@@ -74,6 +82,7 @@ export const materials = pgTable("materials", {
     materialType: materialTypeEnum("material_type").notNull().default("article"),
     status: statusEnum("status").notNull().default("draft"),
     entityId: integer("entity_id").references(() => entities.id),
+    sectionId: integer("section_id").references(() => artifactSections.id, { onDelete: "set null" }),
     yearFrom: integer("year_from"),
     yearTo: integer("year_to"),
     coverImagePath: text("cover_image_path"),
@@ -138,6 +147,12 @@ export const entityTopics = pgTable(
 
 export const artifactsRelations = relations(artifacts, ({ many }) => ({
     entities: many(entities),
+    sections: many(artifactSections),
+}))
+
+export const artifactSectionsRelations = relations(artifactSections, ({ one, many }) => ({
+    artifact: one(artifacts, { fields: [artifactSections.artifactId], references: [artifacts.id] }),
+    materials: many(materials),
 }))
 
 export const peopleRelations = relations(people, ({ many }) => ({
@@ -154,6 +169,7 @@ export const entitiesRelations = relations(entities, ({ one, many }) => ({
 
 export const materialsRelations = relations(materials, ({ one, many }) => ({
     entity: one(entities, { fields: [materials.entityId], references: [entities.id] }),
+    section: one(artifactSections, { fields: [materials.sectionId], references: [artifactSections.id] }),
     materialTopics: many(materialTopics),
 }))
 

@@ -14,11 +14,14 @@ async function parseFormData(formData: FormData) {
     const yearToRaw = formData.get("yearTo") as string
     const entityIdRaw = formData.get("entityId") as string
 
+    const sectionIdRaw = formData.get("sectionId") as string
+
     return {
         title: formData.get("title") as string,
         materialType: formData.get("materialType") as MaterialType,
         status: formData.get("status") as Status,
         entityId: entityIdRaw ? Number(entityIdRaw) : null,
+        sectionId: sectionIdRaw ? Number(sectionIdRaw) : null,
         summary: (formData.get("summary") as string) || null,
         content: (formData.get("content") as string) || null,
         sourceUrl: (formData.get("sourceUrl") as string) || null,
