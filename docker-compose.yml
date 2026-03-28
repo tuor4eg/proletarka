@@ -1,6 +1,6 @@
 services:
   app:
-    build: .
+    image: ghcr.io/tuor4eg/proletarka:latest
     restart: unless-stopped
     ports:
       - "3000:3000"

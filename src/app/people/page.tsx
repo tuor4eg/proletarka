@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from "next/link"
 import { User } from "lucide-react"
 import { db } from "@/db"

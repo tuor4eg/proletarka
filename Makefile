@@ -1,8 +1,16 @@
-.PHONY: deploy migrate logs restart stop ps create-user lint
+IMAGE = ghcr.io/tuor4eg/proletarka:latest
 
-# Пересобрать и перезапустить приложение
+.PHONY: push deploy migrate logs restart stop ps create-user lint
+
+# Собрать образ локально и запушить в registry
+push:
+	docker build -t $(IMAGE) .
+	docker push $(IMAGE)
+
+# Скачать свежий образ и перезапустить приложение
 deploy:
-	docker compose up -d --build app
+	docker compose pull app
+	docker compose up -d app
 
 # Применить миграции
 migrate:
