@@ -182,3 +182,47 @@ export async function updateSectionPositions(items: { id: number; position: numb
         }
     })
 }
+
+export async function shiftSection(sectionId: number, direction: "up" | "down") {
+    const [section] = await db
+        .select()
+        .from(artifactSections)
+        .where(eq(artifactSections.id, sectionId))
+        .limit(1)
+
+    if (!section) return
+
+    const siblings = await db
+        .select()
+        .from(artifactSections)
+        .where(eq(artifactSections.artifactId, section.artifactId))
+        .orderBy(asc(artifactSections.position))
+
+    const index = siblings.findIndex((s) => s.id === sectionId)
+    const swapIndex = direction === "up" ? index - 1 : index + 1
+
+    if (swapIndex < 0 || swapIndex >= siblings.length) return
+
+    const a = siblings[index]
+    const b = siblings[swapIndex]
+
+    await db.transaction(async (tx) => {
+        await tx.update(artifactSections).set({ position: b.position }).where(eq(artifactSections.id, a.id))
+        await tx.update(artifactSections).set({ position: a.position }).where(eq(artifactSections.id, b.id))
+    })
+
+    const [entity] = await db
+        .select({ id: entities.id })
+        .from(entities)
+        .where(eq(entities.artifactId, section.artifactId))
+        .limit(1)
+
+    redirect(`/admin/artifacts/${entity.id}`)
+}
+
+export async function updateMaterialSection(materialId: number, sectionId: number | null) {
+    await db
+        .update(materials)
+        .set({ sectionId, updatedAt: new Date() })
+        .where(eq(materials.id, materialId))
+}

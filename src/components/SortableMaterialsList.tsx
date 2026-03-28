@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
     DndContext,
@@ -20,7 +21,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
 import { type MaterialType, type Status } from "@/db/schema"
 import { PublishToggle } from "@/components/PublishToggle"
-import { updateMaterialPositions } from "@/app/admin/artifacts/actions"
+import { updateMaterialPositions, updateMaterialSection } from "@/app/admin/artifacts/actions"
 
 const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
@@ -35,9 +36,15 @@ type MaterialItem = {
     materialType: MaterialType
     status: Status
     position?: number | null
+    sectionId?: number | null
 }
 
-function SortableRow({ item, index }: { item: MaterialItem; index: number }) {
+type SectionOption = {
+    id: number
+    title: string
+}
+
+function SortableRow({ item, index, sections, onSectionChange, sectionChangePending }: { item: MaterialItem; index: number; sections?: SectionOption[]; onSectionChange?: (id: number, sectionId: number | null) => void; sectionChangePending?: boolean }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: item.id,
     })
@@ -81,6 +88,19 @@ function SortableRow({ item, index }: { item: MaterialItem; index: number }) {
                     {STATUS_LABEL[item.status]}
                 </span>
             </Link>
+            {sections && onSectionChange && (
+                <select
+                    defaultValue={item.sectionId ?? ""}
+                    disabled={sectionChangePending}
+                    onChange={(e) => onSectionChange(item.id, e.target.value ? Number(e.target.value) : null)}
+                    className="text-xs text-gray-500 border border-gray-200 rounded-lg px-1.5 py-1 shrink-0 disabled:opacity-40"
+                >
+                    <option value="">Без раздела</option>
+                    {sections.map((s) => (
+                        <option key={s.id} value={s.id}>{s.title}</option>
+                    ))}
+                </select>
+            )}
             <PublishToggle id={item.id} status={item.status} />
         </div>
     )
@@ -88,12 +108,26 @@ function SortableRow({ item, index }: { item: MaterialItem; index: number }) {
 
 type Props = {
     initialItems: MaterialItem[]
+    sections?: SectionOption[]
 }
 
-export function SortableMaterialsList({ initialItems }: Props) {
+export function SortableMaterialsList({ initialItems, sections }: Props) {
     const [items, setItems] = useState(initialItems)
+    const router = useRouter()
+    const [isPending, startTransition] = useTransition()
+
+    useEffect(() => {
+        setItems(initialItems)
+    }, [initialItems])
 
     const sensors = useSensors(useSensor(PointerSensor))
+
+    function handleSectionChange(id: number, sectionId: number | null) {
+        startTransition(async () => {
+            await updateMaterialSection(id, sectionId)
+            router.refresh()
+        })
+    }
 
     async function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
@@ -112,7 +146,7 @@ export function SortableMaterialsList({ initialItems }: Props) {
             <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
                     {items.map((item, index) => (
-                        <SortableRow key={item.id} item={item} index={index} />
+                        <SortableRow key={item.id} item={item} index={index} sections={sections} onSectionChange={handleSectionChange} sectionChangePending={isPending} />
                     ))}
                 </div>
             </SortableContext>

@@ -106,11 +106,28 @@ export default async function ArtifactPage({ params }: Props) {
 
                 {isStand && sections.length > 0 ? (
                     <div className="flex flex-col gap-10">
+                        {sections.filter(s => linkedMaterials.some(m => m.sectionId === s.id)).length > 1 && (
+                            <nav className="flex flex-wrap items-center gap-y-1">
+                                {sections.filter(s => linkedMaterials.some(m => m.sectionId === s.id)).map((section, i, arr) => (
+                                    <span key={section.id} className="flex items-center">
+                                        <a
+                                            href={`#section-${section.id}`}
+                                            className="text-sm text-gray-400 hover:text-gray-800 transition-colors"
+                                        >
+                                            {section.title}
+                                        </a>
+                                        {i < arr.length - 1 && (
+                                            <span className="mx-2 text-gray-300 select-none">·</span>
+                                        )}
+                                    </span>
+                                ))}
+                            </nav>
+                        )}
                         {sections.map((section) => {
                             const sectionMaterials = linkedMaterials.filter(m => m.sectionId === section.id)
                             if (sectionMaterials.length === 0) return null
                             return (
-                                <div key={section.id}>
+                                <div key={section.id} id={`section-${section.id}`}>
                                     <h2 className="text-base font-semibold mb-4 pb-2 border-b border-gray-200">
                                         {section.title}
                                     </h2>

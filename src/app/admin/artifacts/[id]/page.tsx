@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/db"
 import { entities, artifacts, materials, topics, entityTopics, artifactSections } from "@/db/schema"
-import { updateArtifact, deleteArtifact, createSection, updateSection, deleteSection } from "../actions"
+import { updateArtifact, deleteArtifact, createSection, updateSection, deleteSection, shiftSection } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { DeleteButton } from "@/components/DeleteButton"
 import { SubmitButton } from "@/components/SubmitButton"
@@ -157,13 +157,23 @@ export default async function EditArtifactPage({ params }: Props) {
 
             {isStand ? (
                 <div className="mt-10 flex flex-col gap-8">
-                    {sections.map((section) => {
+                    {sections.map((section, i) => {
                         const sectionMaterials = linkedMaterials.filter(m => m.sectionId === section.id)
                         const updateSectionAction = updateSection.bind(null, section.id)
                         const deleteSectionAction = deleteSection.bind(null, section.id)
+                        const shiftUpAction = shiftSection.bind(null, section.id, "up")
+                        const shiftDownAction = shiftSection.bind(null, section.id, "down")
                         return (
                             <div key={section.id} className="border border-gray-200 rounded-xl overflow-hidden">
                                 <div className="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-200">
+                                    <div className="flex flex-col gap-0.5 shrink-0">
+                                        <form action={shiftUpAction}>
+                                            <button type="submit" disabled={i === 0} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs">▲</button>
+                                        </form>
+                                        <form action={shiftDownAction}>
+                                            <button type="submit" disabled={i === sections.length - 1} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs">▼</button>
+                                        </form>
+                                    </div>
                                     <form action={updateSectionAction} className="flex-1 flex items-center gap-2">
                                         <input
                                             name="title"
@@ -181,7 +191,7 @@ export default async function EditArtifactPage({ params }: Props) {
                                     </form>
                                 </div>
                                 {sectionMaterials.length > 0 && (
-                                    <SortableMaterialsList initialItems={sectionMaterials} />
+                                    <SortableMaterialsList initialItems={sectionMaterials} sections={sections} />
                                 )}
                                 <div className="px-4 py-3 border-t border-gray-100">
                                     <Link
@@ -200,7 +210,7 @@ export default async function EditArtifactPage({ params }: Props) {
                         return unsectioned.length > 0 && (
                             <div>
                                 <p className="text-sm text-gray-400 mb-2">Без раздела</p>
-                                <SortableMaterialsList initialItems={unsectioned} />
+                                <SortableMaterialsList initialItems={unsectioned} sections={sections} />
                             </div>
                         )
                     })()}
