@@ -135,7 +135,7 @@ export function WarPhotoGrid({ photos }: { photos: WarPhoto[] }) {
                             onClick={() => lbIndex !== -1 && setLightboxIndex(lbIndex)}
                         >
                             <div
-                                className={`aspect-square bg-gray-100 rounded-xl overflow-hidden ${photo.coverImagePath ? "cursor-zoom-in" : ""}`}
+                                className={`aspect-square bg-paper-dark rounded-xl overflow-hidden ${photo.coverImagePath ? "cursor-zoom-in" : ""}`}
                             >
                                 {photo.coverImagePath ? (
                                     <img
@@ -144,13 +144,13 @@ export function WarPhotoGrid({ photos }: { photos: WarPhoto[] }) {
                                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                                    <div className="w-full h-full flex items-center justify-center text-ink-muted text-xs">
                                         нет фото
                                     </div>
                                 )}
                             </div>
-                            <p className="text-xs text-gray-600 leading-tight">{photo.title}</p>
-                            {year && <p className="text-xs text-gray-400">{year}</p>}
+                            <p className="text-xs text-ink-secondary leading-tight">{photo.title}</p>
+                            {year && <p className="text-xs text-ink-muted">{year}</p>}
                         </div>
                     )
                 })}

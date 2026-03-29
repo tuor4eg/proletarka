@@ -42,8 +42,8 @@ export function NavigationProgress() {
     if (!visible) return null
 
     return (
-        <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-gray-100">
-            <div className="h-full bg-gray-900 animate-progress" />
+        <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-paper-dark">
+            <div className="h-full bg-ink animate-progress" />
         </div>
     )
 }

@@ -1,18 +1,22 @@
 import Link from "next/link"
 import { getSession } from "@/lib/session"
 
-export async function HomeHero() {
+type Props = {
+    title: string
+}
+
+export async function PageHero({ title }: Props) {
     const session = await getSession()
 
     return (
-        <div className="relative w-full overflow-hidden" style={{ maxHeight: "clamp(280px, 45vw, 520px)" }}>
+        <div className="relative w-full overflow-hidden" style={{ height: "clamp(140px, 25vw, 240px)" }}>
             <img
                 src="/proletarka.jpg"
                 alt="Пролетарка"
                 className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute top-0 left-0 right-0 px-5 pt-4 flex items-center justify-between lg:px-12">
+            <div className="absolute top-0 left-0 right-0 px-5 pt-4 flex items-center justify-between">
                 <Link href="/">
                     <img src="/logo.png" alt="Память завода" className="h-16 w-auto brightness-0 invert" />
                 </Link>
@@ -22,13 +26,10 @@ export async function HomeHero() {
                     </Link>
                 )}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 lg:px-12 lg:pb-10 max-w-2xl lg:max-w-4xl">
-                <h1 className="text-3xl lg:text-5xl font-bold text-white leading-tight">
-                    Память Пролетарки
+            <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+                <h1 className="text-2xl font-bold tracking-widest uppercase text-white leading-tight">
+                    {title}
                 </h1>
-                <p className="text-sm lg:text-base text-white/80 mt-2 leading-relaxed">
-                    История завода и его работников.
-                </p>
             </div>
         </div>
     )

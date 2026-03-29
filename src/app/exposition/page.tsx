@@ -4,9 +4,9 @@ import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts } from "@/db/schema"
 import { eq, asc } from "drizzle-orm"
-import { PublicNavWrapper } from "@/components/PublicNavWrapper"
+import { PageHero } from "@/components/PageHero"
 
-export default async function StandsPage() {
+export default async function ExpositionPage() {
     const rows = await db
         .select({
             code: artifacts.code,
@@ -21,11 +21,11 @@ export default async function StandsPage() {
 
     return (
         <>
-            <PublicNavWrapper />
+            <PageHero title="Выставка" />
             <main className="max-w-2xl mx-auto px-4 py-8">
-                <h1 className="text-2xl font-bold mb-6">Стенды</h1>
+                <h2 className="text-lg font-semibold text-ink mb-6 pt-4">Стенды</h2>
                 {rows.length === 0 ? (
-                    <p className="text-sm text-gray-500">Стенды не найдены.</p>
+                    <p className="text-sm text-ink-muted">Стенды не найдены.</p>
                 ) : (
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         {rows.map((row) => (

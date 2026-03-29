@@ -6,7 +6,7 @@ import { db } from "@/db"
 import { entities, people } from "@/db/schema"
 import { eq, asc, desc, ilike, and, sql, count } from "drizzle-orm"
 import { Suspense } from "react"
-import { PublicNavWrapper } from "@/components/PublicNavWrapper"
+import { PageHero } from "@/components/PageHero"
 import { PublicFilters } from "@/components/PublicFilters"
 import { LetterFilter } from "@/components/LetterFilter"
 import { Pagination } from "@/components/Pagination"
@@ -82,18 +82,17 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
 
     return (
         <>
-            <PublicNavWrapper />
+            <PageHero title="Люди" />
             <main className="max-w-2xl mx-auto px-4 py-8">
-                <h1 className="text-2xl font-bold mb-6">Люди</h1>
                 <LetterFilter availableLetters={availableLetters} />
                 <Suspense>
                     <PublicFilters q={q ?? ""} sort={sort} sortOptions={SORT_OPTIONS} />
                 </Suspense>
                 {rows.length === 0 ? (
-                    <p className="text-sm text-gray-500">Ничего не найдено.</p>
+                    <p className="text-sm text-ink-muted">Ничего не найдено.</p>
                 ) : (
                     <>
-                        <div className="flex flex-col divide-y divide-gray-100">
+                        <div className="flex flex-col divide-y divide-paper-border">
                             {rows.map((row) => {
                                 const years = formatYears(
                                     row.birthYear,
@@ -106,7 +105,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                                         href={`/people/${row.entityId}`}
                                         className="flex items-center gap-3 py-3 hover:opacity-70 transition-opacity"
                                     >
-                                        <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                                        <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-paper-dark flex items-center justify-center">
                                             {row.mainPhotoPath ? (
                                                 <img
                                                     src={row.mainPhotoPath}
@@ -114,7 +113,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <User size={18} className="text-gray-300" />
+                                                <User size={18} className="text-ink-muted" />
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -122,7 +121,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                                                 {row.name}
                                             </p>
                                             {years && (
-                                                <p className="text-xs text-gray-400">{years}</p>
+                                                <p className="text-xs text-ink-muted">{years}</p>
                                             )}
                                         </div>
                                     </Link>

@@ -31,7 +31,7 @@ function LetterFilterInner({ availableLetters, compact }: Props) {
                 {currentLetter && (
                     <button
                         onClick={() => navigate("")}
-                        className="px-2 py-0.5 text-xs rounded text-gray-500 hover:text-gray-900 underline underline-offset-2 mr-1"
+                        className="px-2 py-0.5 text-xs rounded text-ink-muted hover:text-ink underline underline-offset-2 mr-1"
                     >
                         Все
                     </button>
@@ -45,8 +45,8 @@ function LetterFilterInner({ availableLetters, compact }: Props) {
                             onClick={() => navigate(letter)}
                             className={`w-6 h-6 text-xs rounded transition-colors ${
                                 isActive
-                                    ? "bg-gray-900 text-white"
-                                    : "text-gray-600 hover:bg-gray-100"
+                                    ? "bg-ink text-white"
+                                    : "text-ink-secondary hover:bg-paper-dark"
                             }`}
                         >
                             {letter}
@@ -54,7 +54,7 @@ function LetterFilterInner({ availableLetters, compact }: Props) {
                     ) : (
                         <span
                             key={letter}
-                            className="w-6 h-6 text-xs flex items-center justify-center text-gray-200"
+                            className="w-6 h-6 text-xs flex items-center justify-center text-ink-muted"
                         >
                             {letter}
                         </span>
@@ -69,7 +69,7 @@ function LetterFilterInner({ availableLetters, compact }: Props) {
             {currentLetter && (
                 <button
                     onClick={() => navigate("")}
-                    className="px-2.5 py-1 text-sm rounded-lg text-gray-500 hover:text-gray-900 underline underline-offset-2 mr-1"
+                    className="px-2.5 py-1 text-sm rounded-lg text-ink-muted hover:text-ink underline underline-offset-2 mr-1"
                 >
                     Все
                 </button>
@@ -82,7 +82,7 @@ function LetterFilterInner({ availableLetters, compact }: Props) {
                         key={letter}
                         onClick={() => navigate(letter)}
                         className={`w-8 h-8 text-sm rounded-lg font-medium transition-colors ${
-                            isActive ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-100"
+                            isActive ? "bg-ink text-white" : "text-ink-secondary hover:bg-paper-dark"
                         }`}
                     >
                         {letter}
@@ -90,7 +90,7 @@ function LetterFilterInner({ availableLetters, compact }: Props) {
                 ) : (
                     <span
                         key={letter}
-                        className="w-8 h-8 text-sm flex items-center justify-center text-gray-200"
+                        className="w-8 h-8 text-sm flex items-center justify-center text-ink-muted"
                     >
                         {letter}
                     </span>

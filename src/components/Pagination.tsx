@@ -27,12 +27,12 @@ export function Pagination({ page, totalPages, searchParams }: Props) {
             {page > 1 ? (
                 <Link
                     href={buildUrl(searchParams, prev)}
-                    className="px-3 py-1.5 text-sm rounded-lg hover:bg-gray-100 transition-colors"
+                    className="px-3 py-1.5 text-sm rounded-lg hover:bg-paper-dark transition-colors"
                 >
                     ←
                 </Link>
             ) : (
-                <span className="px-3 py-1.5 text-sm text-gray-300">←</span>
+                <span className="px-3 py-1.5 text-sm text-ink-muted">←</span>
             )}
 
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -40,7 +40,7 @@ export function Pagination({ page, totalPages, searchParams }: Props) {
                     key={p}
                     href={buildUrl(searchParams, p)}
                     className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                        p === page ? "bg-black text-white" : "hover:bg-gray-100 text-gray-600"
+                        p === page ? "bg-ink text-white" : "hover:bg-paper-dark text-ink-secondary"
                     }`}
                 >
                     {p}
@@ -50,12 +50,12 @@ export function Pagination({ page, totalPages, searchParams }: Props) {
             {page < totalPages ? (
                 <Link
                     href={buildUrl(searchParams, next)}
-                    className="px-3 py-1.5 text-sm rounded-lg hover:bg-gray-100 transition-colors"
+                    className="px-3 py-1.5 text-sm rounded-lg hover:bg-paper-dark transition-colors"
                 >
                     →
                 </Link>
             ) : (
-                <span className="px-3 py-1.5 text-sm text-gray-300">→</span>
+                <span className="px-3 py-1.5 text-sm text-ink-muted">→</span>
             )}
         </div>
     )

@@ -75,14 +75,14 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
             </button>
 
             <div
-                className="flex flex-col items-center gap-4 px-16 max-w-4xl w-full"
+                className="flex flex-col items-center gap-4 px-16 max-w-[90vw] w-full"
                 onClick={(e) => e.stopPropagation()}
             >
                 <img
                     key={item.id}
                     src={item.coverImagePath}
                     alt={item.title}
-                    className="max-h-[78vh] max-w-full object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                    className="max-h-[80vh] max-w-[88vw] w-auto h-auto object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
                 />
                 <div className="text-center">
                     <p className="text-white/90 text-sm font-medium">{item.title}</p>

@@ -11,7 +11,7 @@ import {
     topics,
 } from "@/db/schema"
 import { eq, and, asc } from "drizzle-orm"
-import { PublicNavWrapper } from "@/components/PublicNavWrapper"
+import { PageHero } from "@/components/PageHero"
 import { WarTimeline } from "@/components/WarTimeline"
 import { WarPhotoGrid } from "@/components/WarPhotoGrid"
 import { PersonCardRow } from "@/components/PersonCardRow"
@@ -36,10 +36,9 @@ export default async function WarPage() {
     if (!warTopic) {
         return (
             <>
-                <PublicNavWrapper />
+                <PageHero title="Война" />
                 <main className="max-w-2xl mx-auto px-4 py-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Война</h1>
-                    <p className="text-sm text-gray-400">Раздел в разработке.</p>
+                    <p className="text-sm text-ink-muted">Раздел в разработке.</p>
                 </main>
             </>
         )
@@ -139,12 +138,10 @@ export default async function WarPage() {
 
     return (
         <>
-            <PublicNavWrapper />
+            <PageHero title="Война" />
             <main className="max-w-2xl mx-auto px-4 py-8">
-                {/* Шапка */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Война</h1>
-                    <p className="text-gray-500 text-sm leading-relaxed">
+                    <p className="text-ink-muted text-sm leading-relaxed pt-4">
                         Работники Пролетарки в годы Великой Отечественной войны — те, кто ушёл на
                         фронт, кто остался у станка и кто не вернулся.
                     </p>
@@ -153,13 +150,13 @@ export default async function WarPage() {
                 {/* Блок 1: Погибшие */}
                 <section className="mb-10">
                     <div className="flex items-baseline justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-gray-900">Погибшие</h2>
+                        <h2 className="text-lg font-semibold text-ink">Погибшие</h2>
                         {fallenPeople.length > 0 && (
-                            <span className="text-xs text-gray-400">{fallenPeople.length}</span>
+                            <span className="text-xs text-ink-muted">{fallenPeople.length}</span>
                         )}
                     </div>
                     {fallenPeople.length === 0 ? (
-                        <div className="text-sm text-gray-400 italic">— нет данных —</div>
+                        <div className="text-sm text-ink-muted italic">— нет данных —</div>
                     ) : (
                         <PersonCardRow
                             people={fallenPeople.map((p) => ({
@@ -175,13 +172,13 @@ export default async function WarPage() {
                 {/* Блок 2: Люди войны */}
                 <section className="mb-10">
                     <div className="flex items-baseline justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-gray-900">Люди войны</h2>
+                        <h2 className="text-lg font-semibold text-ink">Люди войны</h2>
                         {allWarPeople.length > 0 && (
-                            <span className="text-xs text-gray-400">{allWarPeople.length}</span>
+                            <span className="text-xs text-ink-muted">{allWarPeople.length}</span>
                         )}
                     </div>
                     {allWarPeople.length === 0 ? (
-                        <div className="text-sm text-gray-400 italic">— нет данных —</div>
+                        <div className="text-sm text-ink-muted italic">— нет данных —</div>
                     ) : (
                         <PersonCardRow
                             people={allWarPeople.map((p) => ({
@@ -197,13 +194,13 @@ export default async function WarPage() {
                 {/* Блок 3: Хронология */}
                 <section className="mb-10">
                     <div className="flex items-baseline justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-gray-900">Хронология</h2>
+                        <h2 className="text-lg font-semibold text-ink">Хронология</h2>
                         {timelineEvents.length > 0 && (
-                            <span className="text-xs text-gray-400">{timelineEvents.length}</span>
+                            <span className="text-xs text-ink-muted">{timelineEvents.length}</span>
                         )}
                     </div>
                     {timelineEvents.length === 0 ? (
-                        <div className="text-sm text-gray-400 italic">— нет данных —</div>
+                        <div className="text-sm text-ink-muted italic">— нет данных —</div>
                     ) : (
                         <WarTimeline events={timelineEvents} />
                     )}
@@ -212,13 +209,13 @@ export default async function WarPage() {
                 {/* Блок 4: Фото войны */}
                 <section className="mb-10">
                     <div className="flex items-baseline justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-gray-900">Фото войны</h2>
+                        <h2 className="text-lg font-semibold text-ink">Фото войны</h2>
                         {warPhotos.length > 0 && (
-                            <span className="text-xs text-gray-400">{warPhotos.length}</span>
+                            <span className="text-xs text-ink-muted">{warPhotos.length}</span>
                         )}
                     </div>
                     {warPhotos.length === 0 ? (
-                        <div className="text-sm text-gray-400 italic">— нет данных —</div>
+                        <div className="text-sm text-ink-muted italic">— нет данных —</div>
                     ) : (
                         <WarPhotoGrid photos={warPhotos} />
                     )}

@@ -22,13 +22,17 @@ export function PhotoCarousel({ photos }: Props) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
     const [current, setCurrent] = useState(0)
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+    const [expanded, setExpanded] = useState(false)
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
     useEffect(() => {
         if (!emblaApi) return
-        emblaApi.on("select", () => setCurrent(emblaApi.selectedScrollSnap()))
+        emblaApi.on("select", () => {
+            setCurrent(emblaApi.selectedScrollSnap())
+            setExpanded(false)
+        })
     }, [emblaApi])
 
     const photo = photos[current]
@@ -96,11 +100,24 @@ export function PhotoCarousel({ photos }: Props) {
                 <div className="px-1">
                     <p className="text-sm font-medium leading-snug">{photo.title}</p>
                     {yearLabel && <p className="text-xs text-ink-muted mt-0.5">{yearLabel}</p>}
-                    {photo.content && (
-                        <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap break-all mt-2">
-                            {photo.content}
-                        </p>
-                    )}
+                    {photo.content && (() => {
+                        const isLong = photo.content.length > 200
+                        return (
+                            <div className="mt-2">
+                                <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap break-all">
+                                    {isLong && !expanded ? photo.content.slice(0, 200) + "…" : photo.content}
+                                </p>
+                                {isLong && (
+                                    <button
+                                        onClick={() => setExpanded((v) => !v)}
+                                        className="mt-1 text-xs text-ink-muted hover:text-ink transition-colors"
+                                    >
+                                        {expanded ? "Скрыть" : "Подробнее"}
+                                    </button>
+                                )}
+                            </div>
+                        )
+                    })()}
                 </div>
             </div>
         </>

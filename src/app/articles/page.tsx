@@ -5,7 +5,7 @@ import { db } from "@/db"
 import { materials, entities, people } from "@/db/schema"
 import { eq, desc, asc, and, ilike, count } from "drizzle-orm"
 import { Suspense } from "react"
-import { PublicNavWrapper } from "@/components/PublicNavWrapper"
+import { PageHero } from "@/components/PageHero"
 import { PublicFilters } from "@/components/PublicFilters"
 import { Pagination } from "@/components/Pagination"
 
@@ -67,17 +67,16 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
 
     return (
         <>
-            <PublicNavWrapper />
+            <PageHero title="Статьи" />
             <main className="max-w-2xl mx-auto px-4 py-8">
-                <h1 className="text-2xl font-bold mb-6">Статьи</h1>
                 <Suspense>
                     <PublicFilters q={q ?? ""} sort={sort} sortOptions={SORT_OPTIONS} />
                 </Suspense>
                 {articles.length === 0 ? (
-                    <p className="text-sm text-gray-500">Ничего не найдено.</p>
+                    <p className="text-sm text-ink-muted">Ничего не найдено.</p>
                 ) : (
                     <>
-                        <div className="flex flex-col divide-y divide-gray-100">
+                        <div className="flex flex-col divide-y divide-paper-border">
                             {articles.map((item) => (
                                 <div
                                     key={item.id}
@@ -101,15 +100,15 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
                                                 {item.title}
                                             </h2>
                                             {item.summary && (
-                                                <p className="text-sm text-gray-500 mb-2">
+                                                <p className="text-sm text-ink-muted mb-2">
                                                     {item.summary}
                                                 </p>
                                             )}
-                                            <div className="relative z-10 flex items-center gap-3 text-xs text-gray-400">
+                                            <div className="relative z-10 flex items-center gap-3 text-xs text-ink-muted">
                                                 {item.personName && item.entityId && (
                                                     <a
                                                         href={`/people/${item.entityId}`}
-                                                        className="hover:text-gray-700 transition-colors"
+                                                        className="hover:text-ink-secondary transition-colors"
                                                     >
                                                         {item.personName}
                                                     </a>

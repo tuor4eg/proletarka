@@ -22,16 +22,16 @@ function EventItem({ e }: { e: TimelineEvent }) {
     const year = yearStr(e)
     return (
         <div className="relative py-2.5">
-            <div className="absolute -left-[21px] top-[18px] w-2.5 h-2.5 rounded-full bg-gray-200 border-2 border-white" />
+            <div className="absolute -left-[21px] top-[18px] w-2.5 h-2.5 rounded-full bg-paper-border border-2 border-paper" />
             <div className="flex flex-col gap-0.5">
-                {year && <span className="text-xs text-gray-400">{year}</span>}
-                <span className="text-sm text-gray-800">{e.text}</span>
+                {year && <span className="text-xs text-ink-muted">{year}</span>}
+                <span className="text-sm text-ink">{e.text}</span>
                 {e.topicTitles.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-0.5">
                         {e.topicTitles.map((title) => (
                             <span
                                 key={title}
-                                className="text-xs bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded"
+                                className="text-xs bg-paper-dark text-ink-muted px-1.5 py-0.5 rounded"
                             >
                                 {title}
                             </span>
@@ -55,10 +55,10 @@ export function PersonTimeline({ events }: { events: TimelineEvent[] }) {
 
     return (
         <div className="mb-8">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            <h2 className="text-sm font-semibold text-ink-muted uppercase tracking-wide mb-3">
                 Хронология
             </h2>
-            <div className="flex flex-col gap-0 border-l-2 border-gray-100 pl-4">
+            <div className="flex flex-col gap-0 border-l-2 border-paper-border pl-4">
                 {needsCollapse ? (
                     <>
                         {first.map((e) => (
@@ -71,10 +71,10 @@ export function PersonTimeline({ events }: { events: TimelineEvent[] }) {
                                     <EventItem key={e.id} e={e} />
                                 ))}
                                 <div className="relative py-2">
-                                    <div className="absolute -left-[21px] top-[14px] w-2.5 h-2.5 rounded-full bg-gray-100 border-2 border-white" />
+                                    <div className="absolute -left-[21px] top-[14px] w-2.5 h-2.5 rounded-full bg-paper-dark border-2 border-paper" />
                                     <button
                                         onClick={() => setExpanded(false)}
-                                        className="text-xs text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                                        className="text-xs text-ink-muted hover:text-ink-secondary transition-colors ml-1"
                                     >
                                         Свернуть
                                     </button>
@@ -83,13 +83,13 @@ export function PersonTimeline({ events }: { events: TimelineEvent[] }) {
                         ) : (
                             <div className="relative py-2">
                                 <div className="absolute -left-[21px] top-[14px] flex flex-col gap-1">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-gray-100 border-2 border-white" />
-                                    <div className="w-2.5 h-2.5 rounded-full bg-gray-100 border-2 border-white" />
-                                    <div className="w-2.5 h-2.5 rounded-full bg-gray-100 border-2 border-white" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-paper-dark border-2 border-paper" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-paper-dark border-2 border-paper" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-paper-dark border-2 border-paper" />
                                 </div>
                                 <button
                                     onClick={() => setExpanded(true)}
-                                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                                    className="text-xs text-ink-muted hover:text-ink-secondary transition-colors ml-1"
                                 >
                                     Ещё {middle.length}{" "}
                                     {plural(middle.length, "событие", "события", "событий")}

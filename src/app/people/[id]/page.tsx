@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { eq, and, asc } from "drizzle-orm"
 import { db } from "@/db"
 import { entities, people, materials, events, eventTopics, topics } from "@/db/schema"
-import { PublicNavWrapper } from "@/components/PublicNavWrapper"
+import { PageHero } from "@/components/PageHero"
 import { PersonTabs } from "@/components/PersonTabs"
 import { PersonTimeline } from "@/components/PersonTimeline"
 import { BackButton } from "@/components/BackButton"
@@ -105,13 +105,13 @@ export default async function PersonPage({ params }: Props) {
 
     return (
         <>
-            <PublicNavWrapper />
+            <PageHero title={person.name} />
             <main className="max-w-2xl mx-auto px-4 py-8">
                 <div className="mb-6">
                     <BackButton />
                 </div>
                 <div className="flex gap-6 mb-8">
-                    <div className="w-28 h-28 shrink-0 rounded-2xl overflow-hidden bg-gray-100">
+                    <div className="w-28 h-28 shrink-0 rounded-2xl overflow-hidden bg-paper-dark">
                         {person.mainPhotoPath ? (
                             <img
                                 src={person.mainPhotoPath}
@@ -119,16 +119,15 @@ export default async function PersonPage({ params }: Props) {
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl font-light">
+                            <div className="w-full h-full flex items-center justify-center text-ink-muted text-4xl font-light">
                                 {person.name[0]}
                             </div>
                         )}
                     </div>
                     <div className="flex flex-col justify-center">
-                        <h1 className="text-2xl font-bold">{person.name}</h1>
-                        {years && <p className="text-sm text-gray-400 mt-1">{years}</p>}
+                        {years && <p className="text-sm text-ink-muted">{years}</p>}
                         {person.shortBio && (
-                            <p className="text-sm text-gray-600 mt-2">{person.shortBio}</p>
+                            <p className="text-sm text-ink-secondary mt-2">{person.shortBio}</p>
                         )}
                     </div>
                 </div>

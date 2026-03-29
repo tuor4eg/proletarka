@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, people } from "@/db/schema"
-import { eq, desc, sql } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import { PersonCardRow } from "@/components/PersonCardRow"
 
 export async function HomePeople() {
@@ -14,19 +14,18 @@ export async function HomePeople() {
         })
         .from(entities)
         .innerJoin(people, eq(entities.personId, people.id))
-        .orderBy(sql`${people.mainPhotoPath} IS NULL`, desc(entities.id))
-        .limit(8)
+        .orderBy(desc(entities.id))
+        .limit(4)
 
     return (
-        <section className="border-t border-paper-border pt-8 mb-10 lg:border-t-0 lg:pt-6">
-            <p className="text-xs tracking-widest text-ink-muted uppercase mb-3">Люди</p>
+        <section className="mb-8">
             <div className="flex items-baseline justify-between mb-4">
-                <h2 className="text-lg font-semibold text-ink">Работники завода</h2>
+                <h3 className="text-lg font-semibold text-ink">Люди</h3>
                 <Link
                     href="/people"
                     className="text-xs text-ink-muted hover:text-ink transition-colors"
                 >
-                    Все
+                    Подробнее
                 </Link>
             </div>
             {recentPeople.length === 0 ? (

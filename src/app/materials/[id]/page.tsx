@@ -3,7 +3,7 @@ import { materials } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import { BackButton } from "@/components/BackButton"
-import { PublicNavWrapper } from "@/components/PublicNavWrapper"
+import { PageHero } from "@/components/PageHero"
 import { CoverImage } from "@/components/CoverImage"
 
 type Props = {
@@ -30,16 +30,15 @@ export default async function MaterialPage({ params }: Props) {
 
     return (
         <>
-            <PublicNavWrapper />
+            <PageHero title={title} />
             <main className="max-w-lg mx-auto px-4 py-6">
                 <div className="mb-6">
                     <BackButton />
                 </div>
-                {yearLabel && <p className="text-sm text-gray-500 mb-2">{yearLabel}</p>}
-                <h1 className="text-xl font-bold leading-snug mb-4">{title}</h1>
+                {yearLabel && <p className="text-sm text-ink-muted mb-2">{yearLabel}</p>}
                 {coverImagePath && <CoverImage src={coverImagePath} alt={title} />}
                 {content && (
-                    <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
                         {content}
                     </div>
                 )}
@@ -48,7 +47,7 @@ export default async function MaterialPage({ params }: Props) {
                         href={sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-6 inline-block text-sm text-blue-600 hover:underline"
+                        className="mt-6 inline-block text-sm text-sepia hover:underline"
                     >
                         Источник →
                     </a>

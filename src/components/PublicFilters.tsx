@@ -38,12 +38,12 @@ export function PublicFilters({ q, sort, sortOptions }: Props) {
                 placeholder="Поиск..."
                 defaultValue={q}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-gray-400"
+                className="flex-1 rounded-xl border border-paper-border px-3 py-2 text-sm focus:outline-none focus:border-ink-muted"
             />
             <select
                 defaultValue={sort}
                 onChange={(e) => updateParam("sort", e.target.value)}
-                className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-gray-400 bg-white"
+                className="rounded-xl border border-paper-border px-3 py-2 text-sm focus:outline-none focus:border-ink-muted bg-paper"
             >
                 {sortOptions.map(({ value, label }) => (
                     <option key={value} value={value}>

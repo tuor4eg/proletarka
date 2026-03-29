@@ -52,23 +52,23 @@ export function WarTimeline({ events }: { events: WarTimelineEvent[] }) {
     const groups = groupByYear(visible)
 
     return (
-        <div className="flex flex-col border-l-2 border-gray-100 pl-4">
+        <div className="flex flex-col border-l-2 border-paper-border pl-4">
             {groups.map((group) => (
                 <div key={group.year ?? "undated"}>
                     <div className="relative py-1">
-                        <div className="absolute -left-[21px] top-[10px] w-2.5 h-2.5 rounded-full bg-gray-400 border-2 border-white" />
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        <div className="absolute -left-[21px] top-[10px] w-2.5 h-2.5 rounded-full bg-paper-border border-2 border-paper" />
+                        <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
                             {group.year ?? "Без даты"}
                         </span>
                     </div>
                     {group.events.map((e) => (
                         <div key={e.id} className="relative py-2 pl-3">
-                            <div className="absolute -left-[17px] top-[14px] w-1.5 h-1.5 rounded-full bg-gray-200 border-2 border-white" />
+                            <div className="absolute -left-[17px] top-[14px] w-1.5 h-1.5 rounded-full bg-paper-border border-2 border-paper" />
                             <div className="flex flex-col gap-0.5">
-                                <span className="text-sm text-gray-800">{e.text}</span>
+                                <span className="text-sm text-ink">{e.text}</span>
                                 <Link
                                     href={`/people/${e.personEntityId}`}
-                                    className="text-xs text-gray-400 hover:text-gray-700 transition-colors w-fit"
+                                    className="text-xs text-ink-muted hover:text-ink-secondary transition-colors w-fit"
                                 >
                                     {e.personName}
                                 </Link>
@@ -82,14 +82,14 @@ export function WarTimeline({ events }: { events: WarTimelineEvent[] }) {
                 <div className="relative py-2">
                     {!expanded && (
                         <div className="absolute -left-[21px] top-[14px] flex flex-col gap-1">
-                            <div className="w-2.5 h-2.5 rounded-full bg-gray-100 border-2 border-white" />
-                            <div className="w-2.5 h-2.5 rounded-full bg-gray-100 border-2 border-white" />
-                            <div className="w-2.5 h-2.5 rounded-full bg-gray-100 border-2 border-white" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-paper-dark border-2 border-paper" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-paper-dark border-2 border-paper" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-paper-dark border-2 border-paper" />
                         </div>
                     )}
                     <button
                         onClick={() => setExpanded((v) => !v)}
-                        className="text-xs text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                        className="text-xs text-ink-muted hover:text-ink-secondary transition-colors ml-1"
                     >
                         {expanded
                             ? "Свернуть"

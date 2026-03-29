@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { eq, and, asc, sql } from "drizzle-orm"
 import { db } from "@/db"
 import { entities, artifacts, materials, artifactSections } from "@/db/schema"
-import { PublicNavWrapper } from "@/components/PublicNavWrapper"
+import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
 import { MaterialCard } from "@/components/MaterialCard"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
@@ -87,18 +87,17 @@ export default async function ArtifactPage({ params }: Props) {
 
     return (
         <>
-            <PublicNavWrapper />
+            <PageHero title={artifact.title} />
             <main className="max-w-2xl mx-auto px-4 py-8">
                 <div className="mb-6">
                     <BackButton />
                 </div>
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold">{artifact.title}</h1>
                     {artifact.yearsLabel && (
-                        <p className="text-sm text-gray-400 mt-1">{artifact.yearsLabel}</p>
+                        <p className="text-sm text-ink-muted mt-1">{artifact.yearsLabel}</p>
                     )}
                     {artifact.description && (
-                        <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+                        <p className="text-sm text-ink-secondary mt-3 leading-relaxed">
                             {artifact.description}
                         </p>
                     )}
@@ -112,12 +111,12 @@ export default async function ArtifactPage({ params }: Props) {
                                     <span key={section.id} className="flex items-center">
                                         <a
                                             href={`#section-${section.id}`}
-                                            className="text-sm text-gray-400 hover:text-gray-800 transition-colors"
+                                            className="text-sm text-ink-muted hover:text-ink transition-colors"
                                         >
                                             {section.title}
                                         </a>
                                         {i < arr.length - 1 && (
-                                            <span className="mx-2 text-gray-300 select-none">·</span>
+                                            <span className="mx-2 text-ink-muted select-none">·</span>
                                         )}
                                     </span>
                                 ))}
@@ -128,7 +127,7 @@ export default async function ArtifactPage({ params }: Props) {
                             if (sectionMaterials.length === 0) return null
                             return (
                                 <div key={section.id} id={`section-${section.id}`}>
-                                    <h2 className="text-base font-semibold mb-4 pb-2 border-b border-gray-200">
+                                    <h2 className="text-base font-semibold mb-4 pb-2 border-b border-paper-border">
                                         {section.title}
                                     </h2>
                                     {renderMaterials(sectionMaterials)}
