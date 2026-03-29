@@ -55,59 +55,64 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-sm animate-in fade-in duration-150"
             onClick={onClose}
         >
-            <button
-                onClick={onClose}
-                className="absolute top-4 right-4 p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-            >
-                <X size={20} />
-            </button>
-
-            {items.length > 1 && (
-                <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/40 text-xs tabular-nums">
-                    {index + 1} / {items.length}
-                </div>
-            )}
-
-            <button
-                onClick={(e) => { e.stopPropagation(); prev() }}
-                className={`absolute left-3 p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasPrev ? "opacity-0 pointer-events-none" : ""}`}
-            >
-                <ChevronLeft size={28} />
-            </button>
-
-            <div
-                className="flex flex-col items-center gap-4 px-16 max-w-[90vw] w-full"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <img
-                    key={item.id}
-                    src={item.coverImagePath}
-                    alt={item.title}
-                    onLoad={(e) => {
-                        const img = e.currentTarget
-                        setPortrait(img.naturalHeight > img.naturalWidth)
-                    }}
-                    className={`object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
-                        portrait
-                            ? "max-w-[88vw] h-auto"
-                            : "max-h-[80vh] w-auto"
-                    }`}
-                />
-                <div className="text-center">
-                    <p className="text-white/90 text-sm font-medium">{item.title}</p>
-                    {yearLabel && <p className="text-white/40 text-xs mt-0.5">{yearLabel}</p>}
-                </div>
+            <div className="sticky top-4 z-10 flex items-center justify-between px-4 pointer-events-none">
+                {items.length > 1 ? (
+                    <span className="text-white/40 text-xs tabular-nums pointer-events-auto">
+                        {index + 1} / {items.length}
+                    </span>
+                ) : <span />}
+                <button
+                    onClick={onClose}
+                    className="p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors pointer-events-auto"
+                >
+                    <X size={20} />
+                </button>
             </div>
 
-            <button
-                onClick={(e) => { e.stopPropagation(); next() }}
-                className={`absolute right-3 p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasNext ? "opacity-0 pointer-events-none" : ""}`}
-            >
-                <ChevronRight size={28} />
-            </button>
+            <div className="flex flex-col items-center min-h-screen justify-center py-12 px-16">
+                <div
+                    className="flex flex-col items-center gap-4 max-w-[90vw] w-full"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <img
+                        key={item.id}
+                        src={item.coverImagePath}
+                        alt={item.title}
+                        onLoad={(e) => {
+                            const img = e.currentTarget
+                            setPortrait(img.naturalHeight > img.naturalWidth)
+                        }}
+                        className={`object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
+                            portrait
+                                ? "max-w-[88vw] h-auto"
+                                : "max-h-[80vh] w-auto"
+                        }`}
+                    />
+                    <div className="text-center">
+                        <p className="text-white/90 text-sm font-medium">{item.title}</p>
+                        {yearLabel && <p className="text-white/40 text-xs mt-0.5">{yearLabel}</p>}
+                    </div>
+                    {items.length > 1 && (
+                        <div className="flex gap-4 mt-2">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); prev() }}
+                                className={`p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasPrev ? "opacity-0 pointer-events-none" : ""}`}
+                            >
+                                <ChevronLeft size={28} />
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); next() }}
+                                className={`p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasNext ? "opacity-0 pointer-events-none" : ""}`}
+                            >
+                                <ChevronRight size={28} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     )
 }
