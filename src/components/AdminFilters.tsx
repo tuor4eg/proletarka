@@ -41,6 +41,7 @@ type Props = {
     type?: string
     showStatus?: boolean
     showType?: boolean
+    typeOptions?: { value: string; label: string }[]
     sortOptions?: "date_title" | "title_only"
 }
 
@@ -51,6 +52,7 @@ export function AdminFilters({
     type = "",
     showStatus = false,
     showType = false,
+    typeOptions,
     sortOptions = "date_title",
 }: Props) {
     const router = useRouter()
@@ -101,7 +103,7 @@ export function AdminFilters({
                     onChange={(e) => updateParam("type", e.target.value)}
                     className={selectClass}
                 >
-                    {TYPES.map(({ value, label }) => (
+                    {(typeOptions ?? TYPES).map(({ value, label }) => (
                         <option key={value} value={value}>
                             {label}
                         </option>

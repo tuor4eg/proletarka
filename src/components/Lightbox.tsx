@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 
 export type LightboxItem = {
@@ -20,6 +20,10 @@ type Props = {
 
 export function Lightbox({ items, index, onClose, onNavigate }: Props) {
     const item = items[index]
+    const [portrait, setPortrait] = useState(false)
+
+    useEffect(() => setPortrait(false), [item?.id])
+
     const hasPrev = index > 0
     const hasNext = index < items.length - 1
 
@@ -82,7 +86,15 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
                     key={item.id}
                     src={item.coverImagePath}
                     alt={item.title}
-                    className="max-h-[80vh] max-w-[88vw] w-auto h-auto object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                    onLoad={(e) => {
+                        const img = e.currentTarget
+                        setPortrait(img.naturalHeight > img.naturalWidth)
+                    }}
+                    className={`object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
+                        portrait
+                            ? "max-w-[88vw] h-auto"
+                            : "max-h-[80vh] w-auto"
+                    }`}
                 />
                 <div className="text-center">
                     <p className="text-white/90 text-sm font-medium">{item.title}</p>
