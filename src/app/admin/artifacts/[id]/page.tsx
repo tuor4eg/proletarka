@@ -134,6 +134,7 @@ export default async function EditArtifactPage({ params }: Props) {
                     <select name="artifactType" defaultValue={artifact.artifactType} className={inputClass}>
                         <option value="general">Обычный</option>
                         <option value="stand">Стенд</option>
+                        <option value="rarity">Раритет</option>
                     </select>
                 </Field>
                 <ImageUpload

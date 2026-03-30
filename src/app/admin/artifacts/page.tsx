@@ -9,12 +9,14 @@ import { Suspense } from "react"
 const TYPE_LABEL: Record<ArtifactType, string> = {
     general: "Объект",
     stand: "Стенд",
+    rarity: "Раритет",
 }
 
 const ARTIFACT_TYPE_OPTIONS = [
     { value: "", label: "Все типы" },
     { value: "stand", label: "Стенд" },
     { value: "general", label: "Объект" },
+    { value: "rarity", label: "Раритет" },
 ]
 
 const PAGE_SIZE = 20

@@ -49,6 +49,7 @@ export default async function NewArtifactPage() {
                     <select name="artifactType" className={inputClass}>
                         <option value="general">Обычный</option>
                         <option value="stand">Стенд</option>
+                        <option value="rarity">Раритет</option>
                     </select>
                 </Field>
                 <ImageUpload

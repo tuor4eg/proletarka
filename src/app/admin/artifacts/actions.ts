@@ -14,7 +14,8 @@ export async function createArtifact(formData: FormData) {
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
-    const artifactType = (formData.get("artifactType") as string) === "stand" ? "stand" : "general"
+    const artifactTypeRaw = formData.get("artifactType") as string
+    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : "general"
     const coverImagePath = await resolveImageUpload(formData, "coverImageFile", "coverImagePath")
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
@@ -61,7 +62,8 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
-    const artifactType = (formData.get("artifactType") as string) === "stand" ? "stand" : "general"
+    const artifactTypeRaw = formData.get("artifactType") as string
+    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : "general"
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
     const [current] = await db
