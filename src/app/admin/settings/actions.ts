@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { compare, hash } from "bcryptjs"
 import { db } from "@/db"
-import { users } from "@/db/schema"
+import { users, showcases } from "@/db/schema"
 import { getSession } from "@/lib/session"
 import { flashParam } from "@/lib/flash"
 
@@ -45,4 +45,21 @@ export async function updatePassword(formData: FormData) {
         .set({ password: await hash(next, 12) })
         .where(eq(users.id, user.id))
     redirect(`/admin/settings${flashParam("Пароль изменён")}`)
+}
+
+export async function setShowcase(formData: FormData) {
+    const sectionCode = formData.get("sectionCode") as string
+    const artifactIdRaw = formData.get("artifactId") as string
+
+    if (!artifactIdRaw) {
+        await db.delete(showcases).where(eq(showcases.sectionCode, sectionCode))
+    } else {
+        const artifactId = Number(artifactIdRaw)
+        await db
+            .insert(showcases)
+            .values({ sectionCode, artifactId })
+            .onConflictDoUpdate({ target: showcases.sectionCode, set: { artifactId } })
+    }
+
+    redirect(`/admin/settings?tab=showcases${flashParam("Сохранено").replace("?", "&")}`)
 }

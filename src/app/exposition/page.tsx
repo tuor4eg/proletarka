@@ -2,31 +2,77 @@ export const dynamic = 'force-dynamic'
 
 import Link from "next/link"
 import { db } from "@/db"
-import { entities, artifacts } from "@/db/schema"
-import { eq, asc, inArray } from "drizzle-orm"
+import { entities, artifacts, materials, showcases } from "@/db/schema"
+import { eq, asc, inArray, and, isNotNull } from "drizzle-orm"
 import { PageHero } from "@/components/PageHero"
+import { PhotoCarousel } from "@/components/PhotoCarousel"
 
 export default async function ExpositionPage() {
-    const rows = await db
-        .select({
-            code: artifacts.code,
-            title: artifacts.title,
-            yearsLabel: artifacts.yearsLabel,
-            coverImagePath: artifacts.coverImagePath,
-            artifactType: artifacts.artifactType,
-        })
-        .from(artifacts)
-        .innerJoin(entities, eq(entities.artifactId, artifacts.id))
-        .where(inArray(artifacts.artifactType, ["stand", "rarity"]))
-        .orderBy(asc(artifacts.title))
+    const [artifactRows, showcaseRow] = await Promise.all([
+        db
+            .select({
+                code: artifacts.code,
+                title: artifacts.title,
+                yearsLabel: artifacts.yearsLabel,
+                coverImagePath: artifacts.coverImagePath,
+                artifactType: artifacts.artifactType,
+            })
+            .from(artifacts)
+            .innerJoin(entities, eq(entities.artifactId, artifacts.id))
+            .where(inArray(artifacts.artifactType, ["stand", "rarity"]))
+            .orderBy(asc(artifacts.title)),
+        db
+            .select({ artifactId: showcases.artifactId })
+            .from(showcases)
+            .where(eq(showcases.sectionCode, "exposition"))
+            .limit(1),
+    ])
 
-    const stands = rows.filter((r) => r.artifactType === "stand")
-    const rarities = rows.filter((r) => r.artifactType === "rarity")
+    const stands = artifactRows.filter((r) => r.artifactType === "stand")
+    const rarities = artifactRows.filter((r) => r.artifactType === "rarity")
+
+    let showcasePhotos: { id: number; title: string; coverImagePath: string; yearFrom: number | null; yearTo: number | null; content: string | null }[] = []
+
+    if (showcaseRow[0]) {
+        const [entity] = await db
+            .select({ id: entities.id })
+            .from(entities)
+            .where(eq(entities.artifactId, showcaseRow[0].artifactId))
+            .limit(1)
+
+        if (entity) {
+            showcasePhotos = await db
+                .select({
+                    id: materials.id,
+                    title: materials.title,
+                    coverImagePath: materials.coverImagePath,
+                    yearFrom: materials.yearFrom,
+                    yearTo: materials.yearTo,
+                    content: materials.content,
+                })
+                .from(materials)
+                .where(
+                    and(
+                        eq(materials.entityId, entity.id),
+                        eq(materials.materialType, "photo"),
+                        eq(materials.status, "published"),
+                        isNotNull(materials.coverImagePath),
+                    ),
+                )
+                .orderBy(asc(materials.position), asc(materials.id)) as typeof showcasePhotos
+        }
+    }
 
     return (
         <>
             <PageHero title="Выставка" />
             <main className="max-w-2xl mx-auto px-4 py-8">
+                {showcasePhotos.length > 0 && (
+                    <section className="mb-10">
+                        <PhotoCarousel photos={showcasePhotos} />
+                    </section>
+                )}
+
                 {stands.length > 0 && (
                     <section className="pt-4 mb-10">
                         <h2 className="text-lg font-semibold text-ink mb-6">Стенды</h2>

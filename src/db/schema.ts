@@ -145,6 +145,11 @@ export const entityTopics = pgTable(
     (t) => [primaryKey({ columns: [t.entityId, t.topicId] })],
 )
 
+export const showcases = pgTable("showcases", {
+    sectionCode: text("section_code").primaryKey(),
+    artifactId: integer("artifact_id").notNull().references(() => artifacts.id, { onDelete: "cascade" }),
+})
+
 export const artifactsRelations = relations(artifacts, ({ many }) => ({
     entities: many(entities),
     sections: many(artifactSections),

@@ -50,6 +50,13 @@
       "when": 1774887830020,
       "tag": "0006_add_rarity_artifact_type",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1774896232354,
+      "tag": "0007_add_showcases",
+      "breakpoints": true
     }
   ]
 }
