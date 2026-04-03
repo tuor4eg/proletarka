@@ -101,16 +101,6 @@ export function PhotoCarousel({ photos }: Props) {
                 <div className="px-1">
                     <p className="text-sm font-medium leading-snug">{photo.title}</p>
                     {yearLabel && <p className="text-xs text-ink-muted mt-0.5">{yearLabel}</p>}
-                    {photo.sourceUrl && (
-                        <a
-                            href={photo.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-sepia hover:underline mt-1 inline-block"
-                        >
-                            Источник →
-                        </a>
-                    )}
                     {photo.content && (() => {
                         const isLong = photo.content.length > 200
                         return (
@@ -129,6 +119,16 @@ export function PhotoCarousel({ photos }: Props) {
                             </div>
                         )
                     })()}
+                    {photo.sourceUrl && (
+                        <a
+                            href={photo.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-sepia hover:underline mt-1 inline-block"
+                        >
+                            Источник →
+                        </a>
+                    )}
                 </div>
             </div>
         </>
