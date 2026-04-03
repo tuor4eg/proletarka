@@ -40,7 +40,7 @@ export default async function ExpositionPage() {
         .filter((r) => r.artifactType === "rarity")
         .map((r) => ({ ...r, coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null }))
 
-    let showcasePhotos: { id: number; title: string; coverImagePath: string; yearFrom: number | null; yearTo: number | null; content: string | null }[] = []
+    let showcasePhotos: { id: number; title: string; coverImagePath: string; yearFrom: number | null; yearTo: number | null; content: string | null; sourceUrl: string | null }[] = []
 
     if (showcaseRow[0]) {
         const [entity] = await db
@@ -58,6 +58,7 @@ export default async function ExpositionPage() {
                     yearFrom: materials.yearFrom,
                     yearTo: materials.yearTo,
                     content: materials.content,
+                    sourceUrl: materials.sourceUrl,
                 })
                 .from(materials)
                 .where(

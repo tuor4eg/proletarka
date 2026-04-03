@@ -36,6 +36,7 @@ export default async function ArtifactPage({ params }: Props) {
                 materialType: materials.materialType,
                 coverImagePath: materials.coverImagePath,
                 content: materials.content,
+                sourceUrl: materials.sourceUrl,
                 sectionId: materials.sectionId,
             })
             .from(materials)
