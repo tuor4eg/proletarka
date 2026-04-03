@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts, materials, showcases } from "@/db/schema"
-import { eq, asc, inArray } from "drizzle-orm"
+import { eq, asc, inArray, and, isNotNull } from "drizzle-orm"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import { PageHero } from "@/components/PageHero"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
