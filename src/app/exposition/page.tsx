@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic'
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts, materials, showcases } from "@/db/schema"
-import { eq, asc, inArray, and, isNotNull } from "drizzle-orm"
+import { eq, asc, inArray } from "drizzle-orm"
+import { fetchFirstPhotoMap } from "@/db/queries"
 import { PageHero } from "@/components/PageHero"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
 
@@ -11,6 +12,7 @@ export default async function ExpositionPage() {
     const [artifactRows, showcaseRow] = await Promise.all([
         db
             .select({
+                entityId: entities.id,
                 code: artifacts.code,
                 title: artifacts.title,
                 yearsLabel: artifacts.yearsLabel,
@@ -28,8 +30,15 @@ export default async function ExpositionPage() {
             .limit(1),
     ])
 
-    const stands = artifactRows.filter((r) => r.artifactType === "stand")
-    const rarities = artifactRows.filter((r) => r.artifactType === "rarity")
+    const noCoverIds = artifactRows.filter((r) => !r.coverImagePath).map((r) => r.entityId)
+    const fallbackMap = await fetchFirstPhotoMap(noCoverIds)
+
+    const stands = artifactRows
+        .filter((r) => r.artifactType === "stand")
+        .map((r) => ({ ...r, coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null }))
+    const rarities = artifactRows
+        .filter((r) => r.artifactType === "rarity")
+        .map((r) => ({ ...r, coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null }))
 
     let showcasePhotos: { id: number; title: string; coverImagePath: string; yearFrom: number | null; yearTo: number | null; content: string | null }[] = []
 

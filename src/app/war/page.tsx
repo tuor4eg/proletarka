@@ -11,6 +11,7 @@ import {
     topics,
 } from "@/db/schema"
 import { eq, and, asc } from "drizzle-orm"
+import { fetchFirstPhotoMap } from "@/db/queries"
 import { PageHero } from "@/components/PageHero"
 import { WarTimeline } from "@/components/WarTimeline"
 import { WarPhotoGrid } from "@/components/WarPhotoGrid"
@@ -132,6 +133,9 @@ export default async function WarPage() {
         a.name.localeCompare(b.name, "ru"),
     )
 
+    const noPhotoIds = allWarPeople.filter((p) => !p.mainPhotoPath).map((p) => p.entityId)
+    const fallbackMap = await fetchFirstPhotoMap(noPhotoIds)
+
     const fallenPeople = allWarPeople.filter(
         (p) => p.deathYear !== null && p.deathYear >= WAR_YEAR_FROM && p.deathYear <= WAR_YEAR_TO,
     )
@@ -163,7 +167,7 @@ export default async function WarPage() {
                                 entityId: p.entityId,
                                 name: p.name,
                                 years: formatYears(p.birthYear, p.deathYear, p.yearsLabel),
-                                mainPhotoPath: p.mainPhotoPath,
+                                mainPhotoPath: p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,
                             }))}
                         />
                     )}
@@ -185,7 +189,7 @@ export default async function WarPage() {
                                 entityId: p.entityId,
                                 name: p.name,
                                 years: formatYears(p.birthYear, p.deathYear, p.yearsLabel),
-                                mainPhotoPath: p.mainPhotoPath,
+                                mainPhotoPath: p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,
                             }))}
                         />
                     )}

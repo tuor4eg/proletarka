@@ -5,6 +5,7 @@ import { User } from "lucide-react"
 import { db } from "@/db"
 import { entities, people } from "@/db/schema"
 import { eq, asc, desc, ilike, and, sql, count } from "drizzle-orm"
+import { fetchFirstPhotoMap } from "@/db/queries"
 import { Suspense } from "react"
 import { PageHero } from "@/components/PageHero"
 import { PublicFilters } from "@/components/PublicFilters"
@@ -80,6 +81,9 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
     const totalPages = Math.ceil(total / PAGE_SIZE)
     const availableLetters = letterRows.map((r) => r.letter).filter(Boolean)
 
+    const noPhotoIds = rows.filter((r) => !r.mainPhotoPath).map((r) => r.entityId)
+    const fallbackMap = await fetchFirstPhotoMap(noPhotoIds)
+
     return (
         <>
             <PageHero title="Люди" />
@@ -106,9 +110,9 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                                         className="flex items-center gap-3 py-3 hover:opacity-70 transition-opacity"
                                     >
                                         <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-paper-dark flex items-center justify-center">
-                                            {row.mainPhotoPath ? (
+                                            {(row.mainPhotoPath ?? fallbackMap.get(row.entityId)) ? (
                                                 <img
-                                                    src={row.mainPhotoPath}
+                                                    src={(row.mainPhotoPath ?? fallbackMap.get(row.entityId))!}
                                                     alt={row.name}
                                                     className="w-full h-full object-cover"
                                                 />
