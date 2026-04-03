@@ -21,5 +21,5 @@ export async function fetchFirstPhotoMap(entityIds: number[]): Promise<Map<numbe
         )
         .orderBy(materials.entityId, sql`${materials.position} ASC NULLS LAST`, asc(materials.id))
 
-    return new Map(rows.map((r) => [r.entityId, r.coverImagePath!]))
+    return new Map(rows.filter((r) => r.entityId !== null).map((r) => [r.entityId!, r.coverImagePath!]))
 }
