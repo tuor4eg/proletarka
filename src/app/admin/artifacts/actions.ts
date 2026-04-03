@@ -14,8 +14,12 @@ export async function createArtifact(formData: FormData) {
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
+    const yearFromRaw = formData.get("yearFrom") as string
+    const yearToRaw = formData.get("yearTo") as string
+    const yearFrom = yearFromRaw ? Number(yearFromRaw) : null
+    const yearTo = yearToRaw ? Number(yearToRaw) : null
     const artifactTypeRaw = formData.get("artifactType") as string
-    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : "general"
+    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : artifactTypeRaw === "fund" ? "fund" : "general"
     const coverImagePath = await resolveImageUpload(formData, "coverImageFile", "coverImagePath")
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
@@ -41,7 +45,7 @@ export async function createArtifact(formData: FormData) {
 
     const [artifact] = await db
         .insert(artifacts)
-        .values({ code, title, description, yearsLabel, artifactType, coverImagePath })
+        .values({ code, title, description, yearsLabel, yearFrom, yearTo, artifactType, coverImagePath })
         .returning({ id: artifacts.id })
 
     const [entity] = await db
@@ -62,8 +66,12 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
+    const yearFromRaw = formData.get("yearFrom") as string
+    const yearToRaw = formData.get("yearTo") as string
+    const yearFrom = yearFromRaw ? Number(yearFromRaw) : null
+    const yearTo = yearToRaw ? Number(yearToRaw) : null
     const artifactTypeRaw = formData.get("artifactType") as string
-    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : "general"
+    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : artifactTypeRaw === "fund" ? "fund" : "general"
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
     const [current] = await db
@@ -86,7 +94,7 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
             .limit(1),
         db
             .update(artifacts)
-            .set({ title, description, yearsLabel, artifactType, coverImagePath, updatedAt: new Date() })
+            .set({ title, description, yearsLabel, yearFrom, yearTo, artifactType, coverImagePath, updatedAt: new Date() })
             .where(eq(artifacts.id, artifactId)),
     ])
 

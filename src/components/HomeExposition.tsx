@@ -14,7 +14,7 @@ export async function HomeExposition() {
         .from(artifacts)
         .innerJoin(entities, eq(entities.artifactId, artifacts.id))
         .where(eq(artifacts.artifactType, "stand"))
-        .orderBy(desc(entities.id))
+        .orderBy(desc(artifacts.createdAt))
         .limit(4)
 
     if (stands.length === 0) return null

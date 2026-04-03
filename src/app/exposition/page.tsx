@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts, materials, showcases } from "@/db/schema"
-import { eq, asc, inArray, and, isNotNull } from "drizzle-orm"
+import { eq, asc, inArray, and, isNotNull, sql } from "drizzle-orm"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import { PageHero } from "@/components/PageHero"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
@@ -22,7 +22,7 @@ export default async function ExpositionPage() {
             .from(artifacts)
             .innerJoin(entities, eq(entities.artifactId, artifacts.id))
             .where(inArray(artifacts.artifactType, ["stand", "rarity"]))
-            .orderBy(asc(artifacts.title)),
+            .orderBy(sql`${artifacts.yearFrom} ASC NULLS LAST`, asc(artifacts.title)),
         db
             .select({ artifactId: showcases.artifactId })
             .from(showcases)
@@ -39,6 +39,7 @@ export default async function ExpositionPage() {
     const rarities = artifactRows
         .filter((r) => r.artifactType === "rarity")
         .map((r) => ({ ...r, coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null }))
+
 
     let showcasePhotos: { id: number; title: string; coverImagePath: string; yearFrom: number | null; yearTo: number | null; content: string | null; sourceUrl: string | null }[] = []
 
@@ -91,7 +92,7 @@ export default async function ExpositionPage() {
                 )}
                 {rarities.length > 0 && (
                     <section className="pt-4">
-                        <h2 className="text-lg font-semibold text-ink mb-6">Раритеты</h2>
+                        <h2 className="text-lg font-semibold text-ink mb-6">Экспонаты</h2>
                         <ArtifactGrid items={rarities} />
                     </section>
                 )}

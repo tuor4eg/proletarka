@@ -109,6 +109,28 @@ export default async function EditArtifactPage({ params }: Props) {
                         className={inputClass}
                     />
                 </Field>
+                <div className="flex gap-3">
+                    <Field label="Год от">
+                        <input
+                            name="yearFrom"
+                            type="number"
+                            min="1800"
+                            max="2100"
+                            defaultValue={artifact.yearFrom ?? ""}
+                            className={inputClass}
+                        />
+                    </Field>
+                    <Field label="Год до">
+                        <input
+                            name="yearTo"
+                            type="number"
+                            min="1800"
+                            max="2100"
+                            defaultValue={artifact.yearTo ?? ""}
+                            className={inputClass}
+                        />
+                    </Field>
+                </div>
                 {allTopics.length > 0 && (
                     <Field label="Темы">
                         <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-0.5">
@@ -134,7 +156,8 @@ export default async function EditArtifactPage({ params }: Props) {
                     <select name="artifactType" defaultValue={artifact.artifactType} className={inputClass}>
                         <option value="general">Обычный</option>
                         <option value="stand">Стенд</option>
-                        <option value="rarity">Раритет</option>
+                        <option value="rarity">Экспонат</option>
+                        <option value="fund">Фонд</option>
                     </select>
                 </Field>
                 <ImageUpload

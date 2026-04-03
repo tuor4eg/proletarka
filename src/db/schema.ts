@@ -4,7 +4,7 @@ import { relations } from "drizzle-orm"
 export const statusEnum = pgEnum("status", ["draft", "published"])
 export const roleEnum = pgEnum("role", ["admin"])
 export const materialTypeEnum = pgEnum("material_type", ["article", "photo", "document"])
-export const artifactTypeEnum = pgEnum("artifact_type", ["general", "stand", "rarity"])
+export const artifactTypeEnum = pgEnum("artifact_type", ["general", "stand", "rarity", "fund"])
 
 export type MaterialType = (typeof materialTypeEnum.enumValues)[number]
 export type Status = (typeof statusEnum.enumValues)[number]
@@ -36,6 +36,8 @@ export const artifacts = pgTable("artifacts", {
     title: text("title").notNull(),
     description: text("description"),
     yearsLabel: text("years_label"),
+    yearFrom: integer("year_from"),
+    yearTo: integer("year_to"),
     artifactType: artifactTypeEnum("artifact_type").notNull().default("general"),
     coverImagePath: text("cover_image_path"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
