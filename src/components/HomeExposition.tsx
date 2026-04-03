@@ -9,6 +9,8 @@ export async function HomeExposition() {
             code: artifacts.code,
             title: artifacts.title,
             yearsLabel: artifacts.yearsLabel,
+            yearFrom: artifacts.yearFrom,
+            yearTo: artifacts.yearTo,
             coverImagePath: artifacts.coverImagePath,
         })
         .from(artifacts)
@@ -47,8 +49,14 @@ export async function HomeExposition() {
                         </div>
                         <div className="px-1">
                             <p className="text-sm font-medium leading-snug">{stand.title}</p>
-                            {stand.yearsLabel && (
-                                <p className="text-xs text-ink-muted mt-0.5">{stand.yearsLabel}</p>
+                            {(stand.yearFrom || stand.yearsLabel) && (
+                                <p className="text-xs text-ink-muted mt-0.5">
+                                    {stand.yearFrom
+                                        ? stand.yearTo
+                                            ? `${stand.yearFrom}–${stand.yearTo}`
+                                            : String(stand.yearFrom)
+                                        : stand.yearsLabel}
+                                </p>
                             )}
                         </div>
                     </Link>

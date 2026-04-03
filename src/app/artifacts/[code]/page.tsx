@@ -94,8 +94,14 @@ export default async function ArtifactPage({ params }: Props) {
                     <BackButton />
                 </div>
                 <div className="mb-8">
-                    {artifact.yearsLabel && (
-                        <p className="text-sm text-ink-muted mt-1">{artifact.yearsLabel}</p>
+                    {(artifact.yearFrom || artifact.yearsLabel) && (
+                        <p className="text-sm text-ink-muted mt-1">
+                            {artifact.yearFrom
+                                ? artifact.yearTo
+                                    ? `${artifact.yearFrom}–${artifact.yearTo}`
+                                    : String(artifact.yearFrom)
+                                : artifact.yearsLabel}
+                        </p>
                     )}
                     {artifact.description && (
                         <p className="text-sm text-ink-secondary mt-3 leading-relaxed">

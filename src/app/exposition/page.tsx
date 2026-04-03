@@ -16,6 +16,8 @@ export default async function ExpositionPage() {
                 code: artifacts.code,
                 title: artifacts.title,
                 yearsLabel: artifacts.yearsLabel,
+                yearFrom: artifacts.yearFrom,
+                yearTo: artifacts.yearTo,
                 coverImagePath: artifacts.coverImagePath,
                 artifactType: artifacts.artifactType,
             })
@@ -24,8 +26,13 @@ export default async function ExpositionPage() {
             .where(inArray(artifacts.artifactType, ["stand", "rarity"]))
             .orderBy(sql`${artifacts.yearFrom} ASC NULLS LAST`, asc(artifacts.title)),
         db
-            .select({ artifactId: showcases.artifactId })
+            .select({
+                artifactId: showcases.artifactId,
+                title: artifacts.title,
+                description: artifacts.description,
+            })
             .from(showcases)
+            .innerJoin(artifacts, eq(artifacts.id, showcases.artifactId))
             .where(eq(showcases.sectionCode, "exposition"))
             .limit(1),
     ])
@@ -41,6 +48,7 @@ export default async function ExpositionPage() {
         .map((r) => ({ ...r, coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null }))
 
 
+    const showcaseMeta = showcaseRow[0] ? { title: showcaseRow[0].title, description: showcaseRow[0].description } : null
     let showcasePhotos: { id: number; title: string; coverImagePath: string; yearFrom: number | null; yearTo: number | null; content: string | null; sourceUrl: string | null }[] = []
 
     if (showcaseRow[0]) {
@@ -80,6 +88,14 @@ export default async function ExpositionPage() {
             <main className="max-w-2xl mx-auto px-4 py-8">
                 {showcasePhotos.length > 0 && (
                     <section className="mb-10">
+                        {showcaseMeta && (
+                            <div className="mb-4">
+                                <h2 className="text-lg font-semibold text-ink">{showcaseMeta.title}</h2>
+                                {showcaseMeta.description && (
+                                    <p className="text-sm text-ink-secondary mt-1 leading-relaxed">{showcaseMeta.description}</p>
+                                )}
+                            </div>
+                        )}
                         <PhotoCarousel photos={showcasePhotos} />
                     </section>
                 )}
@@ -108,6 +124,8 @@ type ArtifactItem = {
     code: string
     title: string
     yearsLabel: string | null
+    yearFrom: number | null
+    yearTo: number | null
     coverImagePath: string | null
 }
 
@@ -133,8 +151,14 @@ function ArtifactGrid({ items }: { items: ArtifactItem[] }) {
                     </div>
                     <div className="px-1">
                         <p className="text-sm font-medium leading-snug">{item.title}</p>
-                        {item.yearsLabel && (
-                            <p className="text-xs text-ink-muted mt-0.5">{item.yearsLabel}</p>
+                        {(item.yearFrom || item.yearsLabel) && (
+                            <p className="text-xs text-ink-muted mt-0.5">
+                                {item.yearFrom
+                                    ? item.yearTo
+                                        ? `${item.yearFrom}–${item.yearTo}`
+                                        : String(item.yearFrom)
+                                    : item.yearsLabel}
+                            </p>
                         )}
                     </div>
                 </Link>
