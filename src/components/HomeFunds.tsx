@@ -38,7 +38,7 @@ export async function HomeFunds() {
                 <div className="mt-6">
                     <div className="flex items-baseline justify-between mb-4">
                         <h3 className="text-lg font-semibold text-ink">Фото</h3>
-                        <Link href="/funds" className="text-xs text-ink-muted hover:text-ink transition-colors">
+                        <Link href="/photo" className="text-xs text-ink-muted hover:text-ink transition-colors">
                             Подробнее
                         </Link>
                     </div>
