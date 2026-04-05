@@ -42,6 +42,8 @@ function transliterate(text: string): string {
         .join("")
 }
 
+export const CODE_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+
 export function generateCode(title: string): string {
     const slug = transliterate(title)
         .replace(/[^a-z0-9]+/g, "-")

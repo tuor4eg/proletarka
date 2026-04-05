@@ -3,12 +3,16 @@
 import { redirect } from "next/navigation"
 import { eq, asc, max, and } from "drizzle-orm"
 import { db } from "@/db"
-import { artifacts, entities, materials, entityTopics, artifactSections, artifactMaterials } from "@/db/schema"
-import { generateCode } from "@/lib/generateCode"
+import { artifacts, entities, materials, entityTopics, artifactSections, artifactMaterials, type ArtifactType } from "@/db/schema"
+import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 
-const CODE_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+const ARTIFACT_TYPES: ArtifactType[] = ["stand", "rarity", "fund", "general"]
+
+function parseArtifactType(raw: string): ArtifactType {
+    return (ARTIFACT_TYPES.find((t) => t === raw) ?? "general") as ArtifactType
+}
 
 export async function createArtifact(formData: FormData) {
     const title = (formData.get("title") as string).trim()
@@ -18,8 +22,7 @@ export async function createArtifact(formData: FormData) {
     const yearToRaw = formData.get("yearTo") as string
     const yearFrom = yearFromRaw ? Number(yearFromRaw) : null
     const yearTo = yearToRaw ? Number(yearToRaw) : null
-    const artifactTypeRaw = formData.get("artifactType") as string
-    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : artifactTypeRaw === "fund" ? "fund" : "general"
+    const artifactType = parseArtifactType(formData.get("artifactType") as string)
     const coverImagePath = await resolveImageUpload(formData, "coverImageFile", "coverImagePath")
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
@@ -70,8 +73,7 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
     const yearToRaw = formData.get("yearTo") as string
     const yearFrom = yearFromRaw ? Number(yearFromRaw) : null
     const yearTo = yearToRaw ? Number(yearToRaw) : null
-    const artifactTypeRaw = formData.get("artifactType") as string
-    const artifactType = artifactTypeRaw === "stand" ? "stand" : artifactTypeRaw === "rarity" ? "rarity" : artifactTypeRaw === "fund" ? "fund" : "general"
+    const artifactType = parseArtifactType(formData.get("artifactType") as string)
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
 
     const [current] = await db

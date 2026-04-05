@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Trash2, Search } from "lucide-react"
 import { linkMaterial, unlinkMaterial } from "@/app/admin/artifacts/actions"
 import type { MaterialType, Status } from "@/db/schema"
+import type { SectionOption } from "@/components/SortableMaterialsList"
 
 const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
@@ -32,15 +33,10 @@ type SearchResult = {
     artifactTitle: string | null
 }
 
-type Section = {
-    id: number
-    title: string
-}
-
 type Props = {
     artifactId: number
     linkedMaterials: LinkedArtifactMaterial[]
-    sections: Section[]
+    sections: SectionOption[]
     isStand: boolean
 }
 

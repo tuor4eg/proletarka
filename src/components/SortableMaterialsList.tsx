@@ -49,7 +49,7 @@ export type LinkedItem = {
     unlinkAction: () => Promise<void>
 }
 
-type SectionOption = {
+export type SectionOption = {
     id: number
     title: string
 }

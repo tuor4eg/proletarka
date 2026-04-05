@@ -6,10 +6,9 @@ import { entities, people } from "@/db/schema"
 import { AdminFilters } from "@/components/AdminFilters"
 import { LetterFilter } from "@/components/LetterFilter"
 import { Pagination } from "@/components/Pagination"
+import type { SearchParams } from "@/lib/types"
 
 const PAGE_SIZE = 20
-
-type SearchParams = Promise<{ q?: string; sort?: string; letter?: string; page?: string }>
 
 export default async function PeoplePage({ searchParams }: { searchParams: SearchParams }) {
     const { q, sort = "title_asc", letter, page: pageParam } = await searchParams

@@ -11,6 +11,7 @@ import { PageHero } from "@/components/PageHero"
 import { PublicFilters } from "@/components/PublicFilters"
 import { LetterFilter } from "@/components/LetterFilter"
 import { Pagination } from "@/components/Pagination"
+import type { SearchParams } from "@/lib/types"
 
 const PAGE_SIZE = 20
 
@@ -20,8 +21,6 @@ const SORT_OPTIONS = [
     { value: "date_desc", label: "Новые сначала" },
     { value: "date_asc", label: "Старые сначала" },
 ]
-
-type SearchParams = Promise<{ q?: string; sort?: string; letter?: string; page?: string }>
 
 function formatYears(
     birthYear: number | null,

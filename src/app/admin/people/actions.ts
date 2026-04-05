@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { eq, inArray } from "drizzle-orm"
 import { db } from "@/db"
 import { entities, people, materials, materialTopics, events, eventTopics } from "@/db/schema"
-import { generateCode } from "@/lib/generateCode"
+import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 
@@ -91,7 +91,7 @@ export async function deleteEvent(eventId: number) {
     await db.delete(events).where(eq(events.id, eventId))
 }
 
-async function parsePersonForm(formData: FormData) {
+export async function parsePersonForm(formData: FormData) {
     const birthYearRaw = formData.get("birthYear") as string
     const deathYearRaw = formData.get("deathYear") as string
 
@@ -104,8 +104,6 @@ async function parsePersonForm(formData: FormData) {
         mainPhotoPath: await resolveImageUpload(formData, "mainPhotoFile", "mainPhotoPath"),
     }
 }
-
-const CODE_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
 
 export async function createPerson(formData: FormData) {
     const personValues = await parsePersonForm(formData)

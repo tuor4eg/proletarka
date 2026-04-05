@@ -1,22 +1,14 @@
 import Link from "next/link"
 import { type MaterialType, type Status } from "@/db/schema"
 import { PublishToggle } from "@/components/PublishToggle"
-import { SortableMaterialsList } from "@/components/SortableMaterialsList"
+import { SortableMaterialsList, type MaterialItem } from "@/components/SortableMaterialsList"
 
-const TYPE_LABEL: Record<MaterialType, string> = {
+export const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
     photo: "Фото",
     document: "Документ",
 }
-const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." }
-
-type MaterialItem = {
-    id: number
-    title: string
-    materialType: MaterialType
-    status: Status
-    position?: number | null
-}
+export const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." }
 
 type Props = {
     entityId: number

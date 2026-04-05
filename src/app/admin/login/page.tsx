@@ -1,11 +1,8 @@
 import { login } from "./actions"
 import { inputClass } from "@/components/MaterialForm"
+import type { LoginPageProps } from "@/lib/types"
 
-type Props = {
-    searchParams: Promise<{ error?: string }>
-}
-
-export default async function LoginPage({ searchParams }: Props) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
     const { error } = await searchParams
 
     return (

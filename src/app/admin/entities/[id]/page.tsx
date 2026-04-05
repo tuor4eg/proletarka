@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { eq, desc } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, people, materials, topics, type MaterialType, type Status } from "@/db/schema"
+import { entities, people, materials, topics } from "@/db/schema"
 import { updateEntity, deleteEntity, getEventsByEntityId } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { ImageUpload } from "@/components/ImageUpload"
@@ -11,13 +11,7 @@ import { SubmitButton } from "@/components/SubmitButton"
 import { EditPageHeader } from "@/components/EditPageHeader"
 import { PublishToggle } from "@/components/PublishToggle"
 import { EventsBlock } from "@/components/EventsBlock"
-
-const TYPE_LABEL: Record<MaterialType, string> = {
-    article: "Статья",
-    photo: "Фото",
-    document: "Документ",
-}
-const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." }
+import { TYPE_LABEL, STATUS_LABEL } from "@/components/LinkedMaterialsList"
 
 type Props = {
     params: Promise<{ id: string }>

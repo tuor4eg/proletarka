@@ -5,14 +5,8 @@ import { materials, type MaterialType, type Status } from "@/db/schema"
 import { AdminFilters } from "@/components/AdminFilters"
 import { PublishToggle } from "@/components/PublishToggle"
 import { Pagination } from "@/components/Pagination"
+import { TYPE_LABEL, STATUS_LABEL } from "@/components/LinkedMaterialsList"
 import { Suspense } from "react"
-
-const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." }
-const TYPE_LABEL: Record<MaterialType, string> = {
-    article: "Статья",
-    photo: "Фото",
-    document: "Документ",
-}
 const PAGE_SIZE = 20
 
 type SearchParams = Promise<{
