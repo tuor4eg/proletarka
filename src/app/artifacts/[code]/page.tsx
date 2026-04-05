@@ -5,7 +5,6 @@ import { db } from "@/db"
 import { entities, artifacts, materials, artifactSections, artifactMaterials, people } from "@/db/schema"
 import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
-import { MaterialCard } from "@/components/MaterialCard"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
 
 type Props = {
@@ -101,20 +100,46 @@ export default async function ArtifactPage({ params }: Props) {
                     </div>
                 )}
                 {others.length > 0 && (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="flex flex-col divide-y divide-paper-border">
                         {others.map((m) => (
-                            <MaterialCard
+                            <Link
                                 key={m.id}
-                                material={{
-                                    id: m.id,
-                                    title: m.title,
-                                    summary: m.summary,
-                                    yearFrom: m.yearFrom,
-                                    yearTo: m.yearTo,
-                                    personName: m.personName,
-                                    topics: [],
-                                }}
-                            />
+                                href={`/materials/${m.id}`}
+                                className="relative py-5 hover:opacity-75 transition-opacity"
+                            >
+                                <div className="flex items-start gap-4">
+                                    {m.coverImagePath && (
+                                        <img
+                                            src={m.coverImagePath}
+                                            alt={m.title}
+                                            className="w-20 h-20 object-cover rounded-xl shrink-0"
+                                        />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-base font-semibold mb-1 leading-snug">
+                                            {m.title}
+                                        </h3>
+                                        {m.summary && (
+                                            <p className="text-sm text-ink-muted mb-2 line-clamp-2">
+                                                {m.summary}
+                                            </p>
+                                        )}
+                                        <div className="flex items-center gap-3 text-xs text-ink-muted mb-2">
+                                            {m.personName && (
+                                                <span>{m.personName}</span>
+                                            )}
+                                            {(m.yearFrom || m.yearTo) && (
+                                                <span>
+                                                    {m.yearFrom === m.yearTo || !m.yearTo
+                                                        ? m.yearFrom
+                                                        : `${m.yearFrom}–${m.yearTo}`}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="text-xs text-sepia">Подробнее →</span>
+                                    </div>
+                                </div>
+                            </Link>
                         ))}
                     </div>
                 )}
