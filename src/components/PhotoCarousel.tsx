@@ -2,6 +2,7 @@
 
 import useEmblaCarousel from "embla-carousel-react"
 import { useCallback, useEffect, useState } from "react"
+import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Lightbox } from "@/components/Lightbox"
 
@@ -13,6 +14,8 @@ type Photo = {
     yearTo: number | null
     content: string | null
     sourceUrl?: string | null
+    personName?: string | null
+    personCode?: string | null
 }
 
 type Props = {
@@ -101,6 +104,14 @@ export function PhotoCarousel({ photos }: Props) {
                 <div className="px-1">
                     <p className="text-sm font-medium leading-snug">{photo.title}</p>
                     {yearLabel && <p className="text-xs text-ink-muted mt-0.5">{yearLabel}</p>}
+                    {photo.personName && photo.personCode && (
+                        <p className="text-xs text-ink-muted mt-0.5">
+                            Из коллекции:{" "}
+                            <Link href={`/people/${photo.personCode}`} className="hover:text-ink transition-colors underline underline-offset-2">
+                                {photo.personName}
+                            </Link>
+                        </p>
+                    )}
                     {photo.content && (() => {
                         const isLong = photo.content.length > 200
                         return (

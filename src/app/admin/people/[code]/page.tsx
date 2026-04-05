@@ -13,29 +13,28 @@ import { LinkedMaterialsList } from "@/components/LinkedMaterialsList"
 import { CodeField } from "@/components/CodeField"
 
 type Props = {
-    params: Promise<{ id: string }>
+    params: Promise<{ code: string }>
 }
 
 export default async function EditPersonPage({ params }: Props) {
-    const { id } = await params
-    const numericId = Number(id)
-
-    if (!Number.isInteger(numericId) || numericId <= 0) notFound()
+    const { code } = await params
 
     const [row] = await db
         .select({ entity: entities, person: people })
         .from(entities)
         .leftJoin(people, eq(entities.personId, people.id))
-        .where(eq(entities.id, numericId))
+        .where(eq(people.code, code))
         .limit(1)
 
     if (!row) notFound()
 
     if (row.entity.type === "artifact") {
-        redirect(`/admin/artifacts/${numericId}`)
+        redirect(`/admin/artifacts/${row.entity.code}`)
     }
 
     if (!row.person) notFound()
+
+    const { entity, person } = row
 
     const [linkedMaterials, allTopics, entityEvents] = await Promise.all([
         db
@@ -47,19 +46,18 @@ export default async function EditPersonPage({ params }: Props) {
                 position: materials.position,
             })
             .from(materials)
-            .where(eq(materials.entityId, numericId))
+            .where(eq(materials.entityId, entity.id))
             .orderBy(desc(materials.createdAt)),
         db.select({ id: topics.id, title: topics.title }).from(topics).orderBy(topics.title),
-        getEventsByEntityId(numericId),
+        getEventsByEntityId(entity.id),
     ])
 
-    const { entity, person } = row
     const updateAction = updatePerson.bind(null, person.id)
     const deleteAction = deletePerson.bind(null, entity.id, person.id)
 
     return (
         <div className="py-6">
-            <EditPageHeader publicUrl={`/people/${numericId}`} isPublished />
+            <EditPageHeader publicUrl={`/people/${person.code}`} isPublished />
             <h1 className="text-xl font-bold mb-6">Редактировать человека</h1>
             <div className="mb-4">
                 <CodeField code={person.code} />
@@ -123,7 +121,7 @@ export default async function EditPersonPage({ params }: Props) {
                 />
                 <Field label="События">
                     <EventsBlock
-                        entityId={numericId}
+                        entityId={entity.id}
                         initialEvents={entityEvents}
                         topics={allTopics}
                     />
@@ -142,9 +140,9 @@ export default async function EditPersonPage({ params }: Props) {
             </form>
 
             <LinkedMaterialsList
-                entityId={numericId}
+                entityId={entity.id}
                 materials={linkedMaterials}
-                addHref={`/admin/new?entityId=${numericId}`}
+                addHref={`/admin/new?entityId=${entity.id}`}
             />
         </div>
     )

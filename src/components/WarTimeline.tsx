@@ -11,7 +11,7 @@ export type WarTimelineEvent = {
     yearsLabel: string | null
     entityId: number
     personName: string
-    personEntityId: number
+    personCode: string
 }
 
 type YearGroup = {
@@ -67,7 +67,7 @@ export function WarTimeline({ events }: { events: WarTimelineEvent[] }) {
                             <div className="flex flex-col gap-0.5">
                                 <span className="text-sm text-ink">{e.text}</span>
                                 <Link
-                                    href={`/people/${e.personEntityId}`}
+                                    href={`/people/${e.personCode}`}
                                     className="text-xs text-ink-muted hover:text-ink-secondary transition-colors w-fit"
                                 >
                                     {e.personName}

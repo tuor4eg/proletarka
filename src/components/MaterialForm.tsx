@@ -64,6 +64,7 @@ export function Field({
 type Props = {
     action: (prev: ActionResult, formData: FormData) => Promise<ActionResult>
     deleteAction?: () => Promise<void>
+    deleteConfirmBody?: string
     material?: Material
     entities: EntityOption[]
     topics: TopicOption[]
@@ -73,7 +74,7 @@ type Props = {
     defaultSectionId?: number
 }
 
-function FormActions({ deleteAction }: { deleteAction?: () => Promise<void> }) {
+function FormActions({ deleteAction, deleteConfirmBody }: { deleteAction?: () => Promise<void>; deleteConfirmBody?: string }) {
     const { pending } = useFormStatus()
     return (
         <div className="flex items-center gap-3 mt-5">
@@ -84,7 +85,7 @@ function FormActions({ deleteAction }: { deleteAction?: () => Promise<void> }) {
             >
                 {pending ? "Сохранение…" : "Сохранить"}
             </button>
-            {deleteAction && <DeleteButton action={deleteAction} />}
+            {deleteAction && <DeleteButton action={deleteAction} confirmBody={deleteConfirmBody} />}
         </div>
     )
 }
@@ -92,6 +93,7 @@ function FormActions({ deleteAction }: { deleteAction?: () => Promise<void> }) {
 export function MaterialForm({
     action,
     deleteAction,
+    deleteConfirmBody,
     material,
     entities,
     topics,
@@ -318,7 +320,7 @@ export function MaterialForm({
                     </div>
                 </div>
 
-                <FormActions deleteAction={deleteAction} />
+                <FormActions deleteAction={deleteAction} deleteConfirmBody={deleteConfirmBody} />
             </form>
         </>
     )

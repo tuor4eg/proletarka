@@ -2,17 +2,17 @@ import Link from "next/link"
 import { User } from "lucide-react"
 
 type Props = {
-    entityId: number
+    code: string
     name: string
     years?: string | null
     context?: string | null
     mainPhotoPath?: string | null
 }
 
-export function PersonCard({ entityId, name, years, context, mainPhotoPath }: Props) {
+export function PersonCard({ code, name, years, context, mainPhotoPath }: Props) {
     return (
         <Link
-            href={`/people/${entityId}`}
+            href={`/people/${code}`}
             className="flex flex-col items-center gap-2 w-20 shrink-0 hover:opacity-70 transition-opacity"
         >
             <div className="w-16 h-16 rounded-xl overflow-hidden bg-paper-dark flex items-center justify-center">

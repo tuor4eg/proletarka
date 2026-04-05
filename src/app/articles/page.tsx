@@ -51,7 +51,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
                 yearTo: materials.yearTo,
                 coverImagePath: materials.coverImagePath,
                 personName: people.name,
-                entityId: entities.id,
+                entityCode: people.code,
             })
             .from(materials)
             .leftJoin(entities, eq(materials.entityId, entities.id))
@@ -105,9 +105,9 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
                                                 </p>
                                             )}
                                             <div className="relative z-10 flex items-center gap-3 text-xs text-ink-muted">
-                                                {item.personName && item.entityId && (
+                                                {item.personName && item.entityCode && (
                                                     <a
-                                                        href={`/people/${item.entityId}`}
+                                                        href={`/people/${item.entityCode}`}
                                                         className="hover:text-ink-secondary transition-colors"
                                                     >
                                                         {item.personName}

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { db } from "@/db"
-import { materials, entities, people, artifacts, topics, materialTopics } from "@/db/schema"
+import { materials, entities, people, artifacts, topics, materialTopics, artifactMaterials } from "@/db/schema"
 import { updateMaterial, deleteMaterial } from "../actions"
 import { MaterialForm } from "@/components/MaterialForm"
 import { EditPageHeader } from "@/components/EditPageHeader"
@@ -18,7 +18,7 @@ export default async function EditMaterialPage({ params }: Props) {
         notFound()
     }
 
-    const [[material], entityRows, topicRows, selectedRows] = await Promise.all([
+    const [[material], entityRows, topicRows, selectedRows, linkedArtifactRows] = await Promise.all([
         db.select().from(materials).where(eq(materials.id, numericId)).limit(1),
         db
             .select({
@@ -35,6 +35,11 @@ export default async function EditMaterialPage({ params }: Props) {
             .select({ topicId: materialTopics.topicId })
             .from(materialTopics)
             .where(eq(materialTopics.materialId, numericId)),
+        db
+            .select({ title: artifacts.title })
+            .from(artifactMaterials)
+            .innerJoin(artifacts, eq(artifactMaterials.artifactId, artifacts.id))
+            .where(eq(artifactMaterials.materialId, numericId)),
     ])
 
     if (!material) {
@@ -51,6 +56,10 @@ export default async function EditMaterialPage({ params }: Props) {
     const action = updateMaterial.bind(null, numericId)
     const deleteAction = deleteMaterial.bind(null, numericId)
 
+    const deleteConfirmBody = linkedArtifactRows.length > 0
+        ? `Этот материал используется в ${linkedArtifactRows.length > 1 ? "объектах" : "объекте"}: ${linkedArtifactRows.map((r) => r.title).join(", ")}. После удаления он исчезнет и оттуда. Это действие нельзя отменить.`
+        : "Это действие нельзя отменить."
+
     return (
         <div className="py-6">
             <EditPageHeader
@@ -60,6 +69,7 @@ export default async function EditMaterialPage({ params }: Props) {
             <MaterialForm
                 action={action}
                 deleteAction={deleteAction}
+                deleteConfirmBody={deleteConfirmBody}
                 material={material}
                 entities={entitiesList}
                 topics={topicRows}

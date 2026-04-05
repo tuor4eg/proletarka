@@ -71,6 +71,13 @@
       "when": 1775239075766,
       "tag": "0009_add_fund_artifact_type",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775384175758,
+      "tag": "0010_dry_vulcan",
+      "breakpoints": true
     }
   ]
 }

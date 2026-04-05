@@ -8,7 +8,7 @@ import { PersonTimeline } from "@/components/PersonTimeline"
 import { BackButton } from "@/components/BackButton"
 
 type Props = {
-    params: Promise<{ id: string }>
+    params: Promise<{ code: string }>
 }
 
 function formatYears(
@@ -23,21 +23,18 @@ function formatYears(
 }
 
 export default async function PersonPage({ params }: Props) {
-    const { id } = await params
-    const numericId = Number(id)
-
-    if (!Number.isInteger(numericId) || numericId <= 0) notFound()
+    const { code } = await params
 
     const [row] = await db
         .select({ entity: entities, person: people })
         .from(entities)
         .innerJoin(people, eq(entities.personId, people.id))
-        .where(eq(entities.id, numericId))
+        .where(eq(people.code, code))
         .limit(1)
 
     if (!row) notFound()
 
-    const { person } = row
+    const { entity, person } = row
 
     const [linkedMaterials, eventRows] = await Promise.all([
         db
@@ -53,7 +50,7 @@ export default async function PersonPage({ params }: Props) {
                 materialType: materials.materialType,
             })
             .from(materials)
-            .where(and(eq(materials.entityId, numericId), eq(materials.status, "published"))),
+            .where(and(eq(materials.entityId, entity.id), eq(materials.status, "published"))),
         db
             .select({
                 id: events.id,
@@ -66,7 +63,7 @@ export default async function PersonPage({ params }: Props) {
             .from(events)
             .leftJoin(eventTopics, eq(eventTopics.eventId, events.id))
             .leftJoin(topics, eq(topics.id, eventTopics.topicId))
-            .where(eq(events.entityId, numericId))
+            .where(eq(events.entityId, entity.id))
             .orderBy(asc(events.yearFrom), asc(events.id)),
     ])
 

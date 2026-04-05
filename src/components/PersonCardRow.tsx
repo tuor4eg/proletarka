@@ -2,6 +2,7 @@ import { PersonCard } from "@/components/PersonCard"
 
 type Person = {
     entityId: number
+    code: string
     name: string
     years?: string | null
     context?: string | null

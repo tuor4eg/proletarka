@@ -58,6 +58,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
         db
             .select({
                 entityId: entities.id,
+                entityCode: people.code,
                 name: people.name,
                 birthYear: people.birthYear,
                 deathYear: people.deathYear,
@@ -106,7 +107,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                                 return (
                                     <Link
                                         key={row.entityId}
-                                        href={`/people/${row.entityId}`}
+                                        href={`/people/${row.entityCode}`}
                                         className="flex items-center gap-3 py-3 hover:opacity-70 transition-opacity"
                                     >
                                         <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-paper-dark flex items-center justify-center">

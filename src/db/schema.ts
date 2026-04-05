@@ -147,6 +147,22 @@ export const entityTopics = pgTable(
     (t) => [primaryKey({ columns: [t.entityId, t.topicId] })],
 )
 
+export const artifactMaterials = pgTable(
+    "artifact_materials",
+    {
+        artifactId: integer("artifact_id")
+            .notNull()
+            .references(() => artifacts.id, { onDelete: "cascade" }),
+        materialId: integer("material_id")
+            .notNull()
+            .references(() => materials.id, { onDelete: "cascade" }),
+        sectionId: integer("section_id")
+            .references(() => artifactSections.id, { onDelete: "set null" }),
+        position: integer("position"),
+    },
+    (t) => [primaryKey({ columns: [t.artifactId, t.materialId] })],
+)
+
 export const showcases = pgTable("showcases", {
     sectionCode: text("section_code").primaryKey(),
     artifactId: integer("artifact_id").notNull().references(() => artifacts.id, { onDelete: "cascade" }),
@@ -155,6 +171,7 @@ export const showcases = pgTable("showcases", {
 export const artifactsRelations = relations(artifacts, ({ many }) => ({
     entities: many(entities),
     sections: many(artifactSections),
+    artifactMaterials: many(artifactMaterials),
 }))
 
 export const artifactSectionsRelations = relations(artifactSections, ({ one, many }) => ({
@@ -178,6 +195,13 @@ export const materialsRelations = relations(materials, ({ one, many }) => ({
     entity: one(entities, { fields: [materials.entityId], references: [entities.id] }),
     section: one(artifactSections, { fields: [materials.sectionId], references: [artifactSections.id] }),
     materialTopics: many(materialTopics),
+    artifactMaterials: many(artifactMaterials),
+}))
+
+export const artifactMaterialsRelations = relations(artifactMaterials, ({ one }) => ({
+    artifact: one(artifacts, { fields: [artifactMaterials.artifactId], references: [artifacts.id] }),
+    material: one(materials, { fields: [artifactMaterials.materialId], references: [materials.id] }),
+    section: one(artifactSections, { fields: [artifactMaterials.sectionId], references: [artifactSections.id] }),
 }))
 
 export const materialTopicsRelations = relations(materialTopics, ({ one }) => ({

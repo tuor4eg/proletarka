@@ -1,34 +1,32 @@
 import { notFound } from "next/navigation"
-import { eq, asc, sql } from "drizzle-orm"
+import { eq, asc, sql, and } from "drizzle-orm"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/db"
-import { entities, artifacts, materials, topics, entityTopics, artifactSections } from "@/db/schema"
-import { updateArtifact, deleteArtifact, createSection, updateSection, deleteSection, shiftSection } from "../actions"
+import { entities, artifacts, materials, topics, entityTopics, artifactSections, artifactMaterials, people } from "@/db/schema"
+import { updateArtifact, deleteArtifact, createSection, updateSection, deleteSection, shiftSection, unlinkMaterial } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { DeleteButton } from "@/components/DeleteButton"
 import { SubmitButton } from "@/components/SubmitButton"
 import { LinkedMaterialsList } from "@/components/LinkedMaterialsList"
+import { LinkedArtifactMaterialsBlock } from "@/components/LinkedArtifactMaterialsBlock"
 import { ImageUpload } from "@/components/ImageUpload"
 import { CodeField } from "@/components/CodeField"
 import { SortableMaterialsList } from "@/components/SortableMaterialsList"
 import { PublishToggle } from "@/components/PublishToggle"
 
 type Props = {
-    params: Promise<{ id: string }>
+    params: Promise<{ code: string }>
 }
 
 export default async function EditArtifactPage({ params }: Props) {
-    const { id } = await params
-    const numericId = Number(id)
-
-    if (!Number.isInteger(numericId) || numericId <= 0) notFound()
+    const { code } = await params
 
     const [row] = await db
         .select({ entity: entities, artifact: artifacts })
         .from(entities)
         .innerJoin(artifacts, eq(entities.artifactId, artifacts.id))
-        .where(eq(entities.id, numericId))
+        .where(eq(artifacts.code, code))
         .limit(1)
 
     if (!row) notFound()
@@ -38,29 +36,47 @@ export default async function EditArtifactPage({ params }: Props) {
         db
             .select({ topicId: entityTopics.topicId })
             .from(entityTopics)
-            .where(eq(entityTopics.entityId, numericId)),
+            .where(eq(entityTopics.entityId, row.entity.id)),
     ])
 
     const selectedTopicIds = selectedTopicRows.map((r) => r.topicId)
 
-    const linkedMaterials = await db
-        .select({
-            id: materials.id,
-            title: materials.title,
-            materialType: materials.materialType,
-            status: materials.status,
-            position: materials.position,
-            sectionId: materials.sectionId,
-        })
-        .from(materials)
-        .where(eq(materials.entityId, numericId))
-        .orderBy(sql`${materials.position} ASC NULLS LAST`, asc(materials.id))
-
-    const sections = await db
-        .select()
-        .from(artifactSections)
-        .where(eq(artifactSections.artifactId, row.artifact.id))
-        .orderBy(asc(artifactSections.position))
+    const [linkedMaterials, sections, linkedArtifactMaterials] = await Promise.all([
+        db
+            .select({
+                id: materials.id,
+                title: materials.title,
+                materialType: materials.materialType,
+                status: materials.status,
+                position: materials.position,
+                sectionId: materials.sectionId,
+            })
+            .from(materials)
+            .where(eq(materials.entityId, row.entity.id))
+            .orderBy(sql`${materials.position} ASC NULLS LAST`, asc(materials.id)),
+        db
+            .select()
+            .from(artifactSections)
+            .where(eq(artifactSections.artifactId, row.artifact.id))
+            .orderBy(asc(artifactSections.position)),
+        db
+            .select({
+                materialId: artifactMaterials.materialId,
+                title: materials.title,
+                materialType: materials.materialType,
+                status: materials.status,
+                sectionId: artifactMaterials.sectionId,
+                position: artifactMaterials.position,
+                personName: people.name,
+                personCode: people.code,
+            })
+            .from(artifactMaterials)
+            .innerJoin(materials, eq(artifactMaterials.materialId, materials.id))
+            .leftJoin(entities, eq(materials.entityId, entities.id))
+            .leftJoin(people, eq(entities.personId, people.id))
+            .where(eq(artifactMaterials.artifactId, row.artifact.id))
+            .orderBy(asc(materials.title)),
+    ])
 
     const { artifact, entity } = row
     const updateAction = updateArtifact.bind(null, artifact.id)
@@ -183,6 +199,7 @@ export default async function EditArtifactPage({ params }: Props) {
                 <div className="mt-10 flex flex-col gap-8">
                     {sections.map((section, i) => {
                         const sectionMaterials = linkedMaterials.filter(m => m.sectionId === section.id)
+                        const sectionLinkedMaterials = linkedArtifactMaterials.filter(m => m.sectionId === section.id)
                         const updateSectionAction = updateSection.bind(null, section.id)
                         const deleteSectionAction = deleteSection.bind(null, section.id)
                         const shiftUpAction = shiftSection.bind(null, section.id, "up")
@@ -214,12 +231,25 @@ export default async function EditArtifactPage({ params }: Props) {
                                         </button>
                                     </form>
                                 </div>
-                                {sectionMaterials.length > 0 && (
-                                    <SortableMaterialsList initialItems={sectionMaterials} sections={sections} />
+                                {(sectionMaterials.length > 0 || sectionLinkedMaterials.length > 0) && (
+                                    <SortableMaterialsList
+                                        initialItems={sectionMaterials}
+                                        sections={sections}
+                                        artifactId={row.artifact.id}
+                                        linkedItems={sectionLinkedMaterials.map((m) => ({
+                                            id: m.materialId,
+                                            title: m.title,
+                                            materialType: m.materialType,
+                                            status: m.status,
+                                            position: m.position,
+                                            personName: m.personName,
+                                            unlinkAction: unlinkMaterial.bind(null, row.artifact.id, m.materialId),
+                                        }))}
+                                    />
                                 )}
                                 <div className="px-4 py-3 border-t border-gray-100">
                                     <Link
-                                        href={`/admin/new?entityId=${numericId}&sectionId=${section.id}&materialType=photo`}
+                                        href={`/admin/new?entityId=${row.entity.id}&sectionId=${section.id}&materialType=photo`}
                                         className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
                                     >
                                         + Добавить материал
@@ -259,7 +289,7 @@ export default async function EditArtifactPage({ params }: Props) {
 
                     <div className="border-t border-gray-100 pt-4">
                         <Link
-                            href={`/admin/new?entityId=${numericId}&materialType=photo`}
+                            href={`/admin/new?entityId=${row.entity.id}&materialType=photo`}
                             className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
                         >
                             + Добавить материал без раздела
@@ -268,12 +298,19 @@ export default async function EditArtifactPage({ params }: Props) {
                 </div>
             ) : (
                 <LinkedMaterialsList
-                    entityId={numericId}
+                    entityId={row.entity.id}
                     materials={linkedMaterials}
-                    addHref={`/admin/new?entityId=${numericId}&materialType=photo`}
+                    addHref={`/admin/new?entityId=${row.entity.id}&materialType=photo`}
                     showPosition
                 />
             )}
+
+            <LinkedArtifactMaterialsBlock
+                artifactId={row.artifact.id}
+                linkedMaterials={isStand ? linkedArtifactMaterials.filter(m => !m.sectionId) : linkedArtifactMaterials}
+                sections={sections}
+                isStand={isStand}
+            />
         </div>
     )
 }

@@ -9,6 +9,7 @@ export async function HomePeople() {
     const recentPeople = await db
         .select({
             entityId: entities.id,
+            code: people.code,
             name: people.name,
             years: people.yearsLabel,
             mainPhotoPath: people.mainPhotoPath,

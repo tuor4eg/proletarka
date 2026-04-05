@@ -140,7 +140,7 @@ export async function createPerson(formData: FormData) {
         .values({ type: "person", personId: person.id, code })
         .returning({ id: entities.id })
 
-    redirect(`/admin/people/${entity.id}${flashParam("Человек добавлен")}`)
+    redirect(`/admin/people/${code}${flashParam("Человек добавлен")}`)
 }
 
 export async function updatePerson(personId: number, formData: FormData) {
@@ -156,7 +156,7 @@ export async function updatePerson(personId: number, formData: FormData) {
         await deleteImage(current.mainPhotoPath)
     }
 
-    const [[entity]] = await Promise.all([
+    const [[entity], [updatedPerson]] = await Promise.all([
         db
             .select({ id: entities.id })
             .from(entities)
@@ -165,7 +165,8 @@ export async function updatePerson(personId: number, formData: FormData) {
         db
             .update(people)
             .set({ ...personValues, updatedAt: new Date() })
-            .where(eq(people.id, personId)),
+            .where(eq(people.id, personId))
+            .returning({ code: people.code }),
     ])
 
     if (!entity?.id) redirect("/admin/people")
@@ -176,7 +177,7 @@ export async function updatePerson(personId: number, formData: FormData) {
         await createEvents(entity.id, newEvents)
     }
 
-    redirect(`/admin/people/${entity.id}${flashParam("Сохранено")}`)
+    redirect(`/admin/people/${updatedPerson.code}${flashParam("Сохранено")}`)
 }
 
 export async function deletePerson(entityId: number, personId: number) {

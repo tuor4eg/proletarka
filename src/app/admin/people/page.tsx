@@ -34,7 +34,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
 
     const [rows, [{ total }], letterRows] = await Promise.all([
         db
-            .select({ id: entities.id, personName: people.name })
+            .select({ id: entities.id, code: people.code, personName: people.name })
             .from(entities)
             .innerJoin(people, eq(entities.personId, people.id))
             .where(where)
@@ -75,7 +75,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                         {rows.map((row) => (
                             <Link
                                 key={row.id}
-                                href={`/admin/people/${row.id}`}
+                                href={`/admin/people/${row.code}`}
                                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                             >
                                 <span className="text-sm font-medium flex-1">

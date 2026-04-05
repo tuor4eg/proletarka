@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation"
 import { eq, and, asc, sql } from "drizzle-orm"
+import Link from "next/link"
 import { db } from "@/db"
-import { entities, artifacts, materials, artifactSections } from "@/db/schema"
+import { entities, artifacts, materials, artifactSections, artifactMaterials, people } from "@/db/schema"
 import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
 import { MaterialCard } from "@/components/MaterialCard"
@@ -25,7 +26,7 @@ export default async function ArtifactPage({ params }: Props) {
 
     const { artifact, entity } = row
 
-    const [linkedMaterials, sections] = await Promise.all([
+    const [nativeMaterials, sections, refMaterialRows] = await Promise.all([
         db
             .select({
                 id: materials.id,
@@ -38,6 +39,7 @@ export default async function ArtifactPage({ params }: Props) {
                 content: materials.content,
                 sourceUrl: materials.sourceUrl,
                 sectionId: materials.sectionId,
+                position: materials.position,
             })
             .from(materials)
             .where(and(eq(materials.entityId, entity.id), eq(materials.status, "published")))
@@ -47,11 +49,45 @@ export default async function ArtifactPage({ params }: Props) {
             .from(artifactSections)
             .where(eq(artifactSections.artifactId, artifact.id))
             .orderBy(asc(artifactSections.position)),
+        db
+            .select({
+                id: materials.id,
+                title: materials.title,
+                summary: materials.summary,
+                yearFrom: materials.yearFrom,
+                yearTo: materials.yearTo,
+                materialType: materials.materialType,
+                coverImagePath: materials.coverImagePath,
+                content: materials.content,
+                sourceUrl: materials.sourceUrl,
+                sectionId: artifactMaterials.sectionId,
+                position: artifactMaterials.position,
+                personName: people.name,
+                personCode: people.code,
+            })
+            .from(artifactMaterials)
+            .innerJoin(materials, eq(artifactMaterials.materialId, materials.id))
+            .leftJoin(entities, eq(materials.entityId, entities.id))
+            .leftJoin(people, eq(entities.personId, people.id))
+            .where(
+                and(
+                    eq(artifactMaterials.artifactId, artifact.id),
+                    eq(materials.status, "published")
+                )
+            )
+            .orderBy(sql`${artifactMaterials.position} ASC NULLS LAST`, asc(materials.id)),
     ])
+
+    // merge: native + ref — dedup by id, sort by position
+    const seenIds = new Set(nativeMaterials.map((m) => m.id))
+    const nativeWithAttrs = nativeMaterials.map((m) => ({ ...m, personName: null, personCode: null }))
+    const refFiltered = refMaterialRows.filter((m) => !seenIds.has(m.id))
+    const allMaterials = [...nativeWithAttrs, ...refFiltered]
+        .sort((a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER))
 
     const isStand = artifact.artifactType === "stand"
 
-    function renderMaterials(items: typeof linkedMaterials) {
+    function renderMaterials(items: typeof allMaterials) {
         const photos = items.filter(
             (m) => m.materialType === "photo" && m.coverImagePath
         ) as (typeof items[number] & { coverImagePath: string })[]
@@ -75,7 +111,7 @@ export default async function ArtifactPage({ params }: Props) {
                                     summary: m.summary,
                                     yearFrom: m.yearFrom,
                                     yearTo: m.yearTo,
-                                    personName: null,
+                                    personName: m.personName,
                                     topics: [],
                                 }}
                             />
@@ -94,6 +130,9 @@ export default async function ArtifactPage({ params }: Props) {
                     <BackButton />
                 </div>
                 <div className="mb-8">
+                    <h1 className="text-2xl font-bold tracking-wide text-ink leading-snug">
+                        {artifact.title}
+                    </h1>
                     {(artifact.yearFrom || artifact.yearsLabel) && (
                         <p className="text-sm text-ink-muted mt-1">
                             {artifact.yearFrom
@@ -112,9 +151,9 @@ export default async function ArtifactPage({ params }: Props) {
 
                 {isStand && sections.length > 0 ? (
                     <div className="flex flex-col gap-10">
-                        {sections.filter(s => linkedMaterials.some(m => m.sectionId === s.id)).length > 1 && (
+                        {sections.filter(s => allMaterials.some(m => m.sectionId === s.id)).length > 1 && (
                             <nav className="flex flex-wrap items-center gap-y-1">
-                                {sections.filter(s => linkedMaterials.some(m => m.sectionId === s.id)).map((section, i, arr) => (
+                                {sections.filter(s => allMaterials.some(m => m.sectionId === s.id)).map((section, i, arr) => (
                                     <span key={section.id} className="flex items-center">
                                         <a
                                             href={`#section-${section.id}`}
@@ -130,7 +169,7 @@ export default async function ArtifactPage({ params }: Props) {
                             </nav>
                         )}
                         {sections.map((section) => {
-                            const sectionMaterials = linkedMaterials.filter(m => m.sectionId === section.id)
+                            const sectionMaterials = allMaterials.filter(m => m.sectionId === section.id)
                             if (sectionMaterials.length === 0) return null
                             return (
                                 <div key={section.id} id={`section-${section.id}`}>
@@ -142,12 +181,12 @@ export default async function ArtifactPage({ params }: Props) {
                             )
                         })}
                         {(() => {
-                            const unsectioned = linkedMaterials.filter(m => !m.sectionId)
+                            const unsectioned = allMaterials.filter(m => !m.sectionId)
                             return unsectioned.length > 0 && renderMaterials(unsectioned)
                         })()}
                     </div>
                 ) : (
-                    renderMaterials(linkedMaterials)
+                    renderMaterials(allMaterials)
                 )}
             </main>
         </>

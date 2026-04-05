@@ -63,7 +63,7 @@ export default async function EditEntityPage({ params }: Props) {
 
     return (
         <div className="py-6">
-            <EditPageHeader publicUrl={`/people/${numericId}`} isPublished />
+            <EditPageHeader publicUrl={`/people/${person!.code}`} isPublished />
             <h1 className="text-xl font-bold mb-6">Редактировать человека</h1>
             <form action={updateAction} className="flex flex-col gap-4">
                 <Field label="Имя *">

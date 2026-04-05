@@ -19,7 +19,9 @@ export default async function NewMaterialPage({ searchParams }: Props) {
                 id: entities.id,
                 type: entities.type,
                 personName: people.name,
+                personCode: people.code,
                 artifactTitle: artifacts.title,
+                artifactCode: artifacts.code,
             })
             .from(entities)
             .leftJoin(people, eq(entities.personId, people.id))
@@ -39,8 +41,8 @@ export default async function NewMaterialPage({ searchParams }: Props) {
         : null
     const backHref = sourceEntity
         ? sourceEntity.type === "artifact"
-            ? `/admin/artifacts/${sourceEntity.id}`
-            : `/admin/people/${sourceEntity.id}`
+            ? `/admin/artifacts/${sourceEntity.artifactCode}`
+            : `/admin/people/${sourceEntity.personCode}`
         : null
 
     return (

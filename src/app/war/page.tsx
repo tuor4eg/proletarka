@@ -53,6 +53,7 @@ export default async function WarPage() {
             db
                 .selectDistinct({
                     entityId: entities.id,
+                    code: people.code,
                     name: people.name,
                     birthYear: people.birthYear,
                     deathYear: people.deathYear,
@@ -70,6 +71,7 @@ export default async function WarPage() {
             db
                 .selectDistinct({
                     entityId: entities.id,
+                    code: people.code,
                     name: people.name,
                     birthYear: people.birthYear,
                     deathYear: people.deathYear,
@@ -93,7 +95,7 @@ export default async function WarPage() {
                     yearsLabel: events.yearsLabel,
                     entityId: events.entityId,
                     personName: people.name,
-                    personEntityId: entities.id,
+                    personCode: people.code,
                 })
                 .from(events)
                 .innerJoin(eventTopics, eq(eventTopics.eventId, events.id))
@@ -165,6 +167,7 @@ export default async function WarPage() {
                         <PersonCardRow
                             people={fallenPeople.map((p) => ({
                                 entityId: p.entityId,
+                                code: p.code,
                                 name: p.name,
                                 years: formatYears(p.birthYear, p.deathYear, p.yearsLabel),
                                 mainPhotoPath: p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,
@@ -187,6 +190,7 @@ export default async function WarPage() {
                         <PersonCardRow
                             people={allWarPeople.map((p) => ({
                                 entityId: p.entityId,
+                                code: p.code,
                                 name: p.name,
                                 years: formatYears(p.birthYear, p.deathYear, p.yearsLabel),
                                 mainPhotoPath: p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,

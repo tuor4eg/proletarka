@@ -1,9 +1,9 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { eq, asc, max } from "drizzle-orm"
+import { eq, asc, max, and } from "drizzle-orm"
 import { db } from "@/db"
-import { artifacts, entities, materials, entityTopics, artifactSections } from "@/db/schema"
+import { artifacts, entities, materials, entityTopics, artifactSections, artifactMaterials } from "@/db/schema"
 import { generateCode } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
@@ -59,7 +59,7 @@ export async function createArtifact(formData: FormData) {
             .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
     }
 
-    redirect(`/admin/artifacts/${entity.id}${flashParam("Исторический объект добавлен")}`)
+    redirect(`/admin/artifacts/${code}${flashParam("Исторический объект добавлен")}`)
 }
 
 export async function updateArtifact(artifactId: number, formData: FormData) {
@@ -86,7 +86,7 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
         await deleteImage(current.coverImagePath)
     }
 
-    const [[entity]] = await Promise.all([
+    const [[entity], [updatedArtifact]] = await Promise.all([
         db
             .select({ id: entities.id })
             .from(entities)
@@ -95,7 +95,8 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
         db
             .update(artifacts)
             .set({ title, description, yearsLabel, yearFrom, yearTo, artifactType, coverImagePath, updatedAt: new Date() })
-            .where(eq(artifacts.id, artifactId)),
+            .where(eq(artifacts.id, artifactId))
+            .returning({ code: artifacts.code }),
     ])
 
     if (!entity?.id) redirect("/admin/artifacts")
@@ -107,7 +108,7 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
             .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
     }
 
-    redirect(`/admin/artifacts/${entity.id}${flashParam("Сохранено")}`)
+    redirect(`/admin/artifacts/${updatedArtifact.code}${flashParam("Сохранено")}`)
 }
 
 export async function deleteArtifact(entityId: number) {
@@ -136,13 +137,13 @@ export async function createSection(artifactId: number, formData: FormData) {
 
     await db.insert(artifactSections).values({ artifactId, title, position })
 
-    const [entity] = await db
-        .select({ id: entities.id })
-        .from(entities)
-        .where(eq(entities.artifactId, artifactId))
+    const [artifact] = await db
+        .select({ code: artifacts.code })
+        .from(artifacts)
+        .where(eq(artifacts.id, artifactId))
         .limit(1)
 
-    redirect(`/admin/artifacts/${entity.id}`)
+    redirect(`/admin/artifacts/${artifact.code}`)
 }
 
 export async function updateSection(sectionId: number, formData: FormData) {
@@ -157,13 +158,13 @@ export async function updateSection(sectionId: number, formData: FormData) {
 
     await db.update(artifactSections).set({ title }).where(eq(artifactSections.id, sectionId))
 
-    const [entity] = await db
-        .select({ id: entities.id })
-        .from(entities)
-        .where(eq(entities.artifactId, section.artifactId))
+    const [artifact] = await db
+        .select({ code: artifacts.code })
+        .from(artifacts)
+        .where(eq(artifacts.id, section.artifactId))
         .limit(1)
 
-    redirect(`/admin/artifacts/${entity.id}`)
+    redirect(`/admin/artifacts/${artifact.code}`)
 }
 
 export async function deleteSection(sectionId: number) {
@@ -176,13 +177,13 @@ export async function deleteSection(sectionId: number) {
     await db.update(materials).set({ sectionId: null }).where(eq(materials.sectionId, sectionId))
     await db.delete(artifactSections).where(eq(artifactSections.id, sectionId))
 
-    const [entity] = await db
-        .select({ id: entities.id })
-        .from(entities)
-        .where(eq(entities.artifactId, section.artifactId))
+    const [artifact] = await db
+        .select({ code: artifacts.code })
+        .from(artifacts)
+        .where(eq(artifacts.id, section.artifactId))
         .limit(1)
 
-    redirect(`/admin/artifacts/${entity.id}`)
+    redirect(`/admin/artifacts/${artifact.code}`)
 }
 
 export async function updateSectionPositions(items: { id: number; position: number }[]) {
@@ -221,13 +222,13 @@ export async function shiftSection(sectionId: number, direction: "up" | "down") 
         await tx.update(artifactSections).set({ position: a.position }).where(eq(artifactSections.id, b.id))
     })
 
-    const [entity] = await db
-        .select({ id: entities.id })
-        .from(entities)
-        .where(eq(entities.artifactId, section.artifactId))
+    const [artifact] = await db
+        .select({ code: artifacts.code })
+        .from(artifacts)
+        .where(eq(artifacts.id, section.artifactId))
         .limit(1)
 
-    redirect(`/admin/artifacts/${entity.id}`)
+    redirect(`/admin/artifacts/${artifact.code}`)
 }
 
 export async function updateMaterialSection(materialId: number, sectionId: number | null) {
@@ -235,4 +236,52 @@ export async function updateMaterialSection(materialId: number, sectionId: numbe
         .update(materials)
         .set({ sectionId, updatedAt: new Date() })
         .where(eq(materials.id, materialId))
+}
+
+export async function linkMaterial(artifactId: number, materialId: number, sectionId: number | null) {
+    await db
+        .insert(artifactMaterials)
+        .values({ artifactId, materialId, sectionId })
+        .onConflictDoNothing()
+
+    const [artifact] = await db
+        .select({ code: artifacts.code })
+        .from(artifacts)
+        .where(eq(artifacts.id, artifactId))
+        .limit(1)
+
+    redirect(`/admin/artifacts/${artifact.code}${flashParam("Материал привязан")}`)
+}
+
+export async function unlinkMaterial(artifactId: number, materialId: number) {
+    await db
+        .delete(artifactMaterials)
+        .where(and(eq(artifactMaterials.artifactId, artifactId), eq(artifactMaterials.materialId, materialId)))
+
+    const [artifact] = await db
+        .select({ code: artifacts.code })
+        .from(artifacts)
+        .where(eq(artifacts.id, artifactId))
+        .limit(1)
+
+    redirect(`/admin/artifacts/${artifact.code}${flashParam("Материал отвязан")}`)
+}
+
+export async function updateLinkedMaterialPositions(
+    artifactId: number,
+    items: { materialId: number; position: number }[]
+) {
+    for (const { materialId, position } of items) {
+        await db
+            .update(artifactMaterials)
+            .set({ position })
+            .where(and(eq(artifactMaterials.artifactId, artifactId), eq(artifactMaterials.materialId, materialId)))
+    }
+}
+
+export async function updateLinkedMaterialSection(artifactId: number, materialId: number, sectionId: number | null) {
+    await db
+        .update(artifactMaterials)
+        .set({ sectionId })
+        .where(and(eq(artifactMaterials.artifactId, artifactId), eq(artifactMaterials.materialId, materialId)))
 }
