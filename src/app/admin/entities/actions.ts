@@ -9,7 +9,6 @@ import { deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 import { type EventInput, createEvents, parsePersonForm, getEventsByEntityId } from "@/app/admin/people/actions"
 
-export type { EventInput }
 export { getEventsByEntityId }
 
 export async function createEntity(formData: FormData) {
