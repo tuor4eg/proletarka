@@ -176,6 +176,37 @@ export const showcases = pgTable("showcases", {
         .references(() => artifacts.id, { onDelete: "cascade" }),
 })
 
+export const adminActionEnum = pgEnum("admin_action", [
+    "create",
+    "update",
+    "delete",
+    "publish",
+    "unpublish",
+])
+export const adminEntityTypeEnum = pgEnum("admin_entity_type", [
+    "person",
+    "artifact",
+    "artifactSection",
+    "material",
+    "topic",
+])
+
+export const adminLogs = pgTable("admin_logs", {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+        .notNull()
+        .references(() => users.id),
+    action: adminActionEnum("action").notNull(),
+    entityType: adminEntityTypeEnum("entity_type").notNull(),
+    entityId: integer("entity_id"),
+    entityTitle: text("entity_title"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+export const adminLogsRelations = relations(adminLogs, ({ one }) => ({
+    user: one(users, { fields: [adminLogs.userId], references: [users.id] }),
+}))
+
 export const artifactsRelations = relations(artifacts, ({ many }) => ({
     entities: many(entities),
     sections: many(artifactSections),

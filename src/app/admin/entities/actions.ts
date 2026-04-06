@@ -7,6 +7,7 @@ import { entities, people, materials, materialTopics } from "@/db/schema"
 import { generateCode } from "@/lib/generateCode"
 import { deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
+import { logAdminAction } from "@/lib/logAdminAction"
 import {
     type EventInput,
     createEvents,
@@ -30,6 +31,7 @@ export async function createEntity(formData: FormData) {
         .values({ type: "person", personId: person.id, code })
         .returning({ id: entities.id })
 
+    await logAdminAction("create", "person", person.id, personValues.name)
     redirect(`/admin/entities/${entity.id}${flashParam("Человек добавлен")}`)
 }
 
@@ -66,10 +68,17 @@ export async function updateEntity(personId: number, formData: FormData) {
         await createEvents(entity.id, newEvents)
     }
 
+    await logAdminAction("update", "person", personId, personValues.name)
     redirect(`/admin/entities/${entity.id}${flashParam("Сохранено")}`)
 }
 
 export async function deleteEntity(entityId: number, personId: number) {
+    const [personToDelete] = await db
+        .select({ name: people.name })
+        .from(people)
+        .where(eq(people.id, personId))
+        .limit(1)
+
     const linkedMaterials = await db
         .select({ id: materials.id, coverImagePath: materials.coverImagePath })
         .from(materials)
@@ -88,5 +97,6 @@ export async function deleteEntity(entityId: number, personId: number) {
 
     await db.delete(entities).where(eq(entities.id, entityId))
     await db.delete(people).where(eq(people.id, personId))
+    await logAdminAction("delete", "person", personId, personToDelete?.name ?? null)
     redirect(`/admin/entities${flashParam("Запись удалена")}`)
 }

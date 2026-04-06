@@ -8,6 +8,7 @@ import { materials, materialTopics, type MaterialType, type Status } from "@/db/
 import { generateCode } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
+import { logAdminAction } from "@/lib/logAdminAction"
 
 async function parseFormData(formData: FormData) {
     const yearFromRaw = formData.get("yearFrom") as string
@@ -54,6 +55,7 @@ export async function createMaterial(
             .values(topicIds.map((topicId) => ({ materialId: inserted.id, topicId })))
     }
 
+    await logAdminAction("create", "material", inserted.id, values.title)
     redirect(`/admin/${inserted.id}${flashParam("Материал создан")}`)
 }
 
@@ -94,6 +96,7 @@ export async function updateMaterial(
             .values(topicIds.map((topicId) => ({ materialId: id, topicId })))
     }
 
+    await logAdminAction("update", "material", id, values.title)
     revalidatePath("/admin", "layout")
     return {
         message: "Сохранено",
@@ -105,17 +108,28 @@ export async function updateMaterial(
 
 export async function toggleMaterialStatus(id: number, currentStatus: string) {
     const newStatus = currentStatus === "published" ? "draft" : "published"
+    const [material] = await db
+        .select({ title: materials.title })
+        .from(materials)
+        .where(eq(materials.id, id))
+        .limit(1)
     await db
         .update(materials)
         .set({ status: newStatus, updatedAt: new Date() })
         .where(eq(materials.id, id))
+    await logAdminAction(
+        newStatus === "published" ? "publish" : "unpublish",
+        "material",
+        id,
+        material?.title ?? null,
+    )
     const label = newStatus === "published" ? "Опубликовано" : "Снято с публикации"
     redirect(`/admin${flashParam(label)}`)
 }
 
 export async function deleteMaterial(id: number) {
     const [current] = await db
-        .select({ coverImagePath: materials.coverImagePath })
+        .select({ coverImagePath: materials.coverImagePath, title: materials.title })
         .from(materials)
         .where(eq(materials.id, id))
         .limit(1)
@@ -126,6 +140,7 @@ export async function deleteMaterial(id: number) {
 
     await db.delete(materialTopics).where(eq(materialTopics.materialId, id))
     await db.delete(materials).where(eq(materials.id, id))
+    await logAdminAction("delete", "material", id, current?.title ?? null)
 
     redirect(`/admin${flashParam("Материал удалён")}`)
 }

@@ -7,6 +7,7 @@ import { inputClass, Field } from "@/components/MaterialForm"
 import { DeleteButton } from "@/components/DeleteButton"
 import { SubmitButton } from "@/components/SubmitButton"
 import { EditPageHeader } from "@/components/EditPageHeader"
+import { CodeField } from "@/components/CodeField"
 
 type Props = {
     params: Promise<{ id: string }>
@@ -34,16 +35,6 @@ export default async function EditTopicPage({ params }: Props) {
             <EditPageHeader />
             <h1 className="text-xl font-bold mb-6">Редактировать тему</h1>
             <form action={action} className="flex flex-col gap-4">
-                <Field label="Код *" hint="Латиница, без пробелов">
-                    <input
-                        name="code"
-                        type="text"
-                        required
-                        pattern="[a-z0-9_]+"
-                        defaultValue={topic.code}
-                        className={inputClass}
-                    />
-                </Field>
                 <Field label="Название *">
                     <input
                         name="title"
@@ -53,6 +44,7 @@ export default async function EditTopicPage({ params }: Props) {
                         className={inputClass}
                     />
                 </Field>
+                <CodeField code={topic.code} />
                 <div className="flex items-center gap-3 mt-0">
                     <SubmitButton label="Сохранить" />
                     <DeleteButton action={deleteAction} />

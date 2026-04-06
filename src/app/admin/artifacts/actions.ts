@@ -15,6 +15,7 @@ import {
 import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
+import { logAdminAction } from "@/lib/logAdminAction"
 
 const ARTIFACT_TYPES: ArtifactType[] = ["stand", "rarity", "fund", "general"]
 
@@ -79,6 +80,7 @@ export async function createArtifact(formData: FormData) {
             .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
     }
 
+    await logAdminAction("create", "artifact", artifact.id, title)
     redirect(`/admin/artifacts/${code}${flashParam("Исторический объект добавлен")}`)
 }
 
@@ -136,11 +138,28 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
             .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
     }
 
+    await logAdminAction("update", "artifact", artifactId, title)
     redirect(`/admin/artifacts/${updatedArtifact.code}${flashParam("Сохранено")}`)
 }
 
 export async function deleteArtifact(entityId: number) {
+    const [entityRow] = await db
+        .select({ artifactId: entities.artifactId })
+        .from(entities)
+        .where(eq(entities.id, entityId))
+        .limit(1)
+    const artifactId = entityRow?.artifactId ?? null
+    let artifactTitle: string | null = null
+    if (artifactId) {
+        const [row] = await db
+            .select({ title: artifacts.title })
+            .from(artifacts)
+            .where(eq(artifacts.id, artifactId))
+            .limit(1)
+        artifactTitle = row?.title ?? null
+    }
     await db.delete(entities).where(eq(entities.id, entityId))
+    await logAdminAction("delete", "artifact", artifactId, artifactTitle)
     redirect(`/admin/artifacts${flashParam("Удалено")}`)
 }
 
@@ -163,7 +182,10 @@ export async function createSection(artifactId: number, formData: FormData) {
 
     const position = (result?.maxPos ?? 0) + 1
 
-    await db.insert(artifactSections).values({ artifactId, title, position })
+    const [section] = await db
+        .insert(artifactSections)
+        .values({ artifactId, title, position })
+        .returning({ id: artifactSections.id })
 
     const [artifact] = await db
         .select({ code: artifacts.code })
@@ -171,6 +193,7 @@ export async function createSection(artifactId: number, formData: FormData) {
         .where(eq(artifacts.id, artifactId))
         .limit(1)
 
+    await logAdminAction("create", "artifactSection", section.id, title)
     redirect(`/admin/artifacts/${artifact.code}`)
 }
 
@@ -196,18 +219,20 @@ export async function updateSection(sectionId: number, formData: FormData) {
         .where(eq(artifacts.id, section.artifactId))
         .limit(1)
 
+    await logAdminAction("update", "artifactSection", sectionId, title)
     redirect(`/admin/artifacts/${artifact.code}`)
 }
 
 export async function deleteSection(sectionId: number) {
     const [section] = await db
-        .select({ artifactId: artifactSections.artifactId })
+        .select({ artifactId: artifactSections.artifactId, title: artifactSections.title })
         .from(artifactSections)
         .where(eq(artifactSections.id, sectionId))
         .limit(1)
 
     await db.update(materials).set({ sectionId: null }).where(eq(materials.sectionId, sectionId))
     await db.delete(artifactSections).where(eq(artifactSections.id, sectionId))
+    await logAdminAction("delete", "artifactSection", sectionId, section?.title ?? null)
 
     const [artifact] = await db
         .select({ code: artifacts.code })

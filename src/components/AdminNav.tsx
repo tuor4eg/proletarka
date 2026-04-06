@@ -8,6 +8,7 @@ const NAV_LINKS: { href: string; label: string; exact?: boolean }[] = [
     { href: "/admin/artifacts", label: "Объекты" },
     { href: "/admin/materials", label: "Материалы" },
     { href: "/admin/topics", label: "Темы" },
+    { href: "/admin/logs", label: "Журнал" },
 ]
 
 export function AdminNav() {
