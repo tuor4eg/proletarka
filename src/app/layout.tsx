@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import "./globals.css"
 import { NavigationProgress } from "@/components/NavigationProgress"
+import { YandexMetrika } from "@/components/YandexMetrika"
 import { Geist } from "next/font/google"
 import { cn } from "@/lib/utils"
 
@@ -33,6 +34,7 @@ export default function RootLayout({
                     <NavigationProgress />
                 </Suspense>
                 {children}
+                <YandexMetrika />
             </body>
         </html>
     )
