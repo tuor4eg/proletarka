@@ -151,6 +151,7 @@ export async function createSection(artifactId: number, formData: FormData) {
 export async function updateSection(sectionId: number, formData: FormData) {
     const title = (formData.get("title") as string).trim()
     if (!title) return
+    const description = (formData.get("description") as string | null)?.trim() || null
 
     const [section] = await db
         .select({ artifactId: artifactSections.artifactId })
@@ -158,7 +159,7 @@ export async function updateSection(sectionId: number, formData: FormData) {
         .where(eq(artifactSections.id, sectionId))
         .limit(1)
 
-    await db.update(artifactSections).set({ title }).where(eq(artifactSections.id, sectionId))
+    await db.update(artifactSections).set({ title, description }).where(eq(artifactSections.id, sectionId))
 
     const [artifact] = await db
         .select({ code: artifacts.code })

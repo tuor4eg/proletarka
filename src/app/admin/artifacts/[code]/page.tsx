@@ -206,8 +206,8 @@ export default async function EditArtifactPage({ params }: Props) {
                         const shiftDownAction = shiftSection.bind(null, section.id, "down")
                         return (
                             <div key={section.id} className="border border-gray-200 rounded-xl overflow-hidden">
-                                <div className="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-200">
-                                    <div className="flex flex-col gap-0.5 shrink-0">
+                                <div className="bg-gray-50 px-4 py-3 flex items-start gap-3 border-b border-gray-200">
+                                    <div className="flex flex-col gap-0.5 shrink-0 mt-0.5">
                                         <form action={shiftUpAction}>
                                             <button type="submit" disabled={i === 0} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs">▲</button>
                                         </form>
@@ -215,21 +215,33 @@ export default async function EditArtifactPage({ params }: Props) {
                                             <button type="submit" disabled={i === sections.length - 1} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs">▼</button>
                                         </form>
                                     </div>
-                                    <form action={updateSectionAction} className="flex-1 flex items-center gap-2">
-                                        <input
-                                            name="title"
-                                            defaultValue={section.title}
-                                            className="text-sm font-semibold bg-transparent border-none outline-none flex-1 focus:bg-white focus:border focus:border-gray-300 focus:rounded px-1"
+                                    <form id={`update-section-${section.id}`} action={updateSectionAction} className="hidden" />
+                                    <div className="flex-1 flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                name="title"
+                                                form={`update-section-${section.id}`}
+                                                defaultValue={section.title}
+                                                className="text-sm font-semibold flex-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 focus:outline-none focus:border-gray-400"
+                                            />
+                                            <button type="submit" form={`update-section-${section.id}`} className="text-xs text-gray-400 hover:text-gray-700 transition-colors shrink-0">
+                                                Сохранить
+                                            </button>
+                                            <form action={deleteSectionAction}>
+                                                <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0">
+                                                    Удалить раздел
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <textarea
+                                            name="description"
+                                            form={`update-section-${section.id}`}
+                                            defaultValue={section.description ?? ""}
+                                            rows={2}
+                                            placeholder="Описание раздела (необязательно)"
+                                            className="text-xs text-gray-500 w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 resize-none focus:outline-none focus:border-gray-400 placeholder:text-gray-300"
                                         />
-                                        <button type="submit" className="text-xs text-gray-400 hover:text-gray-700 transition-colors shrink-0">
-                                            Сохранить
-                                        </button>
-                                    </form>
-                                    <form action={deleteSectionAction}>
-                                        <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0">
-                                            Удалить раздел
-                                        </button>
-                                    </form>
+                                    </div>
                                 </div>
                                 {(sectionMaterials.length > 0 || sectionLinkedMaterials.length > 0) && (
                                     <SortableMaterialsList
@@ -242,6 +254,7 @@ export default async function EditArtifactPage({ params }: Props) {
                                             materialType: m.materialType,
                                             status: m.status,
                                             position: m.position,
+                                            sectionId: m.sectionId,
                                             personName: m.personName,
                                             unlinkAction: unlinkMaterial.bind(null, row.artifact.id, m.materialId),
                                         }))}

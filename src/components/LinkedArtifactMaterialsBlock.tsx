@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Trash2, Search } from "lucide-react"
-import { linkMaterial, unlinkMaterial } from "@/app/admin/artifacts/actions"
+import { linkMaterial, unlinkMaterial, updateLinkedMaterialSection } from "@/app/admin/artifacts/actions"
 import type { MaterialType, Status } from "@/db/schema"
 import type { SectionOption } from "@/components/SortableMaterialsList"
 
@@ -41,6 +42,7 @@ type Props = {
 }
 
 export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sections, isStand }: Props) {
+    const router = useRouter()
     const [query, setQuery] = useState("")
     const [typeFilter, setTypeFilter] = useState("")
     const [results, setResults] = useState<SearchResult[]>([])
@@ -103,6 +105,24 @@ export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sect
                             <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${m.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                                 {STATUS_LABEL[m.status]}
                             </span>
+                            {isStand && sections.length > 0 && (
+                                <select
+                                    defaultValue={m.sectionId ?? ""}
+                                    onChange={async (e) => {
+                                        const sectionId = e.target.value ? Number(e.target.value) : null
+                                        await updateLinkedMaterialSection(artifactId, m.materialId, sectionId)
+                                        router.refresh()
+                                    }}
+                                    className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-400 shrink-0"
+                                >
+                                    <option value="">Без раздела</option>
+                                    {sections.map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                             <form action={unlinkMaterial.bind(null, artifactId, m.materialId)}>
                                 <button
                                     type="submit"

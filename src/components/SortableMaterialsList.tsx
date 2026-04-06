@@ -21,7 +21,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, Link2 } from "lucide-react"
 import { type MaterialType, type Status } from "@/db/schema"
 import { PublishToggle } from "@/components/PublishToggle"
-import { updateMaterialPositions, updateMaterialSection, updateLinkedMaterialPositions } from "@/app/admin/artifacts/actions"
+import { updateMaterialPositions, updateMaterialSection, updateLinkedMaterialPositions, updateLinkedMaterialSection } from "@/app/admin/artifacts/actions"
 
 const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
@@ -45,6 +45,7 @@ export type LinkedItem = {
     materialType: MaterialType
     status: Status
     position?: number | null
+    sectionId?: number | null
     personName?: string | null
     unlinkAction: () => Promise<void>
 }
@@ -89,7 +90,7 @@ function toAnyItems(native: MaterialItem[], linked: LinkedItem[]): AnyItem[] {
             materialType: item.materialType,
             status: item.status,
             position: item.position,
-            sectionId: undefined,
+            sectionId: item.sectionId,
             personName: item.personName,
             unlinkAction: item.unlinkAction,
         })),
@@ -101,11 +102,13 @@ function SortableRow({
     item,
     sections,
     onSectionChange,
+    onLinkedSectionChange,
     sectionChangePending,
 }: {
     item: AnyItem
     sections?: SectionOption[]
     onSectionChange?: (id: number, sectionId: number | null) => void
+    onLinkedSectionChange?: (id: number, sectionId: number | null) => void
     sectionChangePending?: boolean
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -149,6 +152,19 @@ function SortableRow({
                             {STATUS_LABEL[item.status]}
                         </span>
                     </Link>
+                    {sections && onLinkedSectionChange && (
+                        <select
+                            defaultValue={item.sectionId ?? ""}
+                            disabled={sectionChangePending}
+                            onChange={(e) => onLinkedSectionChange(item.id, e.target.value ? Number(e.target.value) : null)}
+                            className="text-xs text-gray-500 border border-gray-200 rounded-lg px-1.5 py-1 shrink-0 disabled:opacity-40"
+                        >
+                            <option value="">Без раздела</option>
+                            {sections.map((s) => (
+                                <option key={s.id} value={s.id}>{s.title}</option>
+                            ))}
+                        </select>
+                    )}
                     {item.unlinkAction && (
                         <form action={item.unlinkAction}>
                             <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0">
@@ -217,6 +233,14 @@ export function SortableMaterialsList({ initialItems, sections, linkedItems = []
         })
     }
 
+    function handleLinkedSectionChange(materialId: number, sectionId: number | null) {
+        if (!artifactId) return
+        startTransition(async () => {
+            await updateLinkedMaterialSection(artifactId, materialId, sectionId)
+            router.refresh()
+        })
+    }
+
     async function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
         if (!over || active.id === over.id) return
@@ -242,7 +266,7 @@ export function SortableMaterialsList({ initialItems, sections, linkedItems = []
             <SortableContext items={items.map((i) => i.dndId)} strategy={verticalListSortingStrategy}>
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
                     {items.map((item) => (
-                        <SortableRow key={item.dndId} item={item} sections={sections} onSectionChange={handleSectionChange} sectionChangePending={isPending} />
+                        <SortableRow key={item.dndId} item={item} sections={sections} onSectionChange={handleSectionChange} onLinkedSectionChange={handleLinkedSectionChange} sectionChangePending={isPending} />
                     ))}
                 </div>
             </SortableContext>

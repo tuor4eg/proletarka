@@ -198,9 +198,14 @@ export default async function ArtifactPage({ params }: Props) {
                             if (sectionMaterials.length === 0) return null
                             return (
                                 <div key={section.id} id={`section-${section.id}`}>
-                                    <h2 className="text-base font-semibold mb-4 pb-2 border-b border-paper-border">
+                                    <h2 className="text-base font-semibold mb-2 pb-2 border-b border-paper-border">
                                         {section.title}
                                     </h2>
+                                    {section.description && (
+                                        <p className="text-sm text-ink-secondary leading-relaxed mb-4">
+                                            {section.description}
+                                        </p>
+                                    )}
                                     {renderMaterials(sectionMaterials)}
                                 </div>
                             )

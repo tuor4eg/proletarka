@@ -78,6 +78,13 @@
       "when": 1775384175758,
       "tag": "0010_dry_vulcan",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1775466991311,
+      "tag": "0011_broken_justin_hammer",
+      "breakpoints": true
     }
   ]
 }

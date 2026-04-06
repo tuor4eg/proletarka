@@ -71,6 +71,7 @@ export const artifactSections = pgTable("artifact_sections", {
     id: serial("id").primaryKey(),
     artifactId: integer("artifact_id").notNull().references(() => artifacts.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
+    description: text("description"),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
 })
