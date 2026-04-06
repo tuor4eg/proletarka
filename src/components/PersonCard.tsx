@@ -23,11 +23,11 @@ export function PersonCard({ code, name, years, context, mainPhotoPath }: Props)
                 )}
             </div>
             <div className="text-center">
-                <p className="text-xs font-medium text-ink leading-tight line-clamp-2">
-                    {name}
-                </p>
+                <p className="text-xs font-medium text-ink leading-tight line-clamp-2">{name}</p>
                 {years && <p className="text-xs text-ink-muted mt-0.5">{years}</p>}
-                {context && <p className="text-xs text-ink-secondary mt-0.5 line-clamp-2">{context}</p>}
+                {context && (
+                    <p className="text-xs text-ink-secondary mt-0.5 line-clamp-2">{context}</p>
+                )}
             </div>
         </Link>
     )

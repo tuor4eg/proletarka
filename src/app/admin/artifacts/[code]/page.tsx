@@ -3,8 +3,25 @@ import { eq, asc, sql, and } from "drizzle-orm"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/db"
-import { entities, artifacts, materials, topics, entityTopics, artifactSections, artifactMaterials, people } from "@/db/schema"
-import { updateArtifact, deleteArtifact, createSection, updateSection, deleteSection, shiftSection, unlinkMaterial } from "../actions"
+import {
+    entities,
+    artifacts,
+    materials,
+    topics,
+    entityTopics,
+    artifactSections,
+    artifactMaterials,
+    people,
+} from "@/db/schema"
+import {
+    updateArtifact,
+    deleteArtifact,
+    createSection,
+    updateSection,
+    deleteSection,
+    shiftSection,
+    unlinkMaterial,
+} from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { DeleteButton } from "@/components/DeleteButton"
 import { SubmitButton } from "@/components/SubmitButton"
@@ -169,7 +186,11 @@ export default async function EditArtifactPage({ params }: Props) {
                     </Field>
                 )}
                 <Field label="Тип">
-                    <select name="artifactType" defaultValue={artifact.artifactType} className={inputClass}>
+                    <select
+                        name="artifactType"
+                        defaultValue={artifact.artifactType}
+                        className={inputClass}
+                    >
                         <option value="general">Обычный</option>
                         <option value="stand">Стенд</option>
                         <option value="rarity">Экспонат</option>
@@ -198,24 +219,47 @@ export default async function EditArtifactPage({ params }: Props) {
             {isStand ? (
                 <div className="mt-10 flex flex-col gap-8">
                     {sections.map((section, i) => {
-                        const sectionMaterials = linkedMaterials.filter(m => m.sectionId === section.id)
-                        const sectionLinkedMaterials = linkedArtifactMaterials.filter(m => m.sectionId === section.id)
+                        const sectionMaterials = linkedMaterials.filter(
+                            (m) => m.sectionId === section.id,
+                        )
+                        const sectionLinkedMaterials = linkedArtifactMaterials.filter(
+                            (m) => m.sectionId === section.id,
+                        )
                         const updateSectionAction = updateSection.bind(null, section.id)
                         const deleteSectionAction = deleteSection.bind(null, section.id)
                         const shiftUpAction = shiftSection.bind(null, section.id, "up")
                         const shiftDownAction = shiftSection.bind(null, section.id, "down")
                         return (
-                            <div key={section.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                            <div
+                                key={section.id}
+                                className="border border-gray-200 rounded-xl overflow-hidden"
+                            >
                                 <div className="bg-gray-50 px-4 py-3 flex items-start gap-3 border-b border-gray-200">
                                     <div className="flex flex-col gap-0.5 shrink-0 mt-0.5">
                                         <form action={shiftUpAction}>
-                                            <button type="submit" disabled={i === 0} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs">▲</button>
+                                            <button
+                                                type="submit"
+                                                disabled={i === 0}
+                                                className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs"
+                                            >
+                                                ▲
+                                            </button>
                                         </form>
                                         <form action={shiftDownAction}>
-                                            <button type="submit" disabled={i === sections.length - 1} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs">▼</button>
+                                            <button
+                                                type="submit"
+                                                disabled={i === sections.length - 1}
+                                                className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors leading-none text-xs"
+                                            >
+                                                ▼
+                                            </button>
                                         </form>
                                     </div>
-                                    <form id={`update-section-${section.id}`} action={updateSectionAction} className="hidden" />
+                                    <form
+                                        id={`update-section-${section.id}`}
+                                        action={updateSectionAction}
+                                        className="hidden"
+                                    />
                                     <div className="flex-1 flex flex-col gap-2">
                                         <div className="flex items-center gap-2">
                                             <input
@@ -224,11 +268,18 @@ export default async function EditArtifactPage({ params }: Props) {
                                                 defaultValue={section.title}
                                                 className="text-sm font-semibold flex-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 focus:outline-none focus:border-gray-400"
                                             />
-                                            <button type="submit" form={`update-section-${section.id}`} className="text-xs text-gray-400 hover:text-gray-700 transition-colors shrink-0">
+                                            <button
+                                                type="submit"
+                                                form={`update-section-${section.id}`}
+                                                className="text-xs text-gray-400 hover:text-gray-700 transition-colors shrink-0"
+                                            >
                                                 Сохранить
                                             </button>
                                             <form action={deleteSectionAction}>
-                                                <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0">
+                                                <button
+                                                    type="submit"
+                                                    className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0"
+                                                >
                                                     Удалить раздел
                                                 </button>
                                             </form>
@@ -243,7 +294,8 @@ export default async function EditArtifactPage({ params }: Props) {
                                         />
                                     </div>
                                 </div>
-                                {(sectionMaterials.length > 0 || sectionLinkedMaterials.length > 0) && (
+                                {(sectionMaterials.length > 0 ||
+                                    sectionLinkedMaterials.length > 0) && (
                                     <SortableMaterialsList
                                         initialItems={sectionMaterials}
                                         sections={sections}
@@ -256,7 +308,11 @@ export default async function EditArtifactPage({ params }: Props) {
                                             position: m.position,
                                             sectionId: m.sectionId,
                                             personName: m.personName,
-                                            unlinkAction: unlinkMaterial.bind(null, row.artifact.id, m.materialId),
+                                            unlinkAction: unlinkMaterial.bind(
+                                                null,
+                                                row.artifact.id,
+                                                m.materialId,
+                                            ),
                                         }))}
                                     />
                                 )}
@@ -273,12 +329,17 @@ export default async function EditArtifactPage({ params }: Props) {
                     })}
 
                     {(() => {
-                        const unsectioned = linkedMaterials.filter(m => !m.sectionId)
-                        return unsectioned.length > 0 && (
-                            <div>
-                                <p className="text-sm text-gray-400 mb-2">Без раздела</p>
-                                <SortableMaterialsList initialItems={unsectioned} sections={sections} />
-                            </div>
+                        const unsectioned = linkedMaterials.filter((m) => !m.sectionId)
+                        return (
+                            unsectioned.length > 0 && (
+                                <div>
+                                    <p className="text-sm text-gray-400 mb-2">Без раздела</p>
+                                    <SortableMaterialsList
+                                        initialItems={unsectioned}
+                                        sections={sections}
+                                    />
+                                </div>
+                            )
                         )
                     })()}
 
@@ -320,7 +381,11 @@ export default async function EditArtifactPage({ params }: Props) {
 
             <LinkedArtifactMaterialsBlock
                 artifactId={row.artifact.id}
-                linkedMaterials={isStand ? linkedArtifactMaterials.filter(m => !m.sectionId) : linkedArtifactMaterials}
+                linkedMaterials={
+                    isStand
+                        ? linkedArtifactMaterials.filter((m) => !m.sectionId)
+                        : linkedArtifactMaterials
+                }
                 sections={sections}
                 isStand={isStand}
             />

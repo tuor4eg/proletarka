@@ -1,90 +1,90 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1700000000000,
-      "tag": "0000_init",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1774291361577,
-      "tag": "0001_thick_beyonder",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1774429252673,
-      "tag": "0002_hot_morg",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1774624554569,
-      "tag": "0003_rainy_marrow",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1774625173793,
-      "tag": "0004_closed_lady_mastermind",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1774726664222,
-      "tag": "0005_silky_tomorrow_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1774887830020,
-      "tag": "0006_add_rarity_artifact_type",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1774896232354,
-      "tag": "0007_add_showcases",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1775238385435,
-      "tag": "0008_add_year_fields_to_artifacts",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1775239075766,
-      "tag": "0009_add_fund_artifact_type",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1775384175758,
-      "tag": "0010_dry_vulcan",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1775466991311,
-      "tag": "0011_broken_justin_hammer",
-      "breakpoints": true
-    }
-  ]
+    "version": "7",
+    "dialect": "postgresql",
+    "entries": [
+        {
+            "idx": 0,
+            "version": "7",
+            "when": 1700000000000,
+            "tag": "0000_init",
+            "breakpoints": true
+        },
+        {
+            "idx": 1,
+            "version": "7",
+            "when": 1774291361577,
+            "tag": "0001_thick_beyonder",
+            "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "7",
+            "when": 1774429252673,
+            "tag": "0002_hot_morg",
+            "breakpoints": true
+        },
+        {
+            "idx": 3,
+            "version": "7",
+            "when": 1774624554569,
+            "tag": "0003_rainy_marrow",
+            "breakpoints": true
+        },
+        {
+            "idx": 4,
+            "version": "7",
+            "when": 1774625173793,
+            "tag": "0004_closed_lady_mastermind",
+            "breakpoints": true
+        },
+        {
+            "idx": 5,
+            "version": "7",
+            "when": 1774726664222,
+            "tag": "0005_silky_tomorrow_man",
+            "breakpoints": true
+        },
+        {
+            "idx": 6,
+            "version": "7",
+            "when": 1774887830020,
+            "tag": "0006_add_rarity_artifact_type",
+            "breakpoints": true
+        },
+        {
+            "idx": 7,
+            "version": "7",
+            "when": 1774896232354,
+            "tag": "0007_add_showcases",
+            "breakpoints": true
+        },
+        {
+            "idx": 8,
+            "version": "7",
+            "when": 1775238385435,
+            "tag": "0008_add_year_fields_to_artifacts",
+            "breakpoints": true
+        },
+        {
+            "idx": 9,
+            "version": "7",
+            "when": 1775239075766,
+            "tag": "0009_add_fund_artifact_type",
+            "breakpoints": true
+        },
+        {
+            "idx": 10,
+            "version": "7",
+            "when": 1775384175758,
+            "tag": "0010_dry_vulcan",
+            "breakpoints": true
+        },
+        {
+            "idx": 11,
+            "version": "7",
+            "when": 1775466991311,
+            "tag": "0011_broken_justin_hammer",
+            "breakpoints": true
+        }
+    ]
 }

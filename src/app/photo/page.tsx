@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { db } from "@/db"
@@ -63,12 +63,12 @@ export default async function FundsPage({
 
     const [{ total }] = isOther
         ? await countQuery
-            .leftJoin(entityTopics, eq(entityTopics.entityId, entities.id))
-            .where(and(eq(artifacts.artifactType, "fund"), isNull(entityTopics.entityId)))
+              .leftJoin(entityTopics, eq(entityTopics.entityId, entities.id))
+              .where(and(eq(artifacts.artifactType, "fund"), isNull(entityTopics.entityId)))
         : await countQuery
-            .innerJoin(entityTopics, eq(entityTopics.entityId, entities.id))
-            .innerJoin(topics, eq(topics.id, entityTopics.topicId))
-            .where(and(eq(artifacts.artifactType, "fund"), eq(topics.code, activeCode)))
+              .innerJoin(entityTopics, eq(entityTopics.entityId, entities.id))
+              .innerJoin(topics, eq(topics.id, entityTopics.topicId))
+              .where(and(eq(artifacts.artifactType, "fund"), eq(topics.code, activeCode)))
 
     const totalPages = Math.ceil(total / PAGE_SIZE)
     const safePage = Math.min(page, totalPages || 1)
@@ -87,24 +87,24 @@ export default async function FundsPage({
 
     const rows = isOther
         ? await db
-            .select(baseSelect)
-            .from(artifacts)
-            .innerJoin(entities, eq(entities.artifactId, artifacts.id))
-            .leftJoin(entityTopics, eq(entityTopics.entityId, entities.id))
-            .where(and(eq(artifacts.artifactType, "fund"), isNull(entityTopics.entityId)))
-            .orderBy(sql`${artifacts.yearFrom} ASC NULLS LAST`, asc(artifacts.title))
-            .limit(PAGE_SIZE)
-            .offset(offset)
+              .select(baseSelect)
+              .from(artifacts)
+              .innerJoin(entities, eq(entities.artifactId, artifacts.id))
+              .leftJoin(entityTopics, eq(entityTopics.entityId, entities.id))
+              .where(and(eq(artifacts.artifactType, "fund"), isNull(entityTopics.entityId)))
+              .orderBy(sql`${artifacts.yearFrom} ASC NULLS LAST`, asc(artifacts.title))
+              .limit(PAGE_SIZE)
+              .offset(offset)
         : await db
-            .select(baseSelect)
-            .from(artifacts)
-            .innerJoin(entities, eq(entities.artifactId, artifacts.id))
-            .innerJoin(entityTopics, eq(entityTopics.entityId, entities.id))
-            .innerJoin(topics, eq(topics.id, entityTopics.topicId))
-            .where(and(eq(artifacts.artifactType, "fund"), eq(topics.code, activeCode)))
-            .orderBy(sql`${artifacts.yearFrom} ASC NULLS LAST`, asc(artifacts.title))
-            .limit(PAGE_SIZE)
-            .offset(offset)
+              .select(baseSelect)
+              .from(artifacts)
+              .innerJoin(entities, eq(entities.artifactId, artifacts.id))
+              .innerJoin(entityTopics, eq(entityTopics.entityId, entities.id))
+              .innerJoin(topics, eq(topics.id, entityTopics.topicId))
+              .where(and(eq(artifacts.artifactType, "fund"), eq(topics.code, activeCode)))
+              .orderBy(sql`${artifacts.yearFrom} ASC NULLS LAST`, asc(artifacts.title))
+              .limit(PAGE_SIZE)
+              .offset(offset)
 
     const noCoverIds = rows.filter((r) => !r.coverImagePath).map((r) => r.entityId)
     const fallbackMap = await fetchFirstPhotoMap(noCoverIds)
@@ -131,7 +131,8 @@ export default async function FundsPage({
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                     {rows.map((row) => {
-                        const coverImagePath = row.coverImagePath ?? fallbackMap.get(row.entityId) ?? null
+                        const coverImagePath =
+                            row.coverImagePath ?? fallbackMap.get(row.entityId) ?? null
                         const years = row.yearFrom
                             ? row.yearTo
                                 ? `${row.yearFrom}–${row.yearTo}`

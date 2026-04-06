@@ -3,7 +3,15 @@
 import { redirect } from "next/navigation"
 import { eq, asc, max, and } from "drizzle-orm"
 import { db } from "@/db"
-import { artifacts, entities, materials, entityTopics, artifactSections, artifactMaterials, type ArtifactType } from "@/db/schema"
+import {
+    artifacts,
+    entities,
+    materials,
+    entityTopics,
+    artifactSections,
+    artifactMaterials,
+    type ArtifactType,
+} from "@/db/schema"
 import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
@@ -48,7 +56,16 @@ export async function createArtifact(formData: FormData) {
 
     const [artifact] = await db
         .insert(artifacts)
-        .values({ code, title, description, yearsLabel, yearFrom, yearTo, artifactType, coverImagePath })
+        .values({
+            code,
+            title,
+            description,
+            yearsLabel,
+            yearFrom,
+            yearTo,
+            artifactType,
+            coverImagePath,
+        })
         .returning({ id: artifacts.id })
 
     const [entity] = await db
@@ -96,7 +113,16 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
             .limit(1),
         db
             .update(artifacts)
-            .set({ title, description, yearsLabel, yearFrom, yearTo, artifactType, coverImagePath, updatedAt: new Date() })
+            .set({
+                title,
+                description,
+                yearsLabel,
+                yearFrom,
+                yearTo,
+                artifactType,
+                coverImagePath,
+                updatedAt: new Date(),
+            })
             .where(eq(artifacts.id, artifactId))
             .returning({ code: artifacts.code }),
     ])
@@ -159,7 +185,10 @@ export async function updateSection(sectionId: number, formData: FormData) {
         .where(eq(artifactSections.id, sectionId))
         .limit(1)
 
-    await db.update(artifactSections).set({ title, description }).where(eq(artifactSections.id, sectionId))
+    await db
+        .update(artifactSections)
+        .set({ title, description })
+        .where(eq(artifactSections.id, sectionId))
 
     const [artifact] = await db
         .select({ code: artifacts.code })
@@ -221,8 +250,14 @@ export async function shiftSection(sectionId: number, direction: "up" | "down") 
     const b = siblings[swapIndex]
 
     await db.transaction(async (tx) => {
-        await tx.update(artifactSections).set({ position: b.position }).where(eq(artifactSections.id, a.id))
-        await tx.update(artifactSections).set({ position: a.position }).where(eq(artifactSections.id, b.id))
+        await tx
+            .update(artifactSections)
+            .set({ position: b.position })
+            .where(eq(artifactSections.id, a.id))
+        await tx
+            .update(artifactSections)
+            .set({ position: a.position })
+            .where(eq(artifactSections.id, b.id))
     })
 
     const [artifact] = await db
@@ -241,7 +276,11 @@ export async function updateMaterialSection(materialId: number, sectionId: numbe
         .where(eq(materials.id, materialId))
 }
 
-export async function linkMaterial(artifactId: number, materialId: number, sectionId: number | null) {
+export async function linkMaterial(
+    artifactId: number,
+    materialId: number,
+    sectionId: number | null,
+) {
     await db
         .insert(artifactMaterials)
         .values({ artifactId, materialId, sectionId })
@@ -259,7 +298,12 @@ export async function linkMaterial(artifactId: number, materialId: number, secti
 export async function unlinkMaterial(artifactId: number, materialId: number) {
     await db
         .delete(artifactMaterials)
-        .where(and(eq(artifactMaterials.artifactId, artifactId), eq(artifactMaterials.materialId, materialId)))
+        .where(
+            and(
+                eq(artifactMaterials.artifactId, artifactId),
+                eq(artifactMaterials.materialId, materialId),
+            ),
+        )
 
     const [artifact] = await db
         .select({ code: artifacts.code })
@@ -272,19 +316,33 @@ export async function unlinkMaterial(artifactId: number, materialId: number) {
 
 export async function updateLinkedMaterialPositions(
     artifactId: number,
-    items: { materialId: number; position: number }[]
+    items: { materialId: number; position: number }[],
 ) {
     for (const { materialId, position } of items) {
         await db
             .update(artifactMaterials)
             .set({ position })
-            .where(and(eq(artifactMaterials.artifactId, artifactId), eq(artifactMaterials.materialId, materialId)))
+            .where(
+                and(
+                    eq(artifactMaterials.artifactId, artifactId),
+                    eq(artifactMaterials.materialId, materialId),
+                ),
+            )
     }
 }
 
-export async function updateLinkedMaterialSection(artifactId: number, materialId: number, sectionId: number | null) {
+export async function updateLinkedMaterialSection(
+    artifactId: number,
+    materialId: number,
+    sectionId: number | null,
+) {
     await db
         .update(artifactMaterials)
         .set({ sectionId })
-        .where(and(eq(artifactMaterials.artifactId, artifactId), eq(artifactMaterials.materialId, materialId)))
+        .where(
+            and(
+                eq(artifactMaterials.artifactId, artifactId),
+                eq(artifactMaterials.materialId, materialId),
+            ),
+        )
 }

@@ -12,7 +12,7 @@ const entries: { tag: string; when: number }[] = journal.entries
 let lastAppliedAt = 0
 try {
     const result = await pool.query(
-        `SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1`
+        `SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1`,
     )
     if (result.rows.length > 0) {
         lastAppliedAt = Number(result.rows[0].created_at)

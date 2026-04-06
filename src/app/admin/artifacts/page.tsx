@@ -74,10 +74,10 @@ export default async function ArtifactsPage({ searchParams }: { searchParams: Se
     const entityIds = rows.map((r) => r.entityId)
     const topicRows = entityIds.length
         ? await db
-            .select({ entityId: entityTopics.entityId, title: topics.title })
-            .from(entityTopics)
-            .innerJoin(topics, eq(topics.id, entityTopics.topicId))
-            .where(inArray(entityTopics.entityId, entityIds))
+              .select({ entityId: entityTopics.entityId, title: topics.title })
+              .from(entityTopics)
+              .innerJoin(topics, eq(topics.id, entityTopics.topicId))
+              .where(inArray(entityTopics.entityId, entityIds))
         : []
 
     const topicsMap = new Map<number, string[]>()
@@ -120,10 +120,15 @@ export default async function ArtifactsPage({ searchParams }: { searchParams: Se
                                 href={`/admin/artifacts/${row.code}`}
                                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                             >
-                                <span className="text-sm font-medium flex-1 min-w-0 truncate">{row.title}</span>
+                                <span className="text-sm font-medium flex-1 min-w-0 truncate">
+                                    {row.title}
+                                </span>
                                 <div className="flex items-center gap-1.5 shrink-0">
                                     {topicsMap.get(row.entityId)?.map((t) => (
-                                        <span key={t} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                                        <span
+                                            key={t}
+                                            className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full"
+                                        >
                                             {t}
                                         </span>
                                     ))}

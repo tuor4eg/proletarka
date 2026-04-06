@@ -10,9 +10,7 @@ import { SubmitButton } from "@/components/SubmitButton"
 
 type SearchParams = Promise<{ tab?: string }>
 
-const SITE_SECTIONS = [
-    { code: "exposition", label: "Выставка" },
-]
+const SITE_SECTIONS = [{ code: "exposition", label: "Выставка" }]
 
 const tabClass = (active: boolean) =>
     `text-sm px-3 py-1.5 rounded-lg transition-colors ${
@@ -38,7 +36,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
                 <Link href="/admin/settings?tab=profile" className={tabClass(tab === "profile")}>
                     Профиль
                 </Link>
-                <Link href="/admin/settings?tab=showcases" className={tabClass(tab === "showcases")}>
+                <Link
+                    href="/admin/settings?tab=showcases"
+                    className={tabClass(tab === "showcases")}
+                >
                     Витрины
                 </Link>
             </div>
@@ -114,13 +115,19 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
 async function ShowcasesTab() {
     const [allArtifacts, currentShowcases] = await Promise.all([
         db
-            .select({ id: artifacts.id, title: artifacts.title, artifactType: artifacts.artifactType })
+            .select({
+                id: artifacts.id,
+                title: artifacts.title,
+                artifactType: artifacts.artifactType,
+            })
             .from(artifacts)
             .orderBy(artifacts.title),
         db.select().from(showcases),
     ])
 
-    const showcaseMap = Object.fromEntries(currentShowcases.map((s) => [s.sectionCode, s.artifactId]))
+    const showcaseMap = Object.fromEntries(
+        currentShowcases.map((s) => [s.sectionCode, s.artifactId]),
+    )
 
     return (
         <div className="flex flex-col gap-6">

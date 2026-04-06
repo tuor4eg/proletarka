@@ -82,7 +82,9 @@ function LetterFilterInner({ availableLetters, compact }: Props) {
                         key={letter}
                         onClick={() => navigate(letter)}
                         className={`w-8 h-8 text-sm rounded-lg font-medium transition-colors ${
-                            isActive ? "bg-ink text-white" : "text-ink-secondary hover:bg-paper-dark"
+                            isActive
+                                ? "bg-ink text-white"
+                                : "text-ink-secondary hover:bg-paper-dark"
                         }`}
                     >
                         {letter}

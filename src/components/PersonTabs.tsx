@@ -153,7 +153,6 @@ function DocumentGrid({
     )
 }
 
-
 function PhotoGrid({ items, onOpen }: { items: Material[]; onOpen: (index: number) => void }) {
     if (items.length === 0) return <p className="text-sm text-ink-muted">Нет фотографий.</p>
     const lightboxItems = items.filter((m) => m.coverImagePath)
@@ -240,7 +239,9 @@ export function PersonTabs({ articles, photos, documents }: Props) {
 
             {lightboxIndex !== null && (
                 <Lightbox
-                    items={photos.filter(p => p.coverImagePath).map(p => ({ ...p, coverImagePath: p.coverImagePath! }))}
+                    items={photos
+                        .filter((p) => p.coverImagePath)
+                        .map((p) => ({ ...p, coverImagePath: p.coverImagePath! }))}
                     index={lightboxIndex}
                     onClose={() => setLightboxIndex(null)}
                     onNavigate={setLightboxIndex}
@@ -249,7 +250,7 @@ export function PersonTabs({ articles, photos, documents }: Props) {
 
             {docLightboxIndex !== null && (
                 <Lightbox
-                    items={docPhotos.map(p => ({ ...p, coverImagePath: p.coverImagePath! }))}
+                    items={docPhotos.map((p) => ({ ...p, coverImagePath: p.coverImagePath! }))}
                     index={docLightboxIndex}
                     onClose={() => setDocLightboxIndex(null)}
                     onNavigate={setDocLightboxIndex}

@@ -7,7 +7,12 @@ import { entities, people, materials, materialTopics } from "@/db/schema"
 import { generateCode } from "@/lib/generateCode"
 import { deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
-import { type EventInput, createEvents, parsePersonForm, getEventsByEntityId } from "@/app/admin/people/actions"
+import {
+    type EventInput,
+    createEvents,
+    parsePersonForm,
+    getEventsByEntityId,
+} from "@/app/admin/people/actions"
 
 export { getEventsByEntityId }
 

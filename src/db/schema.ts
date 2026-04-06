@@ -69,7 +69,9 @@ export const entities = pgTable("entities", {
 
 export const artifactSections = pgTable("artifact_sections", {
     id: serial("id").primaryKey(),
-    artifactId: integer("artifact_id").notNull().references(() => artifacts.id, { onDelete: "cascade" }),
+    artifactId: integer("artifact_id")
+        .notNull()
+        .references(() => artifacts.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     description: text("description"),
     position: integer("position").notNull().default(0),
@@ -85,7 +87,9 @@ export const materials = pgTable("materials", {
     materialType: materialTypeEnum("material_type").notNull().default("article"),
     status: statusEnum("status").notNull().default("draft"),
     entityId: integer("entity_id").references(() => entities.id),
-    sectionId: integer("section_id").references(() => artifactSections.id, { onDelete: "set null" }),
+    sectionId: integer("section_id").references(() => artifactSections.id, {
+        onDelete: "set null",
+    }),
     yearFrom: integer("year_from"),
     yearTo: integer("year_to"),
     coverImagePath: text("cover_image_path"),
@@ -157,8 +161,9 @@ export const artifactMaterials = pgTable(
         materialId: integer("material_id")
             .notNull()
             .references(() => materials.id, { onDelete: "cascade" }),
-        sectionId: integer("section_id")
-            .references(() => artifactSections.id, { onDelete: "set null" }),
+        sectionId: integer("section_id").references(() => artifactSections.id, {
+            onDelete: "set null",
+        }),
         position: integer("position"),
     },
     (t) => [primaryKey({ columns: [t.artifactId, t.materialId] })],
@@ -166,7 +171,9 @@ export const artifactMaterials = pgTable(
 
 export const showcases = pgTable("showcases", {
     sectionCode: text("section_code").primaryKey(),
-    artifactId: integer("artifact_id").notNull().references(() => artifacts.id, { onDelete: "cascade" }),
+    artifactId: integer("artifact_id")
+        .notNull()
+        .references(() => artifacts.id, { onDelete: "cascade" }),
 })
 
 export const artifactsRelations = relations(artifacts, ({ many }) => ({
@@ -194,15 +201,27 @@ export const entitiesRelations = relations(entities, ({ one, many }) => ({
 
 export const materialsRelations = relations(materials, ({ one, many }) => ({
     entity: one(entities, { fields: [materials.entityId], references: [entities.id] }),
-    section: one(artifactSections, { fields: [materials.sectionId], references: [artifactSections.id] }),
+    section: one(artifactSections, {
+        fields: [materials.sectionId],
+        references: [artifactSections.id],
+    }),
     materialTopics: many(materialTopics),
     artifactMaterials: many(artifactMaterials),
 }))
 
 export const artifactMaterialsRelations = relations(artifactMaterials, ({ one }) => ({
-    artifact: one(artifacts, { fields: [artifactMaterials.artifactId], references: [artifacts.id] }),
-    material: one(materials, { fields: [artifactMaterials.materialId], references: [materials.id] }),
-    section: one(artifactSections, { fields: [artifactMaterials.sectionId], references: [artifactSections.id] }),
+    artifact: one(artifacts, {
+        fields: [artifactMaterials.artifactId],
+        references: [artifacts.id],
+    }),
+    material: one(materials, {
+        fields: [artifactMaterials.materialId],
+        references: [materials.id],
+    }),
+    section: one(artifactSections, {
+        fields: [artifactMaterials.sectionId],
+        references: [artifactSections.id],
+    }),
 }))
 
 export const materialTopicsRelations = relations(materialTopics, ({ one }) => ({

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { User } from "lucide-react"
@@ -110,9 +110,13 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                                         className="flex items-center gap-3 py-3 hover:opacity-70 transition-opacity"
                                     >
                                         <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-paper-dark flex items-center justify-center">
-                                            {(row.mainPhotoPath ?? fallbackMap.get(row.entityId)) ? (
+                                            {(row.mainPhotoPath ??
+                                            fallbackMap.get(row.entityId)) ? (
                                                 <img
-                                                    src={(row.mainPhotoPath ?? fallbackMap.get(row.entityId))!}
+                                                    src={
+                                                        (row.mainPhotoPath ??
+                                                            fallbackMap.get(row.entityId))!
+                                                    }
                                                     alt={row.name}
                                                     className="w-full h-full object-cover"
                                                 />

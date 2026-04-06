@@ -19,18 +19,27 @@ export default async function NewArtifactPage() {
                 <Field label="Описание">
                     <textarea name="description" rows={4} className={inputClass} />
                 </Field>
-                <Field
-                    label="Период"
-                    hint="Например: «1941–1945» или «ок. 1943»"
-                >
+                <Field label="Период" hint="Например: «1941–1945» или «ок. 1943»">
                     <input name="yearsLabel" type="text" className={inputClass} />
                 </Field>
                 <div className="flex gap-3">
                     <Field label="Год от">
-                        <input name="yearFrom" type="number" min="1800" max="2100" className={inputClass} />
+                        <input
+                            name="yearFrom"
+                            type="number"
+                            min="1800"
+                            max="2100"
+                            className={inputClass}
+                        />
                     </Field>
                     <Field label="Год до">
-                        <input name="yearTo" type="number" min="1800" max="2100" className={inputClass} />
+                        <input
+                            name="yearTo"
+                            type="number"
+                            min="1800"
+                            max="2100"
+                            className={inputClass}
+                        />
                     </Field>
                 </div>
                 {allTopics.length > 0 && (

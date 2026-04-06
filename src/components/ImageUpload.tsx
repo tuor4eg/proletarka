@@ -38,7 +38,11 @@ export function ImageUpload({ fileInputName, urlInputName, defaultUrl, label = "
 
             {displayUrl && (
                 <div className="relative w-32 h-32">
-                    <button type="button" onClick={() => setLightbox(true)} className="block w-32 h-32">
+                    <button
+                        type="button"
+                        onClick={() => setLightbox(true)}
+                        className="block w-32 h-32"
+                    >
                         <img
                             src={displayUrl}
                             alt="preview"

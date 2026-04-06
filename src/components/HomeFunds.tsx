@@ -38,7 +38,10 @@ export async function HomeFunds() {
                 <div className="mt-6">
                     <div className="flex items-baseline justify-between mb-4">
                         <h3 className="text-lg font-semibold text-ink">Фото</h3>
-                        <Link href="/photo" className="text-xs text-ink-muted hover:text-ink transition-colors">
+                        <Link
+                            href="/photo"
+                            className="text-xs text-ink-muted hover:text-ink transition-colors"
+                        >
                             Подробнее
                         </Link>
                     </div>
@@ -51,15 +54,23 @@ export async function HomeFunds() {
                             >
                                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-paper-dark">
                                     {fund.coverImagePath ? (
-                                        <img src={fund.coverImagePath} alt={fund.title} className="w-full h-full object-cover" />
+                                        <img
+                                            src={fund.coverImagePath}
+                                            alt={fund.title}
+                                            className="w-full h-full object-cover"
+                                        />
                                     ) : (
                                         <div className="w-full h-full" />
                                     )}
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-xs font-medium text-ink leading-tight line-clamp-2">{fund.title}</p>
+                                    <p className="text-xs font-medium text-ink leading-tight line-clamp-2">
+                                        {fund.title}
+                                    </p>
                                     {fund.yearsLabel && (
-                                        <p className="text-xs text-ink-muted mt-0.5">{fund.yearsLabel}</p>
+                                        <p className="text-xs text-ink-muted mt-0.5">
+                                            {fund.yearsLabel}
+                                        </p>
                                     )}
                                 </div>
                             </Link>

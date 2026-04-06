@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { db } from "@/db"
@@ -42,14 +42,29 @@ export default async function ExpositionPage() {
 
     const stands = artifactRows
         .filter((r) => r.artifactType === "stand")
-        .map((r) => ({ ...r, coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null }))
+        .map((r) => ({
+            ...r,
+            coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null,
+        }))
     const rarities = artifactRows
         .filter((r) => r.artifactType === "rarity")
-        .map((r) => ({ ...r, coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null }))
+        .map((r) => ({
+            ...r,
+            coverImagePath: r.coverImagePath ?? fallbackMap.get(r.entityId) ?? null,
+        }))
 
-
-    const showcaseMeta = showcaseRow[0] ? { title: showcaseRow[0].title, description: showcaseRow[0].description } : null
-    let showcasePhotos: { id: number; title: string; coverImagePath: string; yearFrom: number | null; yearTo: number | null; content: string | null; sourceUrl: string | null }[] = []
+    const showcaseMeta = showcaseRow[0]
+        ? { title: showcaseRow[0].title, description: showcaseRow[0].description }
+        : null
+    let showcasePhotos: {
+        id: number
+        title: string
+        coverImagePath: string
+        yearFrom: number | null
+        yearTo: number | null
+        content: string | null
+        sourceUrl: string | null
+    }[] = []
 
     if (showcaseRow[0]) {
         const [entity] = await db
@@ -59,7 +74,7 @@ export default async function ExpositionPage() {
             .limit(1)
 
         if (entity) {
-            showcasePhotos = await db
+            showcasePhotos = (await db
                 .select({
                     id: materials.id,
                     title: materials.title,
@@ -78,7 +93,7 @@ export default async function ExpositionPage() {
                         isNotNull(materials.coverImagePath),
                     ),
                 )
-                .orderBy(asc(materials.position), asc(materials.id)) as typeof showcasePhotos
+                .orderBy(asc(materials.position), asc(materials.id))) as typeof showcasePhotos
         }
     }
 
@@ -90,9 +105,13 @@ export default async function ExpositionPage() {
                     <section className="mb-10">
                         {showcaseMeta && (
                             <div className="mb-4">
-                                <h2 className="text-lg font-semibold text-ink">{showcaseMeta.title}</h2>
+                                <h2 className="text-lg font-semibold text-ink">
+                                    {showcaseMeta.title}
+                                </h2>
                                 {showcaseMeta.description && (
-                                    <p className="text-sm text-ink-secondary mt-1 leading-relaxed">{showcaseMeta.description}</p>
+                                    <p className="text-sm text-ink-secondary mt-1 leading-relaxed">
+                                        {showcaseMeta.description}
+                                    </p>
                                 )}
                             </div>
                         )}

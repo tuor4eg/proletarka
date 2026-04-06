@@ -21,7 +21,12 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, Link2 } from "lucide-react"
 import { type MaterialType, type Status } from "@/db/schema"
 import { PublishToggle } from "@/components/PublishToggle"
-import { updateMaterialPositions, updateMaterialSection, updateLinkedMaterialPositions, updateLinkedMaterialSection } from "@/app/admin/artifacts/actions"
+import {
+    updateMaterialPositions,
+    updateMaterialSection,
+    updateLinkedMaterialPositions,
+    updateLinkedMaterialSection,
+} from "@/app/admin/artifacts/actions"
 
 const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
@@ -95,7 +100,9 @@ function toAnyItems(native: MaterialItem[], linked: LinkedItem[]): AnyItem[] {
             unlinkAction: item.unlinkAction,
         })),
     ]
-    return all.sort((a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER))
+    return all.sort(
+        (a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER),
+    )
 }
 
 function SortableRow({
@@ -143,12 +150,20 @@ function SortableRow({
                         href={`/admin/${item.id}`}
                         className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
                     >
-                        <span className="text-sm font-medium flex-1 min-w-0 truncate">{item.title}</span>
+                        <span className="text-sm font-medium flex-1 min-w-0 truncate">
+                            {item.title}
+                        </span>
                         {item.personName && (
-                            <span className="text-xs text-gray-400 shrink-0 max-w-[100px] truncate">{item.personName}</span>
+                            <span className="text-xs text-gray-400 shrink-0 max-w-[100px] truncate">
+                                {item.personName}
+                            </span>
                         )}
-                        <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[item.materialType]}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${item.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                        <span className="text-xs text-gray-400 shrink-0">
+                            {TYPE_LABEL[item.materialType]}
+                        </span>
+                        <span
+                            className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${item.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                        >
                             {STATUS_LABEL[item.status]}
                         </span>
                     </Link>
@@ -156,18 +171,28 @@ function SortableRow({
                         <select
                             defaultValue={item.sectionId ?? ""}
                             disabled={sectionChangePending}
-                            onChange={(e) => onLinkedSectionChange(item.id, e.target.value ? Number(e.target.value) : null)}
+                            onChange={(e) =>
+                                onLinkedSectionChange(
+                                    item.id,
+                                    e.target.value ? Number(e.target.value) : null,
+                                )
+                            }
                             className="text-xs text-gray-500 border border-gray-200 rounded-lg px-1.5 py-1 shrink-0 disabled:opacity-40"
                         >
                             <option value="">Без раздела</option>
                             {sections.map((s) => (
-                                <option key={s.id} value={s.id}>{s.title}</option>
+                                <option key={s.id} value={s.id}>
+                                    {s.title}
+                                </option>
                             ))}
                         </select>
                     )}
                     {item.unlinkAction && (
                         <form action={item.unlinkAction}>
-                            <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0">
+                            <button
+                                type="submit"
+                                className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0"
+                            >
                                 Отвязать
                             </button>
                         </form>
@@ -179,9 +204,15 @@ function SortableRow({
                         href={`/admin/${item.id}`}
                         className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
                     >
-                        <span className="text-sm font-medium flex-1 min-w-0 truncate">{item.title}</span>
-                        <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[item.materialType]}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${item.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                        <span className="text-sm font-medium flex-1 min-w-0 truncate">
+                            {item.title}
+                        </span>
+                        <span className="text-xs text-gray-400 shrink-0">
+                            {TYPE_LABEL[item.materialType]}
+                        </span>
+                        <span
+                            className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${item.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                        >
                             {STATUS_LABEL[item.status]}
                         </span>
                     </Link>
@@ -189,12 +220,19 @@ function SortableRow({
                         <select
                             defaultValue={item.sectionId ?? ""}
                             disabled={sectionChangePending}
-                            onChange={(e) => onSectionChange(item.id, e.target.value ? Number(e.target.value) : null)}
+                            onChange={(e) =>
+                                onSectionChange(
+                                    item.id,
+                                    e.target.value ? Number(e.target.value) : null,
+                                )
+                            }
                             className="text-xs text-gray-500 border border-gray-200 rounded-lg px-1.5 py-1 shrink-0 disabled:opacity-40"
                         >
                             <option value="">Без раздела</option>
                             {sections.map((s) => (
-                                <option key={s.id} value={s.id}>{s.title}</option>
+                                <option key={s.id} value={s.id}>
+                                    {s.title}
+                                </option>
                             ))}
                         </select>
                     )}
@@ -212,12 +250,19 @@ type Props = {
     artifactId?: number
 }
 
-export function SortableMaterialsList({ initialItems, sections, linkedItems = [], artifactId }: Props) {
+export function SortableMaterialsList({
+    initialItems,
+    sections,
+    linkedItems = [],
+    artifactId,
+}: Props) {
     const [items, setItems] = useState(() => toAnyItems(initialItems, linkedItems))
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
 
-    const linkedItemsKey = linkedItems.map(i => `${i.id}:${i.position ?? ""}:${i.status}`).join("|")
+    const linkedItemsKey = linkedItems
+        .map((i) => `${i.id}:${i.position ?? ""}:${i.status}`)
+        .join("|")
 
     useEffect(() => {
         setItems(toAnyItems(initialItems, linkedItems))
@@ -252,8 +297,12 @@ export function SortableMaterialsList({ initialItems, sections, linkedItems = []
 
         const positioned = reordered.map((item, i) => ({ ...item, position: i + 1 }))
 
-        const nativeUpdates = positioned.filter((i) => !i.isLinked).map((i) => ({ id: i.id, position: i.position }))
-        const linkedUpdates = positioned.filter((i) => i.isLinked).map((i) => ({ materialId: i.id, position: i.position }))
+        const nativeUpdates = positioned
+            .filter((i) => !i.isLinked)
+            .map((i) => ({ id: i.id, position: i.position }))
+        const linkedUpdates = positioned
+            .filter((i) => i.isLinked)
+            .map((i) => ({ materialId: i.id, position: i.position }))
 
         if (nativeUpdates.length > 0) await updateMaterialPositions(nativeUpdates)
         if (linkedUpdates.length > 0 && artifactId) {
@@ -262,11 +311,26 @@ export function SortableMaterialsList({ initialItems, sections, linkedItems = []
     }
 
     return (
-        <DndContext id="sortable-materials" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={items.map((i) => i.dndId)} strategy={verticalListSortingStrategy}>
+        <DndContext
+            id="sortable-materials"
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
+            <SortableContext
+                items={items.map((i) => i.dndId)}
+                strategy={verticalListSortingStrategy}
+            >
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
                     {items.map((item) => (
-                        <SortableRow key={item.dndId} item={item} sections={sections} onSectionChange={handleSectionChange} onLinkedSectionChange={handleLinkedSectionChange} sectionChangePending={isPending} />
+                        <SortableRow
+                            key={item.dndId}
+                            item={item}
+                            sections={sections}
+                            onSectionChange={handleSectionChange}
+                            onLinkedSectionChange={handleLinkedSectionChange}
+                            sectionChangePending={isPending}
+                        />
                     ))}
                 </div>
             </SortableContext>

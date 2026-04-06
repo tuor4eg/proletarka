@@ -8,7 +8,14 @@ import { artifacts, materials } from "@/db/schema"
 type Artifact = InferSelectModel<typeof artifacts>
 type Material = Pick<
     InferSelectModel<typeof materials>,
-    "id" | "title" | "summary" | "content" | "materialType" | "coverImagePath" | "yearFrom" | "yearTo"
+    | "id"
+    | "title"
+    | "summary"
+    | "content"
+    | "materialType"
+    | "coverImagePath"
+    | "yearFrom"
+    | "yearTo"
 >
 
 type Props = {
@@ -33,7 +40,10 @@ export function ArtifactShowcaseView({ artifact, materials, code }: Props) {
     const onTouchEnd = (e: React.TouchEvent) => {
         if (touchStartX.current === null) return
         const diff = touchStartX.current - e.changedTouches[0].clientX
-        if (Math.abs(diff) > 40) diff > 0 ? next() : prev()
+        if (Math.abs(diff) > 40) {
+            if (diff > 0) next()
+            else prev()
+        }
         touchStartX.current = null
     }
 

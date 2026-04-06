@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 import { db } from "@/db"
 import {
@@ -170,7 +170,8 @@ export default async function WarPage() {
                                 code: p.code,
                                 name: p.name,
                                 years: formatYears(p.birthYear, p.deathYear, p.yearsLabel),
-                                mainPhotoPath: p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,
+                                mainPhotoPath:
+                                    p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,
                             }))}
                         />
                     )}
@@ -193,7 +194,8 @@ export default async function WarPage() {
                                 code: p.code,
                                 name: p.name,
                                 years: formatYears(p.birthYear, p.deathYear, p.yearsLabel),
-                                mainPhotoPath: p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,
+                                mainPhotoPath:
+                                    p.mainPhotoPath ?? fallbackMap.get(p.entityId) ?? null,
                             }))}
                         />
                     )}

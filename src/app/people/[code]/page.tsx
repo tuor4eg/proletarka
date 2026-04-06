@@ -109,17 +109,25 @@ export default async function PersonPage({ params }: Props) {
                 </div>
                 <div className="flex gap-6 mb-8">
                     <div className="w-28 h-28 shrink-0 rounded-2xl overflow-hidden bg-paper-dark">
-                        {person.mainPhotoPath ? (
-                            <img
-                                src={person.mainPhotoPath}
-                                alt={person.name}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-ink-muted text-4xl font-light">
-                                {person.name[0]}
-                            </div>
-                        )}
+                        {(() => {
+                            const avatarSrc =
+                                person.mainPhotoPath ??
+                                linkedMaterials.find(
+                                    (m) => m.materialType === "photo" && m.coverImagePath,
+                                )?.coverImagePath ??
+                                null
+                            return avatarSrc ? (
+                                <img
+                                    src={avatarSrc}
+                                    alt={person.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-ink-muted text-4xl font-light">
+                                    {person.name[0]}
+                                </div>
+                            )
+                        })()}
                     </div>
                     <div className="flex flex-col justify-center">
                         {years && <p className="text-sm text-ink-muted">{years}</p>}

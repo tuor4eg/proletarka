@@ -4,7 +4,11 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Trash2, Search } from "lucide-react"
-import { linkMaterial, unlinkMaterial, updateLinkedMaterialSection } from "@/app/admin/artifacts/actions"
+import {
+    linkMaterial,
+    unlinkMaterial,
+    updateLinkedMaterialSection,
+} from "@/app/admin/artifacts/actions"
 import type { MaterialType, Status } from "@/db/schema"
 import type { SectionOption } from "@/components/SortableMaterialsList"
 
@@ -41,7 +45,12 @@ type Props = {
     isStand: boolean
 }
 
-export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sections, isStand }: Props) {
+export function LinkedArtifactMaterialsBlock({
+    artifactId,
+    linkedMaterials,
+    sections,
+    isStand,
+}: Props) {
     const router = useRouter()
     const [query, setQuery] = useState("")
     const [typeFilter, setTypeFilter] = useState("")
@@ -82,7 +91,10 @@ export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sect
                     {linkedMaterials.map((m) => (
                         <div key={m.materialId} className="flex items-center gap-2 px-4 py-2.5">
                             <div className="flex-1 min-w-0">
-                                <Link href={`/admin/${m.materialId}`} className="text-sm font-medium truncate block hover:underline">
+                                <Link
+                                    href={`/admin/${m.materialId}`}
+                                    className="text-sm font-medium truncate block hover:underline"
+                                >
                                     {m.title}
                                 </Link>
                                 {m.personName && (
@@ -101,16 +113,26 @@ export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sect
                                     </span>
                                 )}
                             </div>
-                            <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[m.materialType]}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${m.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                            <span className="text-xs text-gray-400 shrink-0">
+                                {TYPE_LABEL[m.materialType]}
+                            </span>
+                            <span
+                                className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${m.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                            >
                                 {STATUS_LABEL[m.status]}
                             </span>
                             {isStand && sections.length > 0 && (
                                 <select
                                     defaultValue={m.sectionId ?? ""}
                                     onChange={async (e) => {
-                                        const sectionId = e.target.value ? Number(e.target.value) : null
-                                        await updateLinkedMaterialSection(artifactId, m.materialId, sectionId)
+                                        const sectionId = e.target.value
+                                            ? Number(e.target.value)
+                                            : null
+                                        await updateLinkedMaterialSection(
+                                            artifactId,
+                                            m.materialId,
+                                            sectionId,
+                                        )
                                         router.refresh()
                                     }}
                                     className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-400 shrink-0"
@@ -144,7 +166,10 @@ export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sect
                 <p className="text-sm font-medium mb-3">Привязать существующий материал</p>
                 <div className="flex gap-2">
                     <div className="relative flex-1">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Search
+                            size={14}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
                         <input
                             type="text"
                             value={query}
@@ -173,21 +198,27 @@ export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sect
                         {results.map((r) => (
                             <div key={r.id} className="flex items-center gap-2 px-3 py-2.5">
                                 <div className="flex-1 min-w-0">
-                                    <span className="text-sm font-medium truncate block">{r.title}</span>
+                                    <span className="text-sm font-medium truncate block">
+                                        {r.title}
+                                    </span>
                                     {(r.personName ?? r.artifactTitle) && (
                                         <span className="text-xs text-gray-400">
                                             {r.personName ?? r.artifactTitle}
                                         </span>
                                     )}
                                 </div>
-                                <span className="text-xs text-gray-400 shrink-0">{TYPE_LABEL[r.materialType]}</span>
+                                <span className="text-xs text-gray-400 shrink-0">
+                                    {TYPE_LABEL[r.materialType]}
+                                </span>
                                 {isStand && sections.length > 0 && (
                                     <select
                                         value={selectedSections[r.id] ?? ""}
                                         onChange={(e) =>
                                             setSelectedSections((prev) => ({
                                                 ...prev,
-                                                [r.id]: e.target.value ? Number(e.target.value) : null,
+                                                [r.id]: e.target.value
+                                                    ? Number(e.target.value)
+                                                    : null,
                                             }))
                                         }
                                         className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-400 shrink-0"
@@ -205,7 +236,7 @@ export function LinkedArtifactMaterialsBlock({ artifactId, linkedMaterials, sect
                                         null,
                                         artifactId,
                                         r.id,
-                                        selectedSections[r.id] ?? null
+                                        selectedSections[r.id] ?? null,
                                     )}
                                 >
                                     <button

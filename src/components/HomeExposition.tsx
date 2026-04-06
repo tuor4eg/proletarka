@@ -25,7 +25,10 @@ export async function HomeExposition() {
         <section className="pt-8 mb-10">
             <div className="flex items-baseline justify-between mb-4">
                 <h2 className="text-2xl font-bold tracking-widest uppercase text-ink">Выставка</h2>
-                <Link href="/exposition" className="text-xs text-ink-muted hover:text-ink transition-colors">
+                <Link
+                    href="/exposition"
+                    className="text-xs text-ink-muted hover:text-ink transition-colors"
+                >
                     Подробнее
                 </Link>
             </div>

@@ -37,7 +37,8 @@ export function CodeField({ code }: { code?: string }) {
                         className={inputClass}
                     />
                     <p className="text-xs text-gray-400">
-                        Только строчные латинские буквы, цифры и дефисы. Нельзя изменить после создания.
+                        Только строчные латинские буквы, цифры и дефисы. Нельзя изменить после
+                        создания.
                     </p>
                 </div>
             )}

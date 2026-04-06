@@ -2,7 +2,14 @@ import { notFound } from "next/navigation"
 import { eq, and, asc, sql } from "drizzle-orm"
 import Link from "next/link"
 import { db } from "@/db"
-import { entities, artifacts, materials, artifactSections, artifactMaterials, people } from "@/db/schema"
+import {
+    entities,
+    artifacts,
+    materials,
+    artifactSections,
+    artifactMaterials,
+    people,
+} from "@/db/schema"
 import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
@@ -71,25 +78,30 @@ export default async function ArtifactPage({ params }: Props) {
             .where(
                 and(
                     eq(artifactMaterials.artifactId, artifact.id),
-                    eq(materials.status, "published")
-                )
+                    eq(materials.status, "published"),
+                ),
             )
             .orderBy(sql`${artifactMaterials.position} ASC NULLS LAST`, asc(materials.id)),
     ])
 
     // merge: native + ref — dedup by id, sort by position
     const seenIds = new Set(nativeMaterials.map((m) => m.id))
-    const nativeWithAttrs = nativeMaterials.map((m) => ({ ...m, personName: null, personCode: null }))
+    const nativeWithAttrs = nativeMaterials.map((m) => ({
+        ...m,
+        personName: null,
+        personCode: null,
+    }))
     const refFiltered = refMaterialRows.filter((m) => !seenIds.has(m.id))
-    const allMaterials = [...nativeWithAttrs, ...refFiltered]
-        .sort((a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER))
+    const allMaterials = [...nativeWithAttrs, ...refFiltered].sort(
+        (a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER),
+    )
 
     const isStand = artifact.artifactType === "stand"
 
     function renderMaterials(items: typeof allMaterials) {
         const photos = items.filter(
-            (m) => m.materialType === "photo" && m.coverImagePath
-        ) as (typeof items[number] & { coverImagePath: string })[]
+            (m) => m.materialType === "photo" && m.coverImagePath,
+        ) as ((typeof items)[number] & { coverImagePath: string })[]
         const others = items.filter((m) => m.materialType !== "photo")
 
         return (
@@ -125,9 +137,7 @@ export default async function ArtifactPage({ params }: Props) {
                                             </p>
                                         )}
                                         <div className="flex items-center gap-3 text-xs text-ink-muted mb-2">
-                                            {m.personName && (
-                                                <span>{m.personName}</span>
-                                            )}
+                                            {m.personName && <span>{m.personName}</span>}
                                             {(m.yearFrom || m.yearTo) && (
                                                 <span>
                                                     {m.yearFrom === m.yearTo || !m.yearTo
@@ -176,25 +186,32 @@ export default async function ArtifactPage({ params }: Props) {
 
                 {isStand && sections.length > 0 ? (
                     <div className="flex flex-col gap-10">
-                        {sections.filter(s => allMaterials.some(m => m.sectionId === s.id)).length > 1 && (
+                        {sections.filter((s) => allMaterials.some((m) => m.sectionId === s.id))
+                            .length > 1 && (
                             <nav className="flex flex-wrap items-center gap-y-1">
-                                {sections.filter(s => allMaterials.some(m => m.sectionId === s.id)).map((section, i, arr) => (
-                                    <span key={section.id} className="flex items-center">
-                                        <a
-                                            href={`#section-${section.id}`}
-                                            className="text-sm text-ink-muted hover:text-ink transition-colors"
-                                        >
-                                            {section.title}
-                                        </a>
-                                        {i < arr.length - 1 && (
-                                            <span className="mx-2 text-ink-muted select-none">·</span>
-                                        )}
-                                    </span>
-                                ))}
+                                {sections
+                                    .filter((s) => allMaterials.some((m) => m.sectionId === s.id))
+                                    .map((section, i, arr) => (
+                                        <span key={section.id} className="flex items-center">
+                                            <a
+                                                href={`#section-${section.id}`}
+                                                className="text-sm text-ink-muted hover:text-ink transition-colors"
+                                            >
+                                                {section.title}
+                                            </a>
+                                            {i < arr.length - 1 && (
+                                                <span className="mx-2 text-ink-muted select-none">
+                                                    ·
+                                                </span>
+                                            )}
+                                        </span>
+                                    ))}
                             </nav>
                         )}
                         {sections.map((section) => {
-                            const sectionMaterials = allMaterials.filter(m => m.sectionId === section.id)
+                            const sectionMaterials = allMaterials.filter(
+                                (m) => m.sectionId === section.id,
+                            )
                             if (sectionMaterials.length === 0) return null
                             return (
                                 <div key={section.id} id={`section-${section.id}`}>
@@ -211,7 +228,7 @@ export default async function ArtifactPage({ params }: Props) {
                             )
                         })}
                         {(() => {
-                            const unsectioned = allMaterials.filter(m => !m.sectionId)
+                            const unsectioned = allMaterials.filter((m) => !m.sectionId)
                             return unsectioned.length > 0 && renderMaterials(unsectioned)
                         })()}
                     </div>

@@ -149,7 +149,9 @@ export function WarPhotoGrid({ photos }: { photos: WarPhoto[] }) {
                                     </div>
                                 )}
                             </div>
-                            <p className="text-xs text-ink-secondary leading-tight">{photo.title}</p>
+                            <p className="text-xs text-ink-secondary leading-tight">
+                                {photo.title}
+                            </p>
                             {year && <p className="text-xs text-ink-muted">{year}</p>}
                         </div>
                     )

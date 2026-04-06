@@ -26,9 +26,11 @@ export async function GET(request: NextRequest) {
         or(
             ilike(materials.title, `%${q}%`),
             ilike(people.name, `%${q}%`),
-            ilike(artifacts.title, `%${q}%`)
+            ilike(artifacts.title, `%${q}%`),
         ),
-        typeFilter ? eq(materials.materialType, typeFilter as "article" | "photo" | "document") : undefined,
+        typeFilter
+            ? eq(materials.materialType, typeFilter as "article" | "photo" | "document")
+            : undefined,
         excludeIds.length > 0 ? notInArray(materials.id, excludeIds) : undefined,
     ].filter(Boolean) as Parameters<typeof and>
 

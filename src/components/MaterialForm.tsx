@@ -74,7 +74,13 @@ type Props = {
     defaultSectionId?: number
 }
 
-function FormActions({ deleteAction, deleteConfirmBody }: { deleteAction?: () => Promise<void>; deleteConfirmBody?: string }) {
+function FormActions({
+    deleteAction,
+    deleteConfirmBody,
+}: {
+    deleteAction?: () => Promise<void>
+    deleteConfirmBody?: string
+}) {
     const { pending } = useFormStatus()
     return (
         <div className="flex items-center gap-3 mt-5">
@@ -104,6 +110,10 @@ export function MaterialForm({
 }: Props) {
     const [state, formAction] = useActionState(action, null)
     const formRef = useRef<HTMLFormElement>(null)
+    const [status, setStatus] = useState<Status>(material?.status ?? "published")
+    const [materialType, setMaterialType] = useState<MaterialType>(
+        material?.materialType ?? defaultMaterialType ?? "article",
+    )
 
     // Prevent React 19's automatic form.reset() after action — we want edit forms to keep their values
     useEffect(() => {
@@ -132,10 +142,6 @@ export function MaterialForm({
         : null
     const entityTypeLocked = initialEntity !== null
 
-    const [status, setStatus] = useState<Status>(material?.status ?? "published")
-    const [materialType, setMaterialType] = useState<MaterialType>(
-        material?.materialType ?? defaultMaterialType ?? "article",
-    )
     const [entityType, setEntityType] = useState<EntityType | "">(initialEntity?.type ?? "")
     const [entityId, setEntityId] = useState<string>(initialEntityId?.toString() ?? "")
 
@@ -272,7 +278,9 @@ export function MaterialForm({
                     )}
 
                     {!entityType && <input type="hidden" name="entityId" value="" />}
-                    {defaultSectionId && <input type="hidden" name="sectionId" value={defaultSectionId} />}
+                    {defaultSectionId && (
+                        <input type="hidden" name="sectionId" value={defaultSectionId} />
+                    )}
 
                     {topics.length > 0 && (
                         <Field label="Темы">

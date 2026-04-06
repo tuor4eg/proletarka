@@ -40,9 +40,12 @@ export function PhotoCarousel({ photos }: Props) {
     }, [emblaApi])
 
     const photo = photos[current]
-    const yearLabel = photo.yearFrom && photo.yearTo
-        ? `${photo.yearFrom}–${photo.yearTo}`
-        : photo.yearFrom ? `${photo.yearFrom}` : null
+    const yearLabel =
+        photo.yearFrom && photo.yearTo
+            ? `${photo.yearFrom}–${photo.yearTo}`
+            : photo.yearFrom
+              ? `${photo.yearFrom}`
+              : null
 
     return (
         <>
@@ -107,29 +110,35 @@ export function PhotoCarousel({ photos }: Props) {
                     {photo.personName && photo.personCode && (
                         <p className="text-xs text-ink-muted mt-0.5">
                             Из коллекции:{" "}
-                            <Link href={`/people/${photo.personCode}`} className="hover:text-ink transition-colors underline underline-offset-2">
+                            <Link
+                                href={`/people/${photo.personCode}`}
+                                className="hover:text-ink transition-colors underline underline-offset-2"
+                            >
                                 {photo.personName}
                             </Link>
                         </p>
                     )}
-                    {photo.content && (() => {
-                        const isLong = photo.content.length > 200
-                        return (
-                            <div className="mt-2">
-                                <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap break-all">
-                                    {isLong && !expanded ? photo.content.slice(0, 200) + "…" : photo.content}
-                                </p>
-                                {isLong && (
-                                    <button
-                                        onClick={() => setExpanded((v) => !v)}
-                                        className="mt-1 text-xs text-ink-muted hover:text-ink transition-colors"
-                                    >
-                                        {expanded ? "Скрыть" : "Подробнее"}
-                                    </button>
-                                )}
-                            </div>
-                        )
-                    })()}
+                    {photo.content &&
+                        (() => {
+                            const isLong = photo.content.length > 200
+                            return (
+                                <div className="mt-2">
+                                    <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap break-all">
+                                        {isLong && !expanded
+                                            ? photo.content.slice(0, 200) + "…"
+                                            : photo.content}
+                                    </p>
+                                    {isLong && (
+                                        <button
+                                            onClick={() => setExpanded((v) => !v)}
+                                            className="mt-1 text-xs text-ink-muted hover:text-ink transition-colors"
+                                        >
+                                            {expanded ? "Скрыть" : "Подробнее"}
+                                        </button>
+                                    )}
+                                </div>
+                            )
+                        })()}
                     {photo.sourceUrl && (
                         <a
                             href={photo.sourceUrl}

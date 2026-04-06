@@ -27,12 +27,18 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
     const hasPrev = index > 0
     const hasNext = index < items.length - 1
 
-    const prev = useCallback(() => { if (hasPrev) onNavigate(index - 1) }, [hasPrev, index, onNavigate])
-    const next = useCallback(() => { if (hasNext) onNavigate(index + 1) }, [hasNext, index, onNavigate])
+    const prev = useCallback(() => {
+        if (hasPrev) onNavigate(index - 1)
+    }, [hasPrev, index, onNavigate])
+    const next = useCallback(() => {
+        if (hasNext) onNavigate(index + 1)
+    }, [hasNext, index, onNavigate])
 
     useEffect(() => {
         document.body.style.overflow = "hidden"
-        return () => { document.body.style.overflow = "" }
+        return () => {
+            document.body.style.overflow = ""
+        }
     }, [])
 
     useEffect(() => {
@@ -63,7 +69,9 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
                     <span className="text-white/40 text-xs tabular-nums pointer-events-auto">
                         {index + 1} / {items.length}
                     </span>
-                ) : <span />}
+                ) : (
+                    <span />
+                )}
                 <button
                     onClick={onClose}
                     className="p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors pointer-events-auto"
@@ -86,9 +94,7 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
                             setPortrait(img.naturalHeight > img.naturalWidth)
                         }}
                         className={`object-contain rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
-                            portrait
-                                ? "max-w-[88vw] h-auto"
-                                : "max-h-[80vh] w-auto"
+                            portrait ? "max-w-[88vw] h-auto" : "max-h-[80vh] w-auto"
                         }`}
                     />
                     <div className="text-center">
@@ -98,13 +104,19 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
                     {items.length > 1 && (
                         <div className="flex gap-4 mt-2">
                             <button
-                                onClick={(e) => { e.stopPropagation(); prev() }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    prev()
+                                }}
                                 className={`p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasPrev ? "opacity-0 pointer-events-none" : ""}`}
                             >
                                 <ChevronLeft size={28} />
                             </button>
                             <button
-                                onClick={(e) => { e.stopPropagation(); next() }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    next()
+                                }}
                                 className={`p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all ${!hasNext ? "opacity-0 pointer-events-none" : ""}`}
                             >
                                 <ChevronRight size={28} />

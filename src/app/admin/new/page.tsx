@@ -36,9 +36,7 @@ export default async function NewMaterialPage({ searchParams }: Props) {
     }))
 
     const numericEntityId = entityId ? Number(entityId) : null
-    const sourceEntity = numericEntityId
-        ? entityRows.find((r) => r.id === numericEntityId)
-        : null
+    const sourceEntity = numericEntityId ? entityRows.find((r) => r.id === numericEntityId) : null
     const backHref = sourceEntity
         ? sourceEntity.type === "artifact"
             ? `/admin/artifacts/${sourceEntity.artifactCode}`

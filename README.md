@@ -1,4 +1,5 @@
 # proletarka
+
 Factory museum's application
 
 # Factory Memory
@@ -10,6 +11,7 @@ A small mobile-first project about preserving the memory of a factory through sh
 This is not meant to be a heavy corporate website or a classic archive.
 
 The goal is to create a simple and useful public project that helps people explore the history of the factory from a phone:
+
 - people
 - wartime history
 - documents
@@ -22,12 +24,14 @@ The project should feel like a "memory feed" or "living archive", not like a com
 ## Main product direction
 
 The first version should be:
+
 - simple
 - mobile-first
 - easy to launch
 - easy to extend later
 
 The public interface should focus on:
+
 - a feed of cards
 - topic filters
 - a material details page
@@ -41,12 +45,14 @@ Later this may also be opened inside Telegram as a Mini App, but that is not par
 The first MVP should include only:
 
 1. Public pages
+
 - home page with a feed of materials
 - filter by a few themes
 - material details page
 - simple search
 
 2. Basic content management
+
 - private admin page
 - simple form to create a material
 - edit existing material
@@ -54,10 +60,11 @@ The first MVP should include only:
 - upload one cover image or scan
 
 3. Data model
-Start small.
-At first, one main entity is enough: `material`.
+   Start small.
+   At first, one main entity is enough: `material`.
 
 A material can represent:
+
 - article
 - photo
 - document
@@ -68,6 +75,7 @@ A material can represent:
 ## Initial themes
 
 Use a small fixed set of themes at first:
+
 - People
 - War
 - Documents
@@ -81,6 +89,7 @@ The theme list may grow later.
 The project should support both polished and raw materials.
 
 Some materials may be:
+
 - fully written and ready to publish
 - short and incomplete
 - based on scans
@@ -92,6 +101,7 @@ That is expected and is part of the concept.
 ## Non-goals for the first MVP
 
 Do not build these yet:
+
 - full CMS
 - complicated role system
 - OCR pipeline
@@ -108,11 +118,13 @@ Keep the first version small and practical.
 ## Technical direction
 
 Preferred direction:
+
 - Next.js
 - PostgreSQL
 - Drizzle ORM
 
 Why:
+
 - start with a real database from the beginning
 - keep the architecture simple
 - allow future growth without changing the whole model
@@ -132,6 +144,7 @@ Why:
 ## How Claude should help
 
 When working on this project:
+
 - first analyze the current state
 - propose a short implementation plan
 - make small, focused changes
@@ -143,6 +156,7 @@ When working on this project:
 ## First milestone
 
 Build a very small but usable version where a person can:
+
 - open the site on a phone
 - browse a list of materials
 - filter by topic
