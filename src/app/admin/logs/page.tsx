@@ -1,8 +1,11 @@
 import Link from "next/link"
 import { Suspense } from "react"
 import { desc, asc, count, eq, and } from "drizzle-orm"
+import { alias } from "drizzle-orm/pg-core"
 import { db } from "@/db"
-import { adminLogs, users, people, artifacts } from "@/db/schema"
+import { adminLogs, users, people, artifacts, artifactSections } from "@/db/schema"
+
+const artifactsForSection = alias(artifacts, "artifacts_for_section")
 import { Pagination } from "@/components/Pagination"
 import { LogsFilters } from "@/components/LogsFilters"
 
@@ -29,10 +32,13 @@ function buildEntityLink(
     entityId: number | null,
     personCode: string | null,
     artifactCode: string | null,
+    artifactCodeForSection: string | null,
 ): string | null {
     if (!entityId) return null
     if (entityType === "person") return personCode ? `/admin/people/${personCode}` : null
     if (entityType === "artifact") return artifactCode ? `/admin/artifacts/${artifactCode}` : null
+    if (entityType === "artifactSection")
+        return artifactCodeForSection ? `/admin/artifacts/${artifactCodeForSection}` : null
     if (entityType === "material") return `/admin/${entityId}`
     if (entityType === "topic") return `/admin/topics/${entityId}`
     return null
@@ -77,6 +83,7 @@ export default async function LogsPage({
                 userName: users.name,
                 personCode: people.code,
                 artifactCode: artifacts.code,
+                artifactCodeForSection: artifactsForSection.code,
             })
             .from(adminLogs)
             .innerJoin(users, eq(adminLogs.userId, users.id))
@@ -88,6 +95,14 @@ export default async function LogsPage({
                 artifacts,
                 and(eq(adminLogs.entityType, "artifact"), eq(adminLogs.entityId, artifacts.id)),
             )
+            .leftJoin(
+                artifactSections,
+                and(
+                    eq(adminLogs.entityType, "artifactSection"),
+                    eq(adminLogs.entityId, artifactSections.id),
+                ),
+            )
+            .leftJoin(artifactsForSection, eq(artifactSections.artifactId, artifactsForSection.id))
             .where(where)
             .orderBy(orderBy)
             .limit(PAGE_SIZE)
@@ -124,6 +139,7 @@ export default async function LogsPage({
                                 row.entityId,
                                 row.personCode ?? null,
                                 row.artifactCode ?? null,
+                                row.artifactCodeForSection ?? null,
                             )
                             const title =
                                 row.entityTitle ?? (row.entityId ? `#${row.entityId}` : "—")
