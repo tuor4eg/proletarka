@@ -18,6 +18,8 @@ COPY tsconfig.json ./
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG NEXT_PUBLIC_METRIKA_ID
+ENV NEXT_PUBLIC_METRIKA_ID=$NEXT_PUBLIC_METRIKA_ID
 RUN npm run build
 
 # Минимальный production-образ на основе standalone-вывода Next.js

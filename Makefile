@@ -1,10 +1,17 @@
 IMAGE = ghcr.io/tuor4eg/proletarka:latest
 
+ifneq (,$(wildcard .env.local))
+  include .env.local
+  export
+endif
+
 .PHONY: push deploy migrate logs restart stop ps create-user lint
 
 # Собрать образ локально и запушить в registry
 push:
-	docker build -t $(IMAGE) .
+	docker build \
+		--build-arg NEXT_PUBLIC_METRIKA_ID=$(NEXT_PUBLIC_METRIKA_ID) \
+		-t $(IMAGE) .
 	docker push $(IMAGE)
 
 # Скачать свежий образ и перезапустить приложение
