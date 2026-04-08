@@ -18,6 +18,8 @@ export function CommentForm({ entityId }: { entityId: number }) {
     const formRef = useRef<HTMLFormElement>(null)
     const [isMounted, setIsMounted] = useState(false)
     const [isExpanded, setIsExpanded] = useState(false)
+    const [body, setBody] = useState("")
+    const [author, setAuthor] = useState("")
     const [mode, setMode] = useState<"captcha" | "ready">("captcha")
     const [resetKey, setResetKey] = useState(0)
 
@@ -65,6 +67,8 @@ export function CommentForm({ entityId }: { entityId: number }) {
         if (altchaInput instanceof HTMLInputElement) {
             altchaInput.value = ""
         }
+        setBody("")
+        setAuthor("")
         setIsExpanded(false)
         setMode("captcha")
         setResetKey((key: number) => key + 1)
@@ -94,6 +98,9 @@ export function CommentForm({ entityId }: { entityId: number }) {
                         Здесь можно оставить короткое воспоминание, уточнение или отклик.
                         Комментарий появится после модерации.
                     </p>
+                    <p className="text-xs text-ink-muted leading-relaxed">
+                        Пожалуйста, сохраняйте уважительный тон и избегайте грубых выражений.
+                    </p>
 
                     <form ref={formRef} action={formAction} className="space-y-4">
                         <input type="hidden" name="entityId" value={entityId} />
@@ -117,6 +124,8 @@ export function CommentForm({ entityId }: { entityId: number }) {
                                 <Textarea
                                     id="comment-body"
                                     name="body"
+                                    value={body}
+                                    onChange={(event) => setBody(event.target.value)}
                                     required
                                     minLength={3}
                                     maxLength={2000}
@@ -135,6 +144,8 @@ export function CommentForm({ entityId }: { entityId: number }) {
                                 <Input
                                     id="comment-author"
                                     name="author"
+                                    value={author}
+                                    onChange={(event) => setAuthor(event.target.value)}
                                     maxLength={80}
                                     placeholder="Можно оставить пустым"
                                     className="h-9 bg-white text-sm"

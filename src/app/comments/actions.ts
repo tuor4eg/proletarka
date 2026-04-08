@@ -6,6 +6,7 @@ import { and, count, eq, gte } from "drizzle-orm"
 import { db } from "@/db"
 import { comments } from "@/db/schema"
 import { verifyAltchaCommentPayload } from "@/app/comments/altcha"
+import { containsProfanity } from "@/app/comments/profanity"
 import { getCommentTargetByEntityId } from "@/app/comments/queries"
 
 export type CreateCommentResult = {
@@ -89,12 +90,26 @@ export async function createComment(
         return { type: "error", message: "Подпись слишком длинная." }
     }
 
+    if (author && containsProfanity(author)) {
+        return {
+            type: "error",
+            message: "Комментарий не принят. Пожалуйста, уберите грубые выражения.",
+        }
+    }
+
     if (!body || body.length < MIN_BODY_LENGTH) {
         return { type: "error", message: "Комментарий слишком короткий." }
     }
 
     if (body.length > MAX_BODY_LENGTH) {
         return { type: "error", message: "Комментарий слишком длинный." }
+    }
+
+    if (containsProfanity(body)) {
+        return {
+            type: "error",
+            message: "Комментарий не принят. Пожалуйста, уберите грубые выражения.",
+        }
     }
 
     if (honeypot) {
