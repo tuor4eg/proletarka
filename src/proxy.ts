@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { jwtVerify } from "jose"
-import { env } from "@/lib/env"
 
 const PUBLIC_PATHS = ["/admin/login"]
 
 function getSecret() {
-    return new TextEncoder().encode(env.sessionSecret)
+    const secret = process.env.SESSION_SECRET
+    if (!secret) throw new Error("SESSION_SECRET is not set")
+    return new TextEncoder().encode(secret)
 }
 
 export async function proxy(request: NextRequest) {
