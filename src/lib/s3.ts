@@ -1,19 +1,20 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3"
 import { randomUUID } from "crypto"
 import path from "path"
+import { env } from "@/lib/env"
 
 const client = new S3Client({
-    endpoint: process.env.S3_ENDPOINT,
-    region: process.env.S3_REGION ?? "us-east-1",
+    endpoint: env.s3.endpoint,
+    region: env.s3.region,
     credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY!,
-        secretAccessKey: process.env.S3_SECRET_KEY!,
+        accessKeyId: env.s3.accessKeyId,
+        secretAccessKey: env.s3.secretAccessKey,
     },
     forcePathStyle: true, // нужно для MinIO и большинства не-AWS провайдеров
 })
 
-const BUCKET = process.env.S3_BUCKET!
-const PUBLIC_URL = process.env.S3_PUBLIC_URL!
+const BUCKET = env.s3.bucket
+const PUBLIC_URL = env.s3.publicUrl
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB

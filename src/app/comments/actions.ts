@@ -8,6 +8,7 @@ import { comments } from "@/db/schema"
 import { verifyAltchaCommentPayload } from "@/app/comments/altcha"
 import { containsProfanity } from "@/app/comments/profanity"
 import { getCommentTargetByEntityId } from "@/app/comments/queries"
+import { buildCommentCreatedEvent, sendOutboundEvent } from "@/lib/outboundEvents"
 
 export type CreateCommentResult = {
     type: "success" | "error"
@@ -137,12 +138,36 @@ export async function createComment(
         }
     }
 
-    await db.insert(comments).values({
-        entityId,
-        author,
-        body,
-        ipHash,
-    })
+    const [createdComment] = await db
+        .insert(comments)
+        .values({
+            entityId,
+            author,
+            body,
+            ipHash,
+        })
+        .returning({
+            id: comments.id,
+            author: comments.author,
+            body: comments.body,
+            createdAt: comments.createdAt,
+        })
+
+    if (createdComment) {
+        try {
+            await sendOutboundEvent(
+                buildCommentCreatedEvent({
+                    comment: {
+                        ...createdComment,
+                        status: "pending",
+                    },
+                    target,
+                }),
+            )
+        } catch (error) {
+            console.error("Failed to send outbound event for new comment", error)
+        }
+    }
 
     return {
         type: "success",

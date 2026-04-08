@@ -1,13 +1,12 @@
 import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
+import { env } from "@/lib/env"
 
 const COOKIE_NAME = "session"
 const EXPIRES_IN = 60 * 60 * 24 * 7 // 7 days in seconds
 
 function getSecret() {
-    const secret = process.env.SESSION_SECRET
-    if (!secret) throw new Error("SESSION_SECRET is not set")
-    return new TextEncoder().encode(secret)
+    return new TextEncoder().encode(env.sessionSecret)
 }
 
 export type SessionPayload = {
@@ -25,7 +24,7 @@ export async function createSession(payload: SessionPayload) {
     cookieStore.set(COOKIE_NAME, token, {
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.SECURE_COOKIES === "true",
+        secure: env.secureCookies,
         maxAge: EXPIRES_IN,
         path: "/",
     })

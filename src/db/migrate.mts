@@ -2,8 +2,9 @@ import { drizzle } from "drizzle-orm/node-postgres"
 import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Pool } from "pg"
 import fs from "node:fs"
+import { env } from "@/lib/env"
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const pool = new Pool({ connectionString: env.databaseUrl })
 const db = drizzle(pool)
 
 const journal = JSON.parse(fs.readFileSync("./drizzle/meta/_journal.json", "utf-8"))
