@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const NAV_LINKS: { href: string; label: string; exact?: boolean }[] = [
     { href: "/admin/people", label: "Картотека" },
@@ -18,7 +19,18 @@ const MANAGEMENT_LINKS: { href: string; label: string }[] = [
     { href: "/admin/settings", label: "Настройки" },
 ]
 
-export function AdminNav() {
+function NewCommentsIndicator() {
+    return (
+        <Tooltip>
+            <TooltipTrigger render={<span />}>
+                <span className="inline-block size-2 rounded-full bg-red-500 shrink-0" />
+            </TooltipTrigger>
+            <TooltipContent>Есть новые комментарии</TooltipContent>
+        </Tooltip>
+    )
+}
+
+export function AdminNav({ hasPendingComments = false }: { hasPendingComments?: boolean }) {
     const pathname = usePathname()
     const [isManagementOpen, setIsManagementOpen] = useState(false)
 
@@ -62,7 +74,8 @@ export function AdminNav() {
                                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                             }`}
                         >
-                            Управление
+                            Инструменты
+                            {hasPendingComments ? <NewCommentsIndicator /> : null}
                             <ChevronDown
                                 className={`size-4 transition-transform duration-150 ${
                                     isManagementOpen ? "rotate-180" : ""
@@ -82,13 +95,16 @@ export function AdminNav() {
                                         key={href}
                                         href={href}
                                         onClick={() => setIsManagementOpen(false)}
-                                        className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                                             pathname.startsWith(href)
                                                 ? "bg-gray-100 text-gray-900 font-medium"
                                                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                                         }`}
                                     >
-                                        {label}
+                                        <span>{label}</span>
+                                        {href === "/admin/comments" && hasPendingComments ? (
+                                            <NewCommentsIndicator />
+                                        ) : null}
                                     </Link>
                                 ))}
                                 <div className="my-1 h-px bg-gray-100" />
