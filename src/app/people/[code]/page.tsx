@@ -6,9 +6,11 @@ import { PageHero } from "@/components/PageHero"
 import { PersonTabs } from "@/components/PersonTabs"
 import { PersonTimeline } from "@/components/PersonTimeline"
 import { BackButton } from "@/components/BackButton"
+import { CommentsSection } from "@/components/comments/CommentsSection"
 
 type Props = {
     params: Promise<{ code: string }>
+    searchParams: Promise<{ page?: string; sort?: "date_desc" | "date_asc" }>
 }
 
 function formatYears(
@@ -22,8 +24,10 @@ function formatYears(
     return yearsLabel ?? null
 }
 
-export default async function PersonPage({ params }: Props) {
+export default async function PersonPage({ params, searchParams }: Props) {
     const { code } = await params
+    const { page: pageParam, sort = "date_desc" } = await searchParams
+    const commentsPage = Math.max(1, Number(pageParam) || 1)
 
     const [row] = await db
         .select({ entity: entities, person: people })
@@ -140,6 +144,8 @@ export default async function PersonPage({ params }: Props) {
                 <PersonTimeline events={entityEvents} />
 
                 <PersonTabs articles={articles} photos={photos} documents={documents} />
+
+                <CommentsSection entityId={entity.id} page={commentsPage} sort={sort} />
             </main>
         </>
     )

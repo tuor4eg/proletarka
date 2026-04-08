@@ -13,13 +13,17 @@ import {
 import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
+import { CommentsSection } from "@/components/comments/CommentsSection"
 
 type Props = {
     params: Promise<{ code: string }>
+    searchParams: Promise<{ page?: string; sort?: "date_desc" | "date_asc" }>
 }
 
-export default async function ArtifactPage({ params }: Props) {
+export default async function ArtifactPage({ params, searchParams }: Props) {
     const { code } = await params
+    const { page: pageParam, sort = "date_desc" } = await searchParams
+    const commentsPage = Math.max(1, Number(pageParam) || 1)
 
     const [row] = await db
         .select({ entity: entities, artifact: artifacts })
@@ -235,6 +239,8 @@ export default async function ArtifactPage({ params }: Props) {
                 ) : (
                     renderMaterials(allMaterials)
                 )}
+
+                <CommentsSection entityId={entity.id} page={commentsPage} sort={sort} />
             </main>
         </>
     )

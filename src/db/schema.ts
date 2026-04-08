@@ -5,11 +5,13 @@ export const statusEnum = pgEnum("status", ["draft", "published"])
 export const roleEnum = pgEnum("role", ["admin"])
 export const materialTypeEnum = pgEnum("material_type", ["article", "photo", "document"])
 export const artifactTypeEnum = pgEnum("artifact_type", ["general", "stand", "rarity", "fund"])
+export const commentStatusEnum = pgEnum("comment_status", ["pending", "approved", "hidden"])
 
 export type MaterialType = (typeof materialTypeEnum.enumValues)[number]
 export type Status = (typeof statusEnum.enumValues)[number]
 export type EntityType = (typeof entityTypeEnum.enumValues)[number]
 export type ArtifactType = (typeof artifactTypeEnum.enumValues)[number]
+export type CommentStatus = (typeof commentStatusEnum.enumValues)[number]
 
 export const users = pgTable("users", {
     id: serial("id").primaryKey(),
@@ -176,6 +178,20 @@ export const showcases = pgTable("showcases", {
         .references(() => artifacts.id, { onDelete: "cascade" }),
 })
 
+export const comments = pgTable("comments", {
+    id: serial("id").primaryKey(),
+    entityId: integer("entity_id")
+        .notNull()
+        .references(() => entities.id, { onDelete: "cascade" }),
+    status: commentStatusEnum("status").notNull().default("pending"),
+    author: text("author"),
+    body: text("body").notNull(),
+    ipHash: text("ip_hash"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    moderatedAt: timestamp("moderated_at"),
+    moderatedBy: integer("moderated_by").references(() => users.id),
+})
+
 export const adminActionEnum = pgEnum("admin_action", [
     "create",
     "update",
@@ -207,6 +223,11 @@ export const adminLogsRelations = relations(adminLogs, ({ one }) => ({
     user: one(users, { fields: [adminLogs.userId], references: [users.id] }),
 }))
 
+export const commentsRelations = relations(comments, ({ one }) => ({
+    entity: one(entities, { fields: [comments.entityId], references: [entities.id] }),
+    moderator: one(users, { fields: [comments.moderatedBy], references: [users.id] }),
+}))
+
 export const artifactsRelations = relations(artifacts, ({ many }) => ({
     entities: many(entities),
     sections: many(artifactSections),
@@ -228,6 +249,7 @@ export const entitiesRelations = relations(entities, ({ one, many }) => ({
     materials: many(materials),
     events: many(events),
     entityTopics: many(entityTopics),
+    comments: many(comments),
 }))
 
 export const materialsRelations = relations(materials, ({ one, many }) => ({

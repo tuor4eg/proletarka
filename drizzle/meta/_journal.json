@@ -92,6 +92,13 @@
             "when": 1775478965044,
             "tag": "0012_same_mastermind",
             "breakpoints": true
+        },
+        {
+            "idx": 13,
+            "version": "7",
+            "when": 1775597581225,
+            "tag": "0013_lucky_cerebro",
+            "breakpoints": true
         }
     ]
 }

@@ -2,21 +2,31 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { ChevronDown } from "lucide-react"
+import { useState } from "react"
 
 const NAV_LINKS: { href: string; label: string; exact?: boolean }[] = [
     { href: "/admin/people", label: "Картотека" },
     { href: "/admin/artifacts", label: "Объекты" },
     { href: "/admin/materials", label: "Материалы" },
     { href: "/admin/topics", label: "Темы" },
+]
+
+const MANAGEMENT_LINKS: { href: string; label: string }[] = [
+    { href: "/admin/comments", label: "Комментарии" },
     { href: "/admin/logs", label: "Журнал" },
+    { href: "/admin/settings", label: "Настройки" },
 ]
 
 export function AdminNav() {
     const pathname = usePathname()
+    const [isManagementOpen, setIsManagementOpen] = useState(false)
 
     function isActive(href: string, exact?: boolean) {
         return exact ? pathname === href : pathname.startsWith(href)
     }
+
+    const isManagementActive = MANAGEMENT_LINKS.some(({ href }) => pathname.startsWith(href))
 
     return (
         <nav className="border-b border-gray-200 bg-white sticky top-0 z-10">
@@ -38,30 +48,68 @@ export function AdminNav() {
                     ))}
                 </div>
                 <div className="flex items-center gap-4">
-                    <Link
-                        href="/admin/settings"
-                        className={`text-sm transition-colors ${
-                            pathname === "/admin/settings"
-                                ? "text-gray-900 font-medium"
-                                : "text-gray-500 hover:text-gray-900"
-                        }`}
+                    <div
+                        className="relative group"
+                        onMouseEnter={() => setIsManagementOpen(true)}
+                        onMouseLeave={() => setIsManagementOpen(false)}
                     >
-                        Настройки
-                    </Link>
+                        <button
+                            type="button"
+                            onClick={() => setIsManagementOpen((open) => !open)}
+                            className={`text-sm px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 ${
+                                isManagementActive
+                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                            }`}
+                        >
+                            Управление
+                            <ChevronDown
+                                className={`size-4 transition-transform duration-150 ${
+                                    isManagementOpen ? "rotate-180" : ""
+                                }`}
+                            />
+                        </button>
+                        <div
+                            className={`absolute right-0 top-full pt-2 transition-all duration-150 ${
+                                isManagementOpen
+                                    ? "opacity-100 pointer-events-auto translate-y-0"
+                                    : "opacity-0 pointer-events-none translate-y-1"
+                            }`}
+                        >
+                            <div className="w-48 rounded-xl border border-gray-200 bg-white shadow-lg p-1.5">
+                                {MANAGEMENT_LINKS.map(({ href, label }) => (
+                                    <Link
+                                        key={href}
+                                        href={href}
+                                        onClick={() => setIsManagementOpen(false)}
+                                        className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                                            pathname.startsWith(href)
+                                                ? "bg-gray-100 text-gray-900 font-medium"
+                                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                        }`}
+                                    >
+                                        {label}
+                                    </Link>
+                                ))}
+                                <div className="my-1 h-px bg-gray-100" />
+                                <form action="/admin/logout" method="POST">
+                                    <button
+                                        type="submit"
+                                        onClick={() => setIsManagementOpen(false)}
+                                        className="block w-full text-left rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                                    >
+                                        Выйти
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     <Link
                         href="/"
                         className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
                     >
                         ← Сайт
                     </Link>
-                    <form action="/admin/logout" method="POST">
-                        <button
-                            type="submit"
-                            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            Выйти
-                        </button>
-                    </form>
                 </div>
             </div>
         </nav>

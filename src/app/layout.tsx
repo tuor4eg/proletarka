@@ -5,6 +5,7 @@ import { NavigationProgress } from "@/components/NavigationProgress"
 import { YandexMetrika } from "@/components/YandexMetrika"
 import { Geist } from "next/font/google"
 import { cn } from "@/lib/utils"
+import { Toaster } from "@/components/ui/sonner"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -34,6 +35,7 @@ export default function RootLayout({
                     <NavigationProgress />
                 </Suspense>
                 {children}
+                <Toaster position="bottom-center" richColors />
                 <YandexMetrika />
             </body>
         </html>
