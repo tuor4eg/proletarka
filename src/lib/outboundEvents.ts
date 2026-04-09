@@ -65,21 +65,16 @@ export function buildCommentCreatedEvent({
         },
         payload: {
             comment: {
-                id: comment.id,
-                author: comment.author,
-                bodyPreview: buildBodyPreview(comment.body),
-                createdAt: comment.createdAt.toISOString(),
-                status: comment.status,
+                text: buildBodyPreview(comment.body),
+                authorName: comment.author,
             },
             target: {
-                entityId: target.entityId,
                 type: target.type,
                 title: target.title,
-                publicPath: target.publicPath,
             },
-            links: {
-                publicUrl: buildAbsoluteUrl(target.publicPath),
-                adminUrl: buildAbsoluteUrl("/admin/comments"),
+            urls: {
+                public: buildAbsoluteUrl(target.publicPath),
+                admin: buildAbsoluteUrl("/admin/comments"),
             },
         },
     }
