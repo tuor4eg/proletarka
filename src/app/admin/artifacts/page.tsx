@@ -12,14 +12,12 @@ const TYPE_LABEL: Record<ArtifactType, string> = {
     rarity: "Экспонат",
     fund: "Фонд",
 }
-
-const ARTIFACT_TYPE_OPTIONS = [
-    { value: "", label: "Все типы" },
-    { value: "stand", label: "Стенд" },
-    { value: "general", label: "Объект" },
-    { value: "rarity", label: "Экспонат" },
-    { value: "fund", label: "Фонд" },
-]
+const TYPE_TITLES: Record<ArtifactType, string> = {
+    general: "Объекты",
+    stand: "Стенды",
+    rarity: "Экспонаты",
+    fund: "Фонды",
+}
 
 const PAGE_SIZE = 20
 
@@ -87,13 +85,15 @@ export default async function ArtifactsPage({ searchParams }: { searchParams: Se
     }
 
     const totalPages = Math.ceil(total / PAGE_SIZE)
+    const pageTitle = type ? TYPE_TITLES[type] : "Исторические объекты"
+    const addHref = type ? `/admin/artifacts/new?type=${type}` : "/admin/artifacts/new"
 
     return (
         <div className="py-6">
             <div className="flex items-center justify-between mb-1">
-                <h1 className="text-xl font-bold">Исторические объекты</h1>
+                <h1 className="text-xl font-bold">{pageTitle}</h1>
                 <Link
-                    href="/admin/artifacts/new"
+                    href={addHref}
                     className="text-sm bg-black text-white rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors"
                 >
                     + Добавить
@@ -101,13 +101,7 @@ export default async function ArtifactsPage({ searchParams }: { searchParams: Se
             </div>
             <p className="text-xs text-gray-400 mb-5">{total} всего</p>
             <Suspense>
-                <AdminFilters
-                    q={q ?? ""}
-                    sort={sort}
-                    type={type ?? ""}
-                    showType
-                    typeOptions={ARTIFACT_TYPE_OPTIONS}
-                />
+                <AdminFilters q={q ?? ""} sort={sort} />
             </Suspense>
             {rows.length === 0 ? (
                 <p className="text-sm text-gray-500">Ничего не найдено.</p>

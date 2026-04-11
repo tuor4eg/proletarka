@@ -72,6 +72,7 @@ type Props = {
     selectedTopicIds?: number[]
     defaultEntityId?: number
     defaultMaterialType?: MaterialType
+    materialTypeLocked?: boolean
     defaultSectionId?: number
 }
 
@@ -107,10 +108,12 @@ export function MaterialForm({
     selectedTopicIds = [],
     defaultEntityId,
     defaultMaterialType,
+    materialTypeLocked = false,
     defaultSectionId,
 }: Props) {
     const [state, formAction] = useActionState(action, null)
     const formRef = useRef<HTMLFormElement>(null)
+    const isEditing = Boolean(material)
     const [status, setStatus] = useState<Status>(material?.status ?? "published")
     const [materialType, setMaterialType] = useState<MaterialType>(
         material?.materialType ?? defaultMaterialType ?? "article",
@@ -229,15 +232,27 @@ export function MaterialForm({
                     </Field>
 
                     <Field label="Тип *">
+                        {materialTypeLocked && (
+                            <input type="hidden" name="materialType" value={materialType} />
+                        )}
                         <select
                             name="materialType"
                             required
                             value={materialType}
                             onChange={(e) => setMaterialType(e.target.value as MaterialType)}
-                            className={inputClass}
+                            disabled={materialTypeLocked}
+                            className={`${inputClass} disabled:bg-gray-50 disabled:text-gray-400`}
                         >
                             {MATERIAL_TYPES.map(({ value, label }) => (
-                                <option key={value} value={value}>
+                                <option
+                                    key={value}
+                                    value={value}
+                                    disabled={
+                                        isEditing &&
+                                        material?.materialType !== "news" &&
+                                        value === "news"
+                                    }
+                                >
                                     {label}
                                 </option>
                             ))}

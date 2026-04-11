@@ -9,6 +9,13 @@ import { TYPE_LABEL, STATUS_LABEL } from "@/components/LinkedMaterialsList"
 import { Suspense } from "react"
 const PAGE_SIZE = 20
 
+const TYPE_TITLES: Record<MaterialType, string> = {
+    article: "Статьи",
+    news: "Новости",
+    photo: "Фото",
+    document: "Документы",
+}
+
 type SearchParams = Promise<{
     q?: string
     status?: Status
@@ -47,19 +54,24 @@ export default async function AdminMaterialsPage({ searchParams }: { searchParam
             .limit(PAGE_SIZE)
             .offset((page - 1) * PAGE_SIZE),
         db.select({ total: count() }).from(materials).where(where),
-        db.select({ status: materials.status }).from(materials),
+        db
+            .select({ status: materials.status })
+            .from(materials)
+            .where(type ? eq(materials.materialType, type) : undefined),
     ])
 
     const totalPages = Math.ceil(total / PAGE_SIZE)
     const published = allItems.filter((i) => i.status === "published").length
     const drafts = allItems.filter((i) => i.status === "draft").length
+    const pageTitle = type ? TYPE_TITLES[type] : "Материалы"
+    const addHref = type ? `/admin/new?materialType=${type}` : "/admin/new"
 
     return (
         <div className="py-6">
             <div className="flex items-center justify-between mb-1">
-                <h1 className="text-xl font-bold">Материалы</h1>
+                <h1 className="text-xl font-bold">{pageTitle}</h1>
                 <Link
-                    href="/admin/new"
+                    href={addHref}
                     className="text-sm bg-black text-white rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors"
                 >
                     + Добавить
@@ -69,14 +81,7 @@ export default async function AdminMaterialsPage({ searchParams }: { searchParam
                 {allItems.length} всего · {published} опубликовано · {drafts} черновиков
             </p>
             <Suspense>
-                <AdminFilters
-                    q={q ?? ""}
-                    status={status ?? ""}
-                    type={type ?? ""}
-                    sort={sort}
-                    showStatus
-                    showType
-                />
+                <AdminFilters q={q ?? ""} status={status ?? ""} sort={sort} showStatus />
             </Suspense>
             {items.length === 0 ? (
                 <p className="text-sm text-gray-500">Ничего не найдено.</p>

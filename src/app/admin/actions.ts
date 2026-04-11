@@ -75,12 +75,27 @@ export async function updateMaterial(
     formData: FormData,
 ): Promise<ActionResult> {
     const [current] = await db
-        .select({ coverImagePath: materials.coverImagePath })
+        .select({
+            coverImagePath: materials.coverImagePath,
+            materialType: materials.materialType,
+        })
         .from(materials)
         .where(eq(materials.id, id))
         .limit(1)
 
     const values = await parseFormData(formData)
+
+    if (current?.materialType !== values.materialType) {
+        if (current?.materialType === "news" || values.materialType === "news") {
+            return {
+                message: "Тип новости можно задать только при создании",
+                type: "error",
+                status: values.status,
+                materialType: current?.materialType,
+            }
+        }
+    }
+
     const topicIds = parseTopicIds(formData, values.materialType)
 
     if (current?.coverImagePath && current.coverImagePath !== values.coverImagePath) {

@@ -1,13 +1,22 @@
 import { db } from "@/db"
-import { topics } from "@/db/schema"
+import { topics, type ArtifactType } from "@/db/schema"
 import { createArtifact } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { ImageUpload } from "@/components/ImageUpload"
 import { SubmitButton } from "@/components/SubmitButton"
 import { CodeField } from "@/components/CodeField"
 
-export default async function NewArtifactPage() {
+const ARTIFACT_TYPES: ArtifactType[] = ["general", "stand", "rarity", "fund"]
+
+type Props = {
+    searchParams: Promise<{ type?: ArtifactType }>
+}
+
+export default async function NewArtifactPage({ searchParams }: Props) {
+    const { type } = await searchParams
     const allTopics = await db.select({ id: topics.id, title: topics.title }).from(topics)
+    const defaultType = ARTIFACT_TYPES.includes(type as ArtifactType) ? type : undefined
+    const typeLocked = Boolean(defaultType)
 
     return (
         <div className="py-6">
@@ -63,7 +72,13 @@ export default async function NewArtifactPage() {
                     </Field>
                 )}
                 <Field label="Тип">
-                    <select name="artifactType" className={inputClass}>
+                    {typeLocked && <input type="hidden" name="artifactType" value={defaultType} />}
+                    <select
+                        name="artifactType"
+                        defaultValue={defaultType}
+                        disabled={typeLocked}
+                        className={`${inputClass} disabled:bg-gray-50 disabled:text-gray-400`}
+                    >
                         <option value="general">Обычный</option>
                         <option value="stand">Стенд</option>
                         <option value="rarity">Экспонат</option>

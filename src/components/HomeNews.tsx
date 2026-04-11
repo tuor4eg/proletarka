@@ -11,6 +11,7 @@ export async function HomeNews() {
             title: materials.title,
             summary: materials.summary,
             content: materials.content,
+            coverImagePath: materials.coverImagePath,
             createdAt: materials.createdAt,
         })
         .from(materials)
@@ -39,19 +40,34 @@ export async function HomeNews() {
                         <Link
                             key={item.id}
                             href={`/materials/${item.id}`}
-                            className="flex min-h-[150px] flex-col rounded-2xl border border-paper-border bg-white/50 p-4 hover:bg-white/80 transition-colors"
+                            className="flex min-h-[116px] flex-col rounded-2xl border border-paper-border bg-white/50 p-4 hover:bg-white/80 transition-colors"
                         >
                             <p className="text-xs uppercase tracking-wide text-ink-muted mb-2">
                                 {formatMaterialDate(item.createdAt)}
                             </p>
-                            <h3 className="text-base font-semibold text-ink line-clamp-2">
-                                {item.title}
-                            </h3>
-                            {preview && (
-                                <p className="mt-2 text-sm text-ink-muted leading-relaxed line-clamp-3">
-                                    {preview}
-                                </p>
-                            )}
+                            <div className="flex items-start gap-3 min-w-0">
+                                <div className="w-14 h-14 rounded-xl overflow-hidden bg-paper-dark shrink-0">
+                                    {item.coverImagePath ? (
+                                        <img
+                                            src={item.coverImagePath}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full" />
+                                    )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="text-sm font-semibold text-ink leading-tight line-clamp-2">
+                                        {item.title}
+                                    </h3>
+                                    {preview && (
+                                        <p className="mt-1 text-xs text-ink-muted leading-relaxed line-clamp-3">
+                                            {preview}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
                         </Link>
                     )
                 })}

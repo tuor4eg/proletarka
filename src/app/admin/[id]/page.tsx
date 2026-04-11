@@ -85,6 +85,7 @@ export default async function EditMaterialPage({ params }: Props) {
                 entities={entitiesList}
                 topics={topicRows}
                 selectedTopicIds={selectedTopicIds}
+                materialTypeLocked={material.materialType === "news"}
                 defaultSectionId={material.sectionId ?? undefined}
             />
         </div>

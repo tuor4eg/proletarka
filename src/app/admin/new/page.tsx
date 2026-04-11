@@ -63,6 +63,7 @@ export default async function NewMaterialPage({ searchParams }: Props) {
                 topics={topicRows}
                 defaultEntityId={entityId ? Number(entityId) : undefined}
                 defaultMaterialType={materialType}
+                materialTypeLocked={Boolean(materialType)}
                 defaultSectionId={sectionId ? Number(sectionId) : undefined}
             />
         </div>
