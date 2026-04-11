@@ -15,6 +15,11 @@ type Material = {
     yearFrom: number | null
     yearTo: number | null
     sourceUrl: string | null
+    materialType?: string | null
+    linkedPeople?: Array<{
+        code: string
+        name: string
+    }>
 }
 
 type Props = {
@@ -189,6 +194,25 @@ function PhotoGrid({ items, onOpen }: { items: Material[]; onOpen: (index: numbe
                         </div>
                         <p className="text-xs text-ink-secondary leading-tight">{item.title}</p>
                         <YearRange yearFrom={item.yearFrom} yearTo={item.yearTo} />
+                        {item.materialType === "group_photo" &&
+                            item.linkedPeople &&
+                            item.linkedPeople.length > 0 && (
+                                <p className="text-xs text-ink-muted leading-tight">
+                                    На фото также:{" "}
+                                    {item.linkedPeople.map((person, index) => (
+                                        <span key={person.code}>
+                                            {index > 0 ? ", " : ""}
+                                            <Link
+                                                href={`/people/${person.code}`}
+                                                className="text-ink-secondary hover:text-ink transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {person.name}
+                                            </Link>
+                                        </span>
+                                    ))}
+                                </p>
+                            )}
                     </div>
                 )
             })}

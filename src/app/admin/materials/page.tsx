@@ -7,12 +7,14 @@ import { PublishToggle } from "@/components/PublishToggle"
 import { Pagination } from "@/components/Pagination"
 import { TYPE_LABEL, STATUS_LABEL } from "@/components/LinkedMaterialsList"
 import { Suspense } from "react"
+import { buildBackstackHref, parseBackstack, pushBackstack } from "@/lib/adminBackstack"
 const PAGE_SIZE = 20
 
 const TYPE_TITLES: Record<MaterialType, string> = {
     article: "Статьи",
     news: "Новости",
     photo: "Фото",
+    group_photo: "Групповые фото",
     document: "Документы",
 }
 
@@ -22,11 +24,23 @@ type SearchParams = Promise<{
     type?: MaterialType
     sort?: string
     page?: string
+    backstack?: string
 }>
 
 export default async function AdminMaterialsPage({ searchParams }: { searchParams: SearchParams }) {
-    const { q, status, type, sort = "date_desc", page: pageParam } = await searchParams
+    const { q, status, type, sort = "date_desc", page: pageParam, backstack } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
+    const currentParams = new URLSearchParams()
+    const currentBackstack = parseBackstack(backstack)
+
+    if (q) currentParams.set("q", q)
+    if (status) currentParams.set("status", status)
+    if (type) currentParams.set("type", type)
+    if (sort) currentParams.set("sort", sort)
+    if (page > 1) currentParams.set("page", String(page))
+
+    const currentUrl = `/admin/materials${currentParams.toString() ? `?${currentParams.toString()}` : ""}`
+    const nextBackstack = pushBackstack(currentBackstack, currentUrl)
 
     const conditions = [
         q ? ilike(materials.title, `%${q}%`) : undefined,
@@ -94,7 +108,7 @@ export default async function AdminMaterialsPage({ searchParams }: { searchParam
                                 className="flex items-center gap-2 px-4 hover:bg-gray-50 transition-colors"
                             >
                                 <Link
-                                    href={`/admin/${item.id}`}
+                                    href={buildBackstackHref(`/admin/${item.id}`, nextBackstack)}
                                     className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
                                 >
                                     <span className="text-sm font-medium flex-1 min-w-0 truncate">

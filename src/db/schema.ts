@@ -3,7 +3,13 @@ import { relations } from "drizzle-orm"
 
 export const statusEnum = pgEnum("status", ["draft", "published"])
 export const roleEnum = pgEnum("role", ["admin"])
-export const materialTypeEnum = pgEnum("material_type", ["article", "news", "photo", "document"])
+export const materialTypeEnum = pgEnum("material_type", [
+    "article",
+    "news",
+    "photo",
+    "group_photo",
+    "document",
+])
 export const artifactTypeEnum = pgEnum("artifact_type", ["general", "stand", "rarity", "fund"])
 export const commentStatusEnum = pgEnum("comment_status", ["pending", "approved", "hidden"])
 
@@ -112,6 +118,19 @@ export const materialTopics = pgTable(
             .references(() => topics.id),
     },
     (t) => [primaryKey({ columns: [t.materialId, t.topicId] })],
+)
+
+export const personMaterials = pgTable(
+    "person_materials",
+    {
+        personId: integer("person_id")
+            .notNull()
+            .references(() => people.id, { onDelete: "cascade" }),
+        materialId: integer("material_id")
+            .notNull()
+            .references(() => materials.id, { onDelete: "cascade" }),
+    },
+    (t) => [primaryKey({ columns: [t.personId, t.materialId] })],
 )
 
 export const events = pgTable("events", {
@@ -241,6 +260,7 @@ export const artifactSectionsRelations = relations(artifactSections, ({ one, man
 
 export const peopleRelations = relations(people, ({ many }) => ({
     entities: many(entities),
+    personMaterials: many(personMaterials),
 }))
 
 export const entitiesRelations = relations(entities, ({ one, many }) => ({
@@ -259,7 +279,13 @@ export const materialsRelations = relations(materials, ({ one, many }) => ({
         references: [artifactSections.id],
     }),
     materialTopics: many(materialTopics),
+    personMaterials: many(personMaterials),
     artifactMaterials: many(artifactMaterials),
+}))
+
+export const personMaterialsRelations = relations(personMaterials, ({ one }) => ({
+    person: one(people, { fields: [personMaterials.personId], references: [people.id] }),
+    material: one(materials, { fields: [personMaterials.materialId], references: [materials.id] }),
 }))
 
 export const artifactMaterialsRelations = relations(artifactMaterials, ({ one }) => ({

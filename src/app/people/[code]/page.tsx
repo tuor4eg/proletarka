@@ -1,7 +1,15 @@
 import { notFound } from "next/navigation"
-import { eq, and, asc } from "drizzle-orm"
+import { eq, and, asc, inArray } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, people, materials, events, eventTopics, topics } from "@/db/schema"
+import {
+    entities,
+    people,
+    materials,
+    personMaterials,
+    events,
+    eventTopics,
+    topics,
+} from "@/db/schema"
 import { PageHero } from "@/components/PageHero"
 import { PersonTabs } from "@/components/PersonTabs"
 import { PersonTimeline } from "@/components/PersonTimeline"
@@ -40,7 +48,12 @@ export default async function PersonPage({ params, searchParams }: Props) {
 
     const { entity, person } = row
 
-    const [linkedMaterials, eventRows] = await Promise.all([
+    type LinkedPerson = {
+        code: string
+        name: string
+    }
+
+    const [nativeMaterials, groupPhotoMaterials, eventRows] = await Promise.all([
         db
             .select({
                 id: materials.id,
@@ -57,6 +70,27 @@ export default async function PersonPage({ params, searchParams }: Props) {
             .where(and(eq(materials.entityId, entity.id), eq(materials.status, "published"))),
         db
             .select({
+                id: materials.id,
+                title: materials.title,
+                summary: materials.summary,
+                content: materials.content,
+                coverImagePath: materials.coverImagePath,
+                yearFrom: materials.yearFrom,
+                yearTo: materials.yearTo,
+                sourceUrl: materials.sourceUrl,
+                materialType: materials.materialType,
+            })
+            .from(personMaterials)
+            .innerJoin(materials, eq(personMaterials.materialId, materials.id))
+            .where(
+                and(
+                    eq(personMaterials.personId, person.id),
+                    eq(materials.status, "published"),
+                    eq(materials.materialType, "group_photo"),
+                ),
+            ),
+        db
+            .select({
                 id: events.id,
                 text: events.text,
                 yearFrom: events.yearFrom,
@@ -70,6 +104,38 @@ export default async function PersonPage({ params, searchParams }: Props) {
             .where(eq(events.entityId, entity.id))
             .orderBy(asc(events.yearFrom), asc(events.id)),
     ])
+
+    const groupPhotoIds = groupPhotoMaterials.map((item) => item.id)
+    const linkedPeopleRows = groupPhotoIds.length
+        ? await db
+              .select({
+                  materialId: personMaterials.materialId,
+                  code: people.code,
+                  name: people.name,
+              })
+              .from(personMaterials)
+              .innerJoin(people, eq(personMaterials.personId, people.id))
+              .where(inArray(personMaterials.materialId, groupPhotoIds))
+        : []
+
+    const linkedPeopleMap = new Map<number, LinkedPerson[]>()
+    for (const row of linkedPeopleRows) {
+        if (row.code === person.code) continue
+        if (!linkedPeopleMap.has(row.materialId)) linkedPeopleMap.set(row.materialId, [])
+        linkedPeopleMap.get(row.materialId)!.push({ code: row.code, name: row.name })
+    }
+
+    const normalizedGroupPhotos = groupPhotoMaterials.map((material) => ({
+        ...material,
+        linkedPeople: linkedPeopleMap.get(material.id) ?? [],
+    }))
+
+    const linkedMaterials = [
+        ...nativeMaterials,
+        ...normalizedGroupPhotos.filter(
+            (groupPhoto) => !nativeMaterials.some((material) => material.id === groupPhoto.id),
+        ),
+    ]
 
     // Группируем темы по событию
     const eventsMap = new Map<
@@ -100,7 +166,9 @@ export default async function PersonPage({ params, searchParams }: Props) {
 
     const articles = linkedMaterials.filter((m) => m.materialType === "article")
     const news = linkedMaterials.filter((m) => m.materialType === "news")
-    const photos = linkedMaterials.filter((m) => m.materialType === "photo")
+    const photos = linkedMaterials.filter(
+        (m) => m.materialType === "photo" || m.materialType === "group_photo",
+    )
     const documents = linkedMaterials.filter((m) => m.materialType === "document")
 
     const years = formatYears(person.birthYear, person.deathYear, person.yearsLabel)
@@ -118,7 +186,10 @@ export default async function PersonPage({ params, searchParams }: Props) {
                             const avatarSrc =
                                 person.mainPhotoPath ??
                                 linkedMaterials.find(
-                                    (m) => m.materialType === "photo" && m.coverImagePath,
+                                    (m) =>
+                                        (m.materialType === "photo" ||
+                                            m.materialType === "group_photo") &&
+                                        m.coverImagePath,
                                 )?.coverImagePath ??
                                 null
                             return avatarSrc ? (

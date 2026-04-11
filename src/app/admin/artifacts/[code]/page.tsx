@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { eq, asc, sql, and } from "drizzle-orm"
+import { eq, asc, sql } from "drizzle-orm"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/db"
@@ -30,14 +30,27 @@ import { LinkedArtifactMaterialsBlock } from "@/components/LinkedArtifactMateria
 import { ImageUpload } from "@/components/ImageUpload"
 import { CodeField } from "@/components/CodeField"
 import { SortableMaterialsList } from "@/components/SortableMaterialsList"
-import { PublishToggle } from "@/components/PublishToggle"
+import {
+    buildBackstackHref,
+    getBackHref,
+    serializeBackstack,
+    parseBackstack,
+    pushBackstack,
+} from "@/lib/adminBackstack"
 
 type Props = {
     params: Promise<{ code: string }>
+    searchParams: Promise<{ backstack?: string }>
 }
 
-export default async function EditArtifactPage({ params }: Props) {
+export default async function EditArtifactPage({ params, searchParams }: Props) {
     const { code } = await params
+    const { backstack } = await searchParams
+    const currentBackstack = parseBackstack(backstack)
+    const backHref = getBackHref(currentBackstack, "/admin/artifacts")
+    const artifactUrl = buildBackstackHref(`/admin/artifacts/${code}`, currentBackstack)
+    const nextBackstack = pushBackstack(currentBackstack, artifactUrl)
+    const materialBackstack = serializeBackstack(nextBackstack)
 
     const [row] = await db
         .select({ entity: entities, artifact: artifacts })
@@ -105,7 +118,7 @@ export default async function EditArtifactPage({ params }: Props) {
         <div className="py-6">
             <div className="mb-6">
                 <Link
-                    href="/admin/artifacts"
+                    href={backHref}
                     className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors w-fit"
                 >
                     <ArrowLeft size={15} />
@@ -300,6 +313,7 @@ export default async function EditArtifactPage({ params }: Props) {
                                         initialItems={sectionMaterials}
                                         sections={sections}
                                         artifactId={row.artifact.id}
+                                        itemBackstack={materialBackstack}
                                         linkedItems={sectionLinkedMaterials.map((m) => ({
                                             id: m.materialId,
                                             title: m.title,
@@ -337,6 +351,7 @@ export default async function EditArtifactPage({ params }: Props) {
                                     <SortableMaterialsList
                                         initialItems={unsectioned}
                                         sections={sections}
+                                        itemBackstack={materialBackstack}
                                     />
                                 </div>
                             )
@@ -376,6 +391,7 @@ export default async function EditArtifactPage({ params }: Props) {
                     materials={linkedMaterials}
                     addHref={`/admin/new?entityId=${row.entity.id}&materialType=photo`}
                     showPosition
+                    itemBackstack={materialBackstack}
                 />
             )}
 
@@ -388,6 +404,7 @@ export default async function EditArtifactPage({ params }: Props) {
                 }
                 sections={sections}
                 isStand={isStand}
+                materialBackstack={materialBackstack}
             />
         </div>
     )

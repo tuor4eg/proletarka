@@ -4,12 +4,13 @@ import { BackButton } from "@/components/BackButton"
 type Props = {
     publicUrl?: string
     isPublished?: boolean
+    backHref?: string
 }
 
-export function EditPageHeader({ publicUrl, isPublished }: Props) {
+export function EditPageHeader({ publicUrl, isPublished, backHref }: Props) {
     return (
         <div className="flex items-center justify-between mb-6">
-            <BackButton />
+            <BackButton href={backHref} />
             {publicUrl &&
                 (isPublished ? (
                     <a

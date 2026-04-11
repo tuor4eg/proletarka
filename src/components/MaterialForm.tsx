@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useActionState } from "react"
 import { useFormStatus } from "react-dom"
+import { Search, X } from "lucide-react"
 import { toast } from "sonner"
 import type { ActionResult } from "@/app/admin/actions"
 import { InferSelectModel } from "drizzle-orm"
@@ -22,6 +23,11 @@ export type TopicOption = {
     title: string
 }
 
+export type PersonOption = {
+    id: number
+    name: string
+}
+
 export const STATUSES = [
     { value: "draft", label: "Черновик" },
     { value: "published", label: "Опубликовано" },
@@ -31,6 +37,7 @@ export const MATERIAL_TYPES = [
     { value: "article", label: "Статья" },
     { value: "news", label: "Новость" },
     { value: "photo", label: "Фото" },
+    { value: "group_photo", label: "Групповое фото" },
     { value: "document", label: "Документ" },
 ] as const
 
@@ -69,31 +76,184 @@ type Props = {
     material?: Material
     entities: EntityOption[]
     topics: TopicOption[]
+    people?: PersonOption[]
     selectedTopicIds?: number[]
+    selectedPersonIds?: number[]
     defaultEntityId?: number
     defaultMaterialType?: MaterialType
     materialTypeLocked?: boolean
     defaultSectionId?: number
+    backstack?: string
 }
 
 function FormActions({
     deleteAction,
     deleteConfirmBody,
+    saveDisabled = false,
+    saveLabel = "Сохранить",
 }: {
     deleteAction?: () => Promise<void>
     deleteConfirmBody?: string
+    saveDisabled?: boolean
+    saveLabel?: string
 }) {
     const { pending } = useFormStatus()
     return (
         <div className="flex items-center gap-3 mt-5">
             <button
                 type="submit"
-                disabled={pending}
+                disabled={pending || saveDisabled}
                 className="bg-black text-white text-sm font-medium rounded-xl px-5 py-2.5 hover:bg-gray-800 disabled:opacity-60 transition-colors"
             >
-                {pending ? "Сохранение…" : "Сохранить"}
+                {pending ? "Сохранение…" : saveLabel}
             </button>
             {deleteAction && <DeleteButton action={deleteAction} confirmBody={deleteConfirmBody} />}
+        </div>
+    )
+}
+
+function PeopleMultiSelect({
+    people,
+    selectedIds,
+    onChange,
+}: {
+    people: PersonOption[]
+    selectedIds: number[]
+    onChange: (personIds: number[]) => void
+}) {
+    const [query, setQuery] = useState("")
+    const [knownPeople, setKnownPeople] = useState<PersonOption[]>(people)
+    const [results, setResults] = useState<PersonOption[]>([])
+    const [searching, setSearching] = useState(false)
+
+    useEffect(() => {
+        setKnownPeople((current) => {
+            const merged = new Map(current.map((person) => [person.id, person]))
+            for (const person of people) {
+                merged.set(person.id, person)
+            }
+            return Array.from(merged.values())
+        })
+    }, [people])
+
+    useEffect(() => {
+        const normalizedQuery = query.trim()
+        if (normalizedQuery.length < 2) {
+            setResults([])
+            setSearching(false)
+            return
+        }
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(async () => {
+            setSearching(true)
+            try {
+                const params = new URLSearchParams({ q: normalizedQuery })
+                const response = await fetch(`/api/admin/people/search?${params}`, {
+                    signal: controller.signal,
+                })
+                if (!response.ok) {
+                    setResults([])
+                    return
+                }
+
+                const data = (await response.json()) as PersonOption[]
+                setResults(data.filter((person) => !selectedIds.includes(person.id)))
+                setKnownPeople((current) => {
+                    const merged = new Map(current.map((person) => [person.id, person]))
+                    for (const person of data) {
+                        merged.set(person.id, person)
+                    }
+                    return Array.from(merged.values())
+                })
+            } catch {
+                setResults([])
+            } finally {
+                setSearching(false)
+            }
+        }, 250)
+
+        return () => {
+            controller.abort()
+            clearTimeout(timeoutId)
+        }
+    }, [query, selectedIds])
+
+    const selectedPeople = selectedIds
+        .map((id) => knownPeople.find((person) => person.id === id))
+        .filter((person): person is PersonOption => Boolean(person))
+
+    function addPerson(personId: number) {
+        onChange(selectedIds.includes(personId) ? selectedIds : [...selectedIds, personId])
+        setQuery("")
+        setResults([])
+    }
+
+    function removePerson(personId: number) {
+        onChange(selectedIds.filter((id) => id !== personId))
+    }
+
+    return (
+        <div className="flex flex-col gap-2">
+            <div className="relative">
+                <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+                <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Начните вводить имя человека…"
+                    className="w-full rounded-xl border border-gray-200 pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-gray-400"
+                />
+            </div>
+
+            {selectedPeople.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {selectedPeople.map((person) => (
+                        <span
+                            key={person.id}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
+                        >
+                            {person.name}
+                            <button
+                                type="button"
+                                onClick={() => removePerson(person.id)}
+                                className="rounded-full text-gray-400 hover:text-gray-700 transition-colors"
+                                aria-label={`Убрать ${person.name}`}
+                            >
+                                <X size={12} />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {query.trim().length >= 2 && (
+                <div className="max-h-48 overflow-y-auto rounded-xl border border-gray-200 divide-y divide-gray-100">
+                    {searching ? (
+                        <p className="px-3 py-2 text-sm text-gray-400">Поиск…</p>
+                    ) : results.length > 0 ? (
+                        results.map((person) => (
+                            <button
+                                key={person.id}
+                                type="button"
+                                onClick={() => addPerson(person.id)}
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 transition-colors"
+                            >
+                                {person.name}
+                            </button>
+                        ))
+                    ) : (
+                        <p className="px-3 py-2 text-sm text-gray-400">Ничего не найдено.</p>
+                    )}
+                </div>
+            )}
+
+            {selectedIds.map((personId) => (
+                <input key={personId} type="hidden" name="personIds" value={personId} />
+            ))}
         </div>
     )
 }
@@ -105,11 +265,14 @@ export function MaterialForm({
     material,
     entities,
     topics,
+    people = [],
     selectedTopicIds = [],
+    selectedPersonIds = [],
     defaultEntityId,
     defaultMaterialType,
     materialTypeLocked = false,
     defaultSectionId,
+    backstack,
 }: Props) {
     const [state, formAction] = useActionState(action, null)
     const formRef = useRef<HTMLFormElement>(null)
@@ -118,7 +281,10 @@ export function MaterialForm({
     const [materialType, setMaterialType] = useState<MaterialType>(
         material?.materialType ?? defaultMaterialType ?? "article",
     )
+    const [groupPhotoPersonIds, setGroupPhotoPersonIds] = useState<number[]>(selectedPersonIds)
     const isNews = materialType === "news"
+    const isGroupPhoto = materialType === "group_photo"
+    const groupPhotoNeedsMorePeople = isGroupPhoto && groupPhotoPersonIds.length < 2
 
     // Prevent React 19's automatic form.reset() after action — we want edit forms to keep their values
     useEffect(() => {
@@ -164,6 +330,7 @@ export function MaterialForm({
                 action={formAction}
                 className="grid grid-cols-[1fr_240px] gap-5 items-start w-full"
             >
+                {backstack && <input type="hidden" name="backstack" value={backstack} />}
                 {/* Left: main content */}
                 <div className="flex flex-col gap-4">
                     <Field label="Заголовок *">
@@ -250,7 +417,8 @@ export function MaterialForm({
                                     disabled={
                                         isEditing &&
                                         material?.materialType !== "news" &&
-                                        value === "news"
+                                        material?.materialType !== "group_photo" &&
+                                        (value === "news" || value === "group_photo")
                                     }
                                 >
                                     {label}
@@ -259,7 +427,7 @@ export function MaterialForm({
                         </select>
                     </Field>
 
-                    {!isNews && (
+                    {!isNews && !isGroupPhoto && (
                         <>
                             <Field label="Тип карточки">
                                 <select
@@ -299,61 +467,97 @@ export function MaterialForm({
                             )}
 
                             {!entityType && <input type="hidden" name="entityId" value="" />}
+                        </>
+                    )}
+
+                    {defaultSectionId && (
+                        <input type="hidden" name="sectionId" value={defaultSectionId} />
+                    )}
+
+                    {!isNews && topics.length > 0 && (
+                        <Field label="Темы">
+                            <div className="flex flex-col gap-1.5 pt-0.5">
+                                {topics.map((topic) => (
+                                    <label
+                                        key={topic.id}
+                                        className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            name="topicIds"
+                                            value={topic.id}
+                                            defaultChecked={selectedTopicIds.includes(topic.id)}
+                                            className="rounded"
+                                        />
+                                        {topic.title}
+                                    </label>
+                                ))}
+                            </div>
+                        </Field>
+                    )}
+
+                    {!isNews && (
+                        <div className="flex gap-2">
+                            <Field label="Год (от)">
+                                <input
+                                    name="yearFrom"
+                                    type="number"
+                                    min={1800}
+                                    max={2100}
+                                    defaultValue={material?.yearFrom ?? ""}
+                                    className={inputClass}
+                                />
+                            </Field>
+                            <Field label="Год (до)">
+                                <input
+                                    name="yearTo"
+                                    type="number"
+                                    min={1800}
+                                    max={2100}
+                                    defaultValue={material?.yearTo ?? ""}
+                                    className={inputClass}
+                                />
+                            </Field>
+                        </div>
+                    )}
+
+                    {isGroupPhoto && (
+                        <>
+                            <input type="hidden" name="entityId" value="" />
                             {defaultSectionId && (
                                 <input type="hidden" name="sectionId" value={defaultSectionId} />
                             )}
 
-                            {topics.length > 0 && (
-                                <Field label="Темы">
-                                    <div className="flex flex-col gap-1.5 pt-0.5">
-                                        {topics.map((topic) => (
-                                            <label
-                                                key={topic.id}
-                                                className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    name="topicIds"
-                                                    value={topic.id}
-                                                    defaultChecked={selectedTopicIds.includes(
-                                                        topic.id,
-                                                    )}
-                                                    className="rounded"
-                                                />
-                                                {topic.title}
-                                            </label>
-                                        ))}
-                                    </div>
+                            {people.length > 0 && (
+                                <Field
+                                    label="Люди на фото"
+                                    hint="Для группового фото нужно выбрать минимум двух человек."
+                                >
+                                    <PeopleMultiSelect
+                                        people={people}
+                                        selectedIds={groupPhotoPersonIds}
+                                        onChange={setGroupPhotoPersonIds}
+                                    />
                                 </Field>
                             )}
 
-                            <div className="flex gap-2">
-                                <Field label="Год (от)">
-                                    <input
-                                        name="yearFrom"
-                                        type="number"
-                                        min={1800}
-                                        max={2100}
-                                        defaultValue={material?.yearFrom ?? ""}
-                                        className={inputClass}
-                                    />
-                                </Field>
-                                <Field label="Год (до)">
-                                    <input
-                                        name="yearTo"
-                                        type="number"
-                                        min={1800}
-                                        max={2100}
-                                        defaultValue={material?.yearTo ?? ""}
-                                        className={inputClass}
-                                    />
-                                </Field>
-                            </div>
+                            {groupPhotoNeedsMorePeople && (
+                                <p className="text-xs text-red-500">
+                                    Для группового фото нужно выбрать минимум двух человек.
+                                </p>
+                            )}
                         </>
                     )}
                 </div>
 
-                <FormActions deleteAction={deleteAction} deleteConfirmBody={deleteConfirmBody} />
+                <FormActions
+                    deleteAction={deleteAction}
+                    deleteConfirmBody={deleteConfirmBody}
+                    saveDisabled={groupPhotoNeedsMorePeople}
+                    saveLabel={
+                        groupPhotoNeedsMorePeople ? "Выберите минимум двух человек" : "Сохранить"
+                    }
+                />
             </form>
         </>
     )

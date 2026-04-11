@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import Link from "next/link"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 
 export type LightboxItem = {
@@ -9,6 +10,11 @@ export type LightboxItem = {
     coverImagePath: string
     yearFrom: number | null
     yearTo: number | null
+    materialType?: string | null
+    linkedPeople?: Array<{
+        code: string
+        name: string
+    }>
 }
 
 type Props = {
@@ -100,6 +106,25 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
                     <div className="text-center">
                         <p className="text-white/90 text-sm font-medium">{item.title}</p>
                         {yearLabel && <p className="text-white/40 text-xs mt-0.5">{yearLabel}</p>}
+                        {item.materialType === "group_photo" &&
+                            item.linkedPeople &&
+                            item.linkedPeople.length > 0 && (
+                                <p className="text-white/70 text-xs mt-2 leading-relaxed">
+                                    На фото также:{" "}
+                                    {item.linkedPeople.map((person, index) => (
+                                        <span key={person.code}>
+                                            {index > 0 ? ", " : ""}
+                                            <Link
+                                                href={`/people/${person.code}`}
+                                                className="text-white hover:text-white/80 underline underline-offset-2 transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {person.name}
+                                            </Link>
+                                        </span>
+                                    ))}
+                                </p>
+                            )}
                     </div>
                     {items.length > 1 && (
                         <div className="flex gap-4 mt-2">

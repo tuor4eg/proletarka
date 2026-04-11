@@ -16,6 +16,11 @@ type Photo = {
     sourceUrl?: string | null
     personName?: string | null
     personCode?: string | null
+    materialType?: string | null
+    linkedPeople?: Array<{
+        code: string
+        name: string
+    }>
 }
 
 type Props = {
@@ -118,6 +123,24 @@ export function PhotoCarousel({ photos }: Props) {
                             </Link>
                         </p>
                     )}
+                    {photo.materialType === "group_photo" &&
+                        photo.linkedPeople &&
+                        photo.linkedPeople.length > 0 && (
+                            <p className="text-xs text-ink-muted mt-0.5">
+                                На фото:{" "}
+                                {photo.linkedPeople.map((person, index) => (
+                                    <span key={person.code}>
+                                        {index > 0 ? ", " : ""}
+                                        <Link
+                                            href={`/people/${person.code}`}
+                                            className="hover:text-ink transition-colors underline underline-offset-2"
+                                        >
+                                            {person.name}
+                                        </Link>
+                                    </span>
+                                ))}
+                            </p>
+                        )}
                     {photo.content &&
                         (() => {
                             const isLong = photo.content.length > 200

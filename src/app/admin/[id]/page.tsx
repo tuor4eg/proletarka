@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import { db } from "@/db"
 import {
     materials,
@@ -9,48 +9,63 @@ import {
     topics,
     materialTopics,
     artifactMaterials,
+    personMaterials,
 } from "@/db/schema"
 import { updateMaterial, deleteMaterial } from "../actions"
 import { MaterialForm } from "@/components/MaterialForm"
 import { EditPageHeader } from "@/components/EditPageHeader"
+import { getBackHref, parseBackstack } from "@/lib/adminBackstack"
 
 type Props = {
     params: Promise<{ id: string }>
+    searchParams: Promise<{ backstack?: string }>
 }
 
-export default async function EditMaterialPage({ params }: Props) {
+export default async function EditMaterialPage({ params, searchParams }: Props) {
     const { id } = await params
+    const { backstack } = await searchParams
     const numericId = Number(id)
+    const currentBackstack = parseBackstack(backstack)
+    const backHref = getBackHref(currentBackstack, "/admin/materials")
 
     if (!Number.isInteger(numericId) || numericId <= 0) {
         notFound()
     }
 
-    const [[material], entityRows, topicRows, selectedRows, linkedArtifactRows] = await Promise.all(
-        [
-            db.select().from(materials).where(eq(materials.id, numericId)).limit(1),
-            db
-                .select({
-                    id: entities.id,
-                    type: entities.type,
-                    personName: people.name,
-                    artifactTitle: artifacts.title,
-                })
-                .from(entities)
-                .leftJoin(people, eq(entities.personId, people.id))
-                .leftJoin(artifacts, eq(entities.artifactId, artifacts.id)),
-            db.select({ id: topics.id, title: topics.title }).from(topics),
-            db
-                .select({ topicId: materialTopics.topicId })
-                .from(materialTopics)
-                .where(eq(materialTopics.materialId, numericId)),
-            db
-                .select({ title: artifacts.title })
-                .from(artifactMaterials)
-                .innerJoin(artifacts, eq(artifactMaterials.artifactId, artifacts.id))
-                .where(eq(artifactMaterials.materialId, numericId)),
-        ],
-    )
+    const [
+        [material],
+        entityRows,
+        topicRows,
+        selectedRows,
+        linkedArtifactRows,
+        selectedPersonRows,
+    ] = await Promise.all([
+        db.select().from(materials).where(eq(materials.id, numericId)).limit(1),
+        db
+            .select({
+                id: entities.id,
+                type: entities.type,
+                personName: people.name,
+                artifactTitle: artifacts.title,
+            })
+            .from(entities)
+            .leftJoin(people, eq(entities.personId, people.id))
+            .leftJoin(artifacts, eq(entities.artifactId, artifacts.id)),
+        db.select({ id: topics.id, title: topics.title }).from(topics),
+        db
+            .select({ topicId: materialTopics.topicId })
+            .from(materialTopics)
+            .where(eq(materialTopics.materialId, numericId)),
+        db
+            .select({ title: artifacts.title })
+            .from(artifactMaterials)
+            .innerJoin(artifacts, eq(artifactMaterials.artifactId, artifacts.id))
+            .where(eq(artifactMaterials.materialId, numericId)),
+        db
+            .select({ personId: personMaterials.personId })
+            .from(personMaterials)
+            .where(eq(personMaterials.materialId, numericId)),
+    ])
 
     if (!material) {
         notFound()
@@ -63,6 +78,13 @@ export default async function EditMaterialPage({ params }: Props) {
     }))
 
     const selectedTopicIds = selectedRows.map((r) => r.topicId)
+    const selectedPersonIds = selectedPersonRows.map((r) => r.personId)
+    const selectedPeople = selectedPersonIds.length
+        ? await db
+              .select({ id: people.id, name: people.name })
+              .from(people)
+              .where(inArray(people.id, selectedPersonIds))
+        : []
     const action = updateMaterial.bind(null, numericId)
     const deleteAction = deleteMaterial.bind(null, numericId)
 
@@ -74,6 +96,7 @@ export default async function EditMaterialPage({ params }: Props) {
     return (
         <div className="py-6">
             <EditPageHeader
+                backHref={backHref}
                 publicUrl={`/materials/${numericId}`}
                 isPublished={material.status === "published"}
             />
@@ -84,8 +107,12 @@ export default async function EditMaterialPage({ params }: Props) {
                 material={material}
                 entities={entitiesList}
                 topics={topicRows}
+                people={selectedPeople}
                 selectedTopicIds={selectedTopicIds}
-                materialTypeLocked={material.materialType === "news"}
+                selectedPersonIds={selectedPersonIds}
+                materialTypeLocked={
+                    material.materialType === "news" || material.materialType === "group_photo"
+                }
                 defaultSectionId={material.sectionId ?? undefined}
             />
         </div>

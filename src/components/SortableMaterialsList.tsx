@@ -21,6 +21,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, Link2 } from "lucide-react"
 import { type MaterialType, type Status } from "@/db/schema"
 import { PublishToggle } from "@/components/PublishToggle"
+import { appendBackstackParam } from "@/lib/adminBackstack"
 import {
     updateMaterialPositions,
     updateMaterialSection,
@@ -32,6 +33,7 @@ const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
     news: "Новость",
     photo: "Фото",
+    group_photo: "Групповое фото",
     document: "Документ",
 }
 const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." }
@@ -112,12 +114,14 @@ function SortableRow({
     onSectionChange,
     onLinkedSectionChange,
     sectionChangePending,
+    itemBackstack,
 }: {
     item: AnyItem
     sections?: SectionOption[]
     onSectionChange?: (id: number, sectionId: number | null) => void
     onLinkedSectionChange?: (id: number, sectionId: number | null) => void
     sectionChangePending?: boolean
+    itemBackstack?: string
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: item.dndId,
@@ -148,7 +152,7 @@ function SortableRow({
                 <>
                     <Link2 size={12} className="text-gray-300 shrink-0 -ml-1" />
                     <Link
-                        href={`/admin/${item.id}`}
+                        href={appendBackstackParam(`/admin/${item.id}`, itemBackstack)}
                         className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
                     >
                         <span className="text-sm font-medium flex-1 min-w-0 truncate">
@@ -202,7 +206,7 @@ function SortableRow({
             ) : (
                 <>
                     <Link
-                        href={`/admin/${item.id}`}
+                        href={appendBackstackParam(`/admin/${item.id}`, itemBackstack)}
                         className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
                     >
                         <span className="text-sm font-medium flex-1 min-w-0 truncate">
@@ -249,6 +253,7 @@ type Props = {
     sections?: SectionOption[]
     linkedItems?: LinkedItem[]
     artifactId?: number
+    itemBackstack?: string
 }
 
 export function SortableMaterialsList({
@@ -256,6 +261,7 @@ export function SortableMaterialsList({
     sections,
     linkedItems = [],
     artifactId,
+    itemBackstack,
 }: Props) {
     const [items, setItems] = useState(() => toAnyItems(initialItems, linkedItems))
     const router = useRouter()
@@ -331,6 +337,7 @@ export function SortableMaterialsList({
                             onSectionChange={handleSectionChange}
                             onLinkedSectionChange={handleLinkedSectionChange}
                             sectionChangePending={isPending}
+                            itemBackstack={itemBackstack}
                         />
                     ))}
                 </div>

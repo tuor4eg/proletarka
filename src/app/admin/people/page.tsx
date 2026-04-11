@@ -7,12 +7,23 @@ import { AdminFilters } from "@/components/AdminFilters"
 import { LetterFilter } from "@/components/LetterFilter"
 import { Pagination } from "@/components/Pagination"
 import type { SearchParams } from "@/lib/types"
+import { buildBackstackHref, parseBackstack, pushBackstack } from "@/lib/adminBackstack"
 
 const PAGE_SIZE = 20
 
 export default async function PeoplePage({ searchParams }: { searchParams: SearchParams }) {
-    const { q, sort = "title_asc", letter, page: pageParam } = await searchParams
+    const { q, sort = "title_asc", letter, page: pageParam, backstack } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
+    const currentParams = new URLSearchParams()
+    const currentBackstack = parseBackstack(backstack)
+
+    if (q) currentParams.set("q", q)
+    if (sort) currentParams.set("sort", sort)
+    if (letter) currentParams.set("letter", letter)
+    if (page > 1) currentParams.set("page", String(page))
+
+    const currentUrl = `/admin/people${currentParams.toString() ? `?${currentParams.toString()}` : ""}`
+    const nextBackstack = pushBackstack(currentBackstack, currentUrl)
 
     const orderBy =
         sort === "title_desc"
@@ -74,7 +85,10 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                         {rows.map((row) => (
                             <Link
                                 key={row.id}
-                                href={`/admin/people/${row.code}`}
+                                href={buildBackstackHref(
+                                    `/admin/people/${row.code}`,
+                                    nextBackstack,
+                                )}
                                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                             >
                                 <span className="text-sm font-medium flex-1">

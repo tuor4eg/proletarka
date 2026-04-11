@@ -12,7 +12,8 @@ type Props = {
     icon?: boolean
     disabled?: boolean
     disabledTooltip?: string
-    confirmBody?: string
+    confirmBody?: React.ReactNode
+    hideConfirmButton?: boolean
 }
 
 function DeleteSubmitButton() {
@@ -35,6 +36,7 @@ export function DeleteButton({
     disabled = false,
     disabledTooltip,
     confirmBody = "Это действие нельзя отменить.",
+    hideConfirmButton = false,
 }: Props) {
     const [open, setOpen] = useState(false)
 
@@ -80,7 +82,7 @@ export function DeleteButton({
                         />
                         <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
                             <h2 className="text-base font-semibold mb-2">Удалить?</h2>
-                            <p className="text-sm text-gray-500 mb-6">{confirmBody}</p>
+                            <div className="text-sm text-gray-500 mb-6">{confirmBody}</div>
                             <div className="flex gap-3">
                                 <button
                                     type="button"
@@ -89,9 +91,11 @@ export function DeleteButton({
                                 >
                                     Отмена
                                 </button>
-                                <form action={action} className="flex-1">
-                                    <DeleteSubmitButton />
-                                </form>
+                                {!hideConfirmButton && (
+                                    <form action={action} className="flex-1">
+                                        <DeleteSubmitButton />
+                                    </form>
+                                )}
                             </div>
                         </div>
                     </div>,

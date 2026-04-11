@@ -5,6 +5,7 @@ import { entities, artifacts, entityTopics, topics, type ArtifactType } from "@/
 import { AdminFilters } from "@/components/AdminFilters"
 import { Pagination } from "@/components/Pagination"
 import { Suspense } from "react"
+import { buildBackstackHref, parseBackstack, pushBackstack } from "@/lib/adminBackstack"
 
 const TYPE_LABEL: Record<ArtifactType, string> = {
     general: "Объект",
@@ -26,11 +27,22 @@ type SearchParams = Promise<{
     type?: ArtifactType
     sort?: string
     page?: string
+    backstack?: string
 }>
 
 export default async function ArtifactsPage({ searchParams }: { searchParams: SearchParams }) {
-    const { q, type, sort = "title_asc", page: pageParam } = await searchParams
+    const { q, type, sort = "title_asc", page: pageParam, backstack } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
+    const currentParams = new URLSearchParams()
+    const currentBackstack = parseBackstack(backstack)
+
+    if (q) currentParams.set("q", q)
+    if (type) currentParams.set("type", type)
+    if (sort) currentParams.set("sort", sort)
+    if (page > 1) currentParams.set("page", String(page))
+
+    const currentUrl = `/admin/artifacts${currentParams.toString() ? `?${currentParams.toString()}` : ""}`
+    const nextBackstack = pushBackstack(currentBackstack, currentUrl)
 
     const conditions = [
         q ? ilike(artifacts.title, `%${q}%`) : undefined,
@@ -111,7 +123,10 @@ export default async function ArtifactsPage({ searchParams }: { searchParams: Se
                         {rows.map((row) => (
                             <Link
                                 key={row.entityId}
-                                href={`/admin/artifacts/${row.code}`}
+                                href={buildBackstackHref(
+                                    `/admin/artifacts/${row.code}`,
+                                    nextBackstack,
+                                )}
                                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                             >
                                 <span className="text-sm font-medium flex-1 min-w-0 truncate">

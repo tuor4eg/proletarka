@@ -1,23 +1,45 @@
+import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, and, inArray } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, people, materials, topics } from "@/db/schema"
-import { updatePerson, deletePerson, getEventsByEntityId } from "../actions"
+import { entities, people, materials, topics, personMaterials } from "@/db/schema"
+import {
+    updatePerson,
+    deletePerson,
+    getEventsByEntityId,
+    linkGroupPhotoToPerson,
+    unlinkGroupPhotoFromPerson,
+} from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { ImageUpload } from "@/components/ImageUpload"
 import { DeleteButton } from "@/components/DeleteButton"
 import { SubmitButton } from "@/components/SubmitButton"
 import { EditPageHeader } from "@/components/EditPageHeader"
 import { EventsBlock } from "@/components/EventsBlock"
-import { LinkedMaterialsList } from "@/components/LinkedMaterialsList"
+import { LinkedMaterialsList, TYPE_LABEL, STATUS_LABEL } from "@/components/LinkedMaterialsList"
 import { CodeField } from "@/components/CodeField"
+import { GroupPhotoLinkSearch } from "@/components/GroupPhotoLinkSearch"
+import {
+    buildBackstackHref,
+    getBackHref,
+    parseBackstack,
+    pushBackstack,
+    serializeBackstack,
+} from "@/lib/adminBackstack"
 
 type Props = {
     params: Promise<{ code: string }>
+    searchParams: Promise<{ backstack?: string }>
 }
 
-export default async function EditPersonPage({ params }: Props) {
+export default async function EditPersonPage({ params, searchParams }: Props) {
     const { code } = await params
+    const { backstack } = await searchParams
+    const currentBackstack = parseBackstack(backstack)
+    const backHref = getBackHref(currentBackstack, "/admin/people")
+    const personUrl = buildBackstackHref(`/admin/people/${code}`, currentBackstack)
+    const nextBackstack = pushBackstack(currentBackstack, personUrl)
+    const materialBackstack = serializeBackstack(nextBackstack)
 
     const [row] = await db
         .select({ entity: entities, person: people })
@@ -36,7 +58,7 @@ export default async function EditPersonPage({ params }: Props) {
 
     const { entity, person } = row
 
-    const [linkedMaterials, allTopics, entityEvents] = await Promise.all([
+    const [linkedMaterials, groupPhotos, allTopics, entityEvents] = await Promise.all([
         db
             .select({
                 id: materials.id,
@@ -48,16 +70,59 @@ export default async function EditPersonPage({ params }: Props) {
             .from(materials)
             .where(eq(materials.entityId, entity.id))
             .orderBy(desc(materials.createdAt)),
+        db
+            .select({
+                id: materials.id,
+                title: materials.title,
+                materialType: materials.materialType,
+                status: materials.status,
+            })
+            .from(personMaterials)
+            .innerJoin(materials, eq(personMaterials.materialId, materials.id))
+            .where(
+                and(
+                    eq(personMaterials.personId, person.id),
+                    eq(materials.materialType, "group_photo"),
+                ),
+            )
+            .orderBy(desc(materials.createdAt)),
         db.select({ id: topics.id, title: topics.title }).from(topics).orderBy(topics.title),
         getEventsByEntityId(entity.id),
     ])
 
     const updateAction = updatePerson.bind(null, person.id)
     const deleteAction = deletePerson.bind(null, entity.id, person.id)
+    const linkGroupPhotoAction = linkGroupPhotoToPerson.bind(null, person.id, person.code)
+    const groupPhotoIds = groupPhotos.map((photo) => photo.id)
+    const participantRows = groupPhotoIds.length
+        ? await db
+              .select({
+                  materialId: personMaterials.materialId,
+                  personId: personMaterials.personId,
+              })
+              .from(personMaterials)
+              .where(inArray(personMaterials.materialId, groupPhotoIds))
+        : []
+
+    const participantCountByMaterialId = new Map<number, number>()
+    for (const row of participantRows) {
+        participantCountByMaterialId.set(
+            row.materialId,
+            (participantCountByMaterialId.get(row.materialId) ?? 0) + 1,
+        )
+    }
+
+    const blockingGroupPhotos = groupPhotos.filter(
+        (photo) => (participantCountByMaterialId.get(photo.id) ?? 0) <= 2,
+    )
+    const removableGroupPhotos = groupPhotos.filter(
+        (photo) => (participantCountByMaterialId.get(photo.id) ?? 0) > 2,
+    )
+    const deleteDisabled = blockingGroupPhotos.length > 0
 
     return (
         <div className="py-6">
-            <EditPageHeader publicUrl={`/people/${person.code}`} isPublished />
+            <EditPageHeader backHref={backHref} publicUrl={`/people/${person.code}`} isPublished />
             <h1 className="text-xl font-bold mb-6">Редактировать человека</h1>
             <div className="mb-4">
                 <CodeField code={person.code} />
@@ -130,10 +195,56 @@ export default async function EditPersonPage({ params }: Props) {
                     <SubmitButton label="Сохранить" />
                     <DeleteButton
                         action={deleteAction}
+                        hideConfirmButton={deleteDisabled}
                         confirmBody={
-                            linkedMaterials.length > 0
-                                ? `Будут удалены все связанные материалы (${linkedMaterials.length} шт.). Это действие нельзя отменить.`
-                                : "Это действие нельзя отменить."
+                            <div className="space-y-3">
+                                <p>
+                                    {linkedMaterials.length > 0
+                                        ? `Будут удалены все связанные материалы (${linkedMaterials.length} шт.).`
+                                        : "Это действие нельзя отменить."}
+                                </p>
+                                {removableGroupPhotos.length > 0 && (
+                                    <div>
+                                        <p className="font-medium text-gray-700 mb-1">
+                                            Человек будет удален из групповых фото:
+                                        </p>
+                                        <ul className="list-disc pl-5 space-y-1">
+                                            {removableGroupPhotos.map((photo) => (
+                                                <li key={photo.id}>
+                                                    <Link
+                                                        href={`/admin/${photo.id}`}
+                                                        className="underline underline-offset-2 hover:text-gray-700"
+                                                    >
+                                                        {photo.title}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {blockingGroupPhotos.length > 0 && (
+                                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700">
+                                        <p className="font-medium mb-1">Удаление пока запрещено.</p>
+                                        <p className="mb-2">
+                                            В этих групповых фото сейчас только два человека.
+                                            Сначала добавьте других людей или исправьте тип
+                                            материала:
+                                        </p>
+                                        <ul className="list-disc pl-5 space-y-1">
+                                            {blockingGroupPhotos.map((photo) => (
+                                                <li key={photo.id}>
+                                                    <Link
+                                                        href={`/admin/${photo.id}`}
+                                                        className="underline underline-offset-2 hover:text-red-800"
+                                                    >
+                                                        {photo.title}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
                         }
                     />
                 </div>
@@ -143,7 +254,69 @@ export default async function EditPersonPage({ params }: Props) {
                 entityId={entity.id}
                 materials={linkedMaterials}
                 addHref={`/admin/new?entityId=${entity.id}`}
+                itemBackstack={materialBackstack}
             />
+
+            <div className="mt-10 mb-10">
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-base font-semibold">Групповые фото</h2>
+                    <Link
+                        href={`/admin/new?materialType=group_photo&personId=${person.id}`}
+                        className="text-sm bg-black text-white rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors"
+                    >
+                        + Добавить групповое фото
+                    </Link>
+                </div>
+                <GroupPhotoLinkSearch personId={person.id} action={linkGroupPhotoAction} />
+                {groupPhotos.length === 0 ? (
+                    <p className="text-sm text-gray-400">Групповых фото пока нет.</p>
+                ) : (
+                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+                        {groupPhotos.map((m) => (
+                            <div
+                                key={m.id}
+                                className="flex items-center gap-2 px-4 hover:bg-gray-50 transition-colors"
+                            >
+                                <Link
+                                    href={buildBackstackHref(`/admin/${m.id}`, nextBackstack)}
+                                    className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
+                                >
+                                    <span className="text-sm font-medium flex-1 min-w-0 truncate">
+                                        {m.title}
+                                    </span>
+                                    <span className="text-xs text-gray-400 shrink-0">
+                                        {TYPE_LABEL[m.materialType]}
+                                    </span>
+                                    <span
+                                        className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                                            m.status === "published"
+                                                ? "bg-green-100 text-green-700"
+                                                : "bg-gray-100 text-gray-500"
+                                        }`}
+                                    >
+                                        {STATUS_LABEL[m.status]}
+                                    </span>
+                                </Link>
+                                <form
+                                    action={unlinkGroupPhotoFromPerson.bind(
+                                        null,
+                                        person.id,
+                                        person.code,
+                                        m.id,
+                                    )}
+                                >
+                                    <button
+                                        type="submit"
+                                        className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0"
+                                    >
+                                        Отвязать
+                                    </button>
+                                </form>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

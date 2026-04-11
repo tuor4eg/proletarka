@@ -2,11 +2,13 @@ import Link from "next/link"
 import { type MaterialType, type Status } from "@/db/schema"
 import { PublishToggle } from "@/components/PublishToggle"
 import { SortableMaterialsList, type MaterialItem } from "@/components/SortableMaterialsList"
+import { appendBackstackParam } from "@/lib/adminBackstack"
 
 export const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
     news: "Новость",
     photo: "Фото",
+    group_photo: "Групповое фото",
     document: "Документ",
 }
 export const STATUS_LABEL: Record<Status, string> = { draft: "Черновик", published: "Опубл." }
@@ -16,9 +18,16 @@ type Props = {
     materials: MaterialItem[]
     addHref: string
     showPosition?: boolean
+    itemBackstack?: string
 }
 
-export function LinkedMaterialsList({ entityId, materials, addHref, showPosition = false }: Props) {
+export function LinkedMaterialsList({
+    entityId: _entityId,
+    materials,
+    addHref,
+    showPosition = false,
+    itemBackstack,
+}: Props) {
     return (
         <div className="mt-10">
             <div className="flex items-center justify-between mb-3">
@@ -33,7 +42,7 @@ export function LinkedMaterialsList({ entityId, materials, addHref, showPosition
             {materials.length === 0 ? (
                 <p className="text-sm text-gray-400">Материалов пока нет.</p>
             ) : showPosition ? (
-                <SortableMaterialsList initialItems={materials} />
+                <SortableMaterialsList initialItems={materials} itemBackstack={itemBackstack} />
             ) : (
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
                     {materials.map((m) => (
@@ -42,7 +51,7 @@ export function LinkedMaterialsList({ entityId, materials, addHref, showPosition
                             className="flex items-center gap-2 px-4 hover:bg-gray-50 transition-colors"
                         >
                             <Link
-                                href={`/admin/${m.id}`}
+                                href={appendBackstackParam(`/admin/${m.id}`, itemBackstack)}
                                 className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
                             >
                                 <span className="text-sm font-medium flex-1 min-w-0 truncate">

@@ -24,6 +24,11 @@ const MATERIAL_LINKS = [
     { href: "/admin/materials?type=article", label: "Статьи", type: "article" },
     { href: "/admin/materials?type=news", label: "Новости", type: "news" },
     { href: "/admin/materials?type=photo", label: "Фото", type: "photo" },
+    {
+        href: "/admin/materials?type=group_photo",
+        label: "Групповые фото",
+        type: "group_photo",
+    },
     { href: "/admin/materials?type=document", label: "Документы", type: "document" },
 ] as const
 

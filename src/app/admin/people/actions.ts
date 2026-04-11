@@ -1,9 +1,17 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { eq, inArray } from "drizzle-orm"
+import { eq, inArray, and } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, people, materials, materialTopics, events, eventTopics } from "@/db/schema"
+import {
+    entities,
+    people,
+    materials,
+    materialTopics,
+    personMaterials,
+    events,
+    eventTopics,
+} from "@/db/schema"
 import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
@@ -183,10 +191,50 @@ export async function updatePerson(personId: number, formData: FormData) {
 
 export async function deletePerson(entityId: number, personId: number) {
     const [personToDelete] = await db
-        .select({ name: people.name })
+        .select({ name: people.name, code: people.code })
         .from(people)
         .where(eq(people.id, personId))
         .limit(1)
+
+    const linkedGroupPhotoRows = await db
+        .select({
+            materialId: personMaterials.materialId,
+            title: materials.title,
+        })
+        .from(personMaterials)
+        .innerJoin(materials, eq(personMaterials.materialId, materials.id))
+        .where(
+            and(eq(personMaterials.personId, personId), eq(materials.materialType, "group_photo")),
+        )
+
+    const linkedGroupPhotoIds = linkedGroupPhotoRows.map((row) => row.materialId)
+    const participantRows = linkedGroupPhotoIds.length
+        ? await db
+              .select({
+                  materialId: personMaterials.materialId,
+                  personId: personMaterials.personId,
+              })
+              .from(personMaterials)
+              .where(inArray(personMaterials.materialId, linkedGroupPhotoIds))
+        : []
+
+    const participantCountByMaterialId = new Map<number, number>()
+    for (const row of participantRows) {
+        participantCountByMaterialId.set(
+            row.materialId,
+            (participantCountByMaterialId.get(row.materialId) ?? 0) + 1,
+        )
+    }
+
+    const blockingGroupPhotos = linkedGroupPhotoRows.filter(
+        (row) => (participantCountByMaterialId.get(row.materialId) ?? 0) <= 2,
+    )
+
+    if (blockingGroupPhotos.length > 0) {
+        redirect(
+            `/admin/people/${personToDelete?.code ?? personId}${flashParam("Нельзя удалить человека, пока не исправлены связанные групповые фото")}`,
+        )
+    }
 
     const linkedMaterials = await db
         .select({ id: materials.id, coverImagePath: materials.coverImagePath })
@@ -208,4 +256,68 @@ export async function deletePerson(entityId: number, personId: number) {
     await db.delete(people).where(eq(people.id, personId))
     await logAdminAction("delete", "person", personId, personToDelete?.name ?? null)
     redirect(`/admin/people${flashParam("Запись удалена")}`)
+}
+
+export async function linkGroupPhotoToPerson(
+    personId: number,
+    personCode: string,
+    formData: FormData,
+) {
+    const materialIdRaw = formData.get("materialId") as string
+    const materialId = Number(materialIdRaw)
+
+    if (!Number.isInteger(materialId) || materialId <= 0) {
+        redirect(`/admin/people/${personCode}${flashParam("Не выбрано групповое фото")}`)
+    }
+
+    const [material] = await db
+        .select({ id: materials.id, materialType: materials.materialType })
+        .from(materials)
+        .where(eq(materials.id, materialId))
+        .limit(1)
+
+    if (!material || material.materialType !== "group_photo") {
+        redirect(
+            `/admin/people/${personCode}${flashParam("Можно привязывать только групповое фото")}`,
+        )
+    }
+
+    const existing = await db
+        .select({ personId: personMaterials.personId })
+        .from(personMaterials)
+        .where(
+            and(eq(personMaterials.personId, personId), eq(personMaterials.materialId, materialId)),
+        )
+        .limit(1)
+
+    if (existing.length === 0) {
+        await db.insert(personMaterials).values({ personId, materialId })
+    }
+
+    redirect(`/admin/people/${personCode}${flashParam("Групповое фото привязано")}`)
+}
+
+export async function unlinkGroupPhotoFromPerson(
+    personId: number,
+    personCode: string,
+    materialId: number,
+) {
+    const linkedPeople = await db
+        .select({ personId: personMaterials.personId })
+        .from(personMaterials)
+        .where(eq(personMaterials.materialId, materialId))
+
+    if (linkedPeople.length <= 2) {
+        redirect(
+            `/admin/people/${personCode}${flashParam("У группового фото должно остаться минимум два человека")}`,
+        )
+    }
+
+    await db
+        .delete(personMaterials)
+        .where(
+            and(eq(personMaterials.personId, personId), eq(personMaterials.materialId, materialId)),
+        )
+
+    redirect(`/admin/people/${personCode}${flashParam("Групповое фото отвязано")}`)
 }

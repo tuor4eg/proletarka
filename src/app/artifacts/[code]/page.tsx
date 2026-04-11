@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation"
-import { eq, and, asc, sql } from "drizzle-orm"
+import { eq, and, asc, sql, inArray } from "drizzle-orm"
 import Link from "next/link"
 import { db } from "@/db"
 import {
     entities,
     artifacts,
     materials,
+    personMaterials,
     artifactSections,
     artifactMaterials,
     people,
@@ -35,6 +36,11 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
     if (!row) notFound()
 
     const { artifact, entity } = row
+
+    type LinkedPerson = {
+        code: string
+        name: string
+    }
 
     const [nativeMaterials, sections, refMaterialRows] = await Promise.all([
         db
@@ -88,14 +94,42 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
             .orderBy(sql`${artifactMaterials.position} ASC NULLS LAST`, asc(materials.id)),
     ])
 
+    const groupPhotoIds = [...nativeMaterials, ...refMaterialRows]
+        .filter((material) => material.materialType === "group_photo")
+        .map((material) => material.id)
+
+    const linkedPeopleRows = groupPhotoIds.length
+        ? await db
+              .select({
+                  materialId: personMaterials.materialId,
+                  code: people.code,
+                  name: people.name,
+              })
+              .from(personMaterials)
+              .innerJoin(people, eq(personMaterials.personId, people.id))
+              .where(inArray(personMaterials.materialId, groupPhotoIds))
+        : []
+
+    const linkedPeopleMap = new Map<number, LinkedPerson[]>()
+    for (const row of linkedPeopleRows) {
+        if (!linkedPeopleMap.has(row.materialId)) linkedPeopleMap.set(row.materialId, [])
+        linkedPeopleMap.get(row.materialId)!.push({ code: row.code, name: row.name })
+    }
+
     // merge: native + ref — dedup by id, sort by position
     const seenIds = new Set(nativeMaterials.map((m) => m.id))
     const nativeWithAttrs = nativeMaterials.map((m) => ({
         ...m,
         personName: null,
         personCode: null,
+        linkedPeople: linkedPeopleMap.get(m.id) ?? [],
     }))
-    const refFiltered = refMaterialRows.filter((m) => !seenIds.has(m.id))
+    const refFiltered = refMaterialRows
+        .filter((m) => !seenIds.has(m.id))
+        .map((m) => ({
+            ...m,
+            linkedPeople: linkedPeopleMap.get(m.id) ?? [],
+        }))
     const allMaterials = [...nativeWithAttrs, ...refFiltered].sort(
         (a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER),
     )
@@ -104,9 +138,13 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
 
     function renderMaterials(items: typeof allMaterials) {
         const photos = items.filter(
-            (m) => m.materialType === "photo" && m.coverImagePath,
+            (m) =>
+                (m.materialType === "photo" || m.materialType === "group_photo") &&
+                m.coverImagePath,
         ) as ((typeof items)[number] & { coverImagePath: string })[]
-        const others = items.filter((m) => m.materialType !== "photo")
+        const others = items.filter(
+            (m) => m.materialType !== "photo" && m.materialType !== "group_photo",
+        )
 
         return (
             <>
@@ -150,6 +188,22 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
                                                 </span>
                                             )}
                                         </div>
+                                        {m.linkedPeople.length > 0 && (
+                                            <p className="text-xs text-ink-muted mb-2">
+                                                На фото:{" "}
+                                                {m.linkedPeople.map((person, index) => (
+                                                    <span key={person.code}>
+                                                        {index > 0 ? ", " : ""}
+                                                        <Link
+                                                            href={`/people/${person.code}`}
+                                                            className="hover:text-ink transition-colors underline underline-offset-2"
+                                                        >
+                                                            {person.name}
+                                                        </Link>
+                                                    </span>
+                                                ))}
+                                            </p>
+                                        )}
                                         <span className="text-xs text-sepia">Подробнее →</span>
                                     </div>
                                 </div>
