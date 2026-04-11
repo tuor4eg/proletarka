@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { ilike, eq, notInArray, and, asc, or } from "drizzle-orm"
 import { db } from "@/db"
-import { materials, entities, people, artifacts, artifactMaterials } from "@/db/schema"
+import {
+    materials,
+    entities,
+    people,
+    artifacts,
+    artifactMaterials,
+    type MaterialType,
+} from "@/db/schema"
 
 export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl
@@ -28,9 +35,7 @@ export async function GET(request: NextRequest) {
             ilike(people.name, `%${q}%`),
             ilike(artifacts.title, `%${q}%`),
         ),
-        typeFilter
-            ? eq(materials.materialType, typeFilter as "article" | "photo" | "document")
-            : undefined,
+        typeFilter ? eq(materials.materialType, typeFilter as MaterialType) : undefined,
         excludeIds.length > 0 ? notInArray(materials.id, excludeIds) : undefined,
     ].filter(Boolean) as Parameters<typeof and>
 

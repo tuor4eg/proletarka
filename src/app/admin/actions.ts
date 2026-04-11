@@ -16,23 +16,26 @@ async function parseFormData(formData: FormData) {
     const entityIdRaw = formData.get("entityId") as string
 
     const sectionIdRaw = formData.get("sectionId") as string
+    const materialType = formData.get("materialType") as MaterialType
+    const isNews = materialType === "news"
 
     return {
         title: formData.get("title") as string,
-        materialType: formData.get("materialType") as MaterialType,
+        materialType,
         status: formData.get("status") as Status,
-        entityId: entityIdRaw ? Number(entityIdRaw) : null,
-        sectionId: sectionIdRaw ? Number(sectionIdRaw) : null,
-        summary: (formData.get("summary") as string) || null,
+        entityId: isNews ? null : entityIdRaw ? Number(entityIdRaw) : null,
+        sectionId: isNews ? null : sectionIdRaw ? Number(sectionIdRaw) : null,
+        summary: isNews ? null : (formData.get("summary") as string) || null,
         content: (formData.get("content") as string) || null,
         sourceUrl: (formData.get("sourceUrl") as string) || null,
         coverImagePath: await resolveImageUpload(formData, "coverImageFile", "coverImagePath"),
-        yearFrom: yearFromRaw ? Number(yearFromRaw) : null,
-        yearTo: yearToRaw ? Number(yearToRaw) : null,
+        yearFrom: isNews ? null : yearFromRaw ? Number(yearFromRaw) : null,
+        yearTo: isNews ? null : yearToRaw ? Number(yearToRaw) : null,
     }
 }
 
-function parseTopicIds(formData: FormData): number[] {
+function parseTopicIds(formData: FormData, materialType: MaterialType): number[] {
+    if (materialType === "news") return []
     return formData.getAll("topicIds").map(Number).filter(Boolean)
 }
 
@@ -41,7 +44,7 @@ export async function createMaterial(
     formData: FormData,
 ): Promise<ActionResult> {
     const values = await parseFormData(formData)
-    const topicIds = parseTopicIds(formData)
+    const topicIds = parseTopicIds(formData, values.materialType)
     const code = generateCode(values.title)
 
     const [inserted] = await db
@@ -78,7 +81,7 @@ export async function updateMaterial(
         .limit(1)
 
     const values = await parseFormData(formData)
-    const topicIds = parseTopicIds(formData)
+    const topicIds = parseTopicIds(formData, values.materialType)
 
     if (current?.coverImagePath && current.coverImagePath !== values.coverImagePath) {
         await deleteImage(current.coverImagePath)

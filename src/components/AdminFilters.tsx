@@ -13,6 +13,7 @@ const STATUSES = [
 const TYPES = [
     { value: "", label: "Все типы" },
     { value: "article", label: "Статья" },
+    { value: "news", label: "Новость" },
     { value: "photo", label: "Фото" },
     { value: "document", label: "Документ" },
 ]

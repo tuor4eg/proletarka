@@ -99,6 +99,13 @@
             "when": 1775597581225,
             "tag": "0013_lucky_cerebro",
             "breakpoints": true
+        },
+        {
+            "idx": 14,
+            "version": "7",
+            "when": 1776000000000,
+            "tag": "0014_add_news_material_type",
+            "breakpoints": true
         }
     ]
 }

@@ -3,7 +3,7 @@ import { relations } from "drizzle-orm"
 
 export const statusEnum = pgEnum("status", ["draft", "published"])
 export const roleEnum = pgEnum("role", ["admin"])
-export const materialTypeEnum = pgEnum("material_type", ["article", "photo", "document"])
+export const materialTypeEnum = pgEnum("material_type", ["article", "news", "photo", "document"])
 export const artifactTypeEnum = pgEnum("artifact_type", ["general", "stand", "rarity", "fund"])
 export const commentStatusEnum = pgEnum("comment_status", ["pending", "approved", "hidden"])
 

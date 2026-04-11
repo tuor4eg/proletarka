@@ -5,6 +5,7 @@ import { SortableMaterialsList, type MaterialItem } from "@/components/SortableM
 
 export const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
+    news: "Новость",
     photo: "Фото",
     document: "Документ",
 }

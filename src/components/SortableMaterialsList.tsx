@@ -30,6 +30,7 @@ import {
 
 const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
+    news: "Новость",
     photo: "Фото",
     document: "Документ",
 }

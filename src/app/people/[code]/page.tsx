@@ -99,6 +99,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
     const entityEvents = Array.from(eventsMap.values())
 
     const articles = linkedMaterials.filter((m) => m.materialType === "article")
+    const news = linkedMaterials.filter((m) => m.materialType === "news")
     const photos = linkedMaterials.filter((m) => m.materialType === "photo")
     const documents = linkedMaterials.filter((m) => m.materialType === "document")
 
@@ -143,7 +144,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
 
                 <PersonTimeline events={entityEvents} />
 
-                <PersonTabs articles={articles} photos={photos} documents={documents} />
+                <PersonTabs articles={articles} news={news} photos={photos} documents={documents} />
 
                 <CommentsSection entityId={entity.id} page={commentsPage} sort={sort} />
             </main>

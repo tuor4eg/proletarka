@@ -14,6 +14,7 @@ import type { SectionOption } from "@/components/SortableMaterialsList"
 
 const TYPE_LABEL: Record<MaterialType, string> = {
     article: "Статья",
+    news: "Новость",
     photo: "Фото",
     document: "Документ",
 }
@@ -186,6 +187,7 @@ export function LinkedArtifactMaterialsBlock({
                         <option value="">Все типы</option>
                         <option value="photo">Фото</option>
                         <option value="article">Статья</option>
+                        <option value="news">Новость</option>
                         <option value="document">Документ</option>
                     </select>
                 </div>

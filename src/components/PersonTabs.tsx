@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { X, FileText } from "lucide-react"
 import { Lightbox } from "@/components/Lightbox"
+import { getMaterialPreviewText } from "@/lib/materialPresentation"
 
 type Material = {
     id: number
@@ -18,6 +19,7 @@ type Material = {
 
 type Props = {
     articles: Material[]
+    news: Material[]
     photos: Material[]
     documents: Material[]
 }
@@ -28,8 +30,8 @@ function YearRange({ yearFrom, yearTo }: { yearFrom: number | null; yearTo: numb
     return <span className="text-xs text-ink-muted">{label}</span>
 }
 
-function ArticleList({ items }: { items: Material[] }) {
-    if (items.length === 0) return <p className="text-sm text-ink-muted">Нет статей.</p>
+function ArticleList({ items, emptyLabel }: { items: Material[]; emptyLabel: string }) {
+    if (items.length === 0) return <p className="text-sm text-ink-muted">{emptyLabel}</p>
     return (
         <div className="flex flex-col divide-y divide-paper-border">
             {items.map((item) => (
@@ -42,7 +44,11 @@ function ArticleList({ items }: { items: Material[] }) {
                         <span className="text-sm font-medium flex-1">{item.title}</span>
                         <YearRange yearFrom={item.yearFrom} yearTo={item.yearTo} />
                     </div>
-                    {item.summary && <p className="text-sm text-ink-muted">{item.summary}</p>}
+                    {getMaterialPreviewText(item.summary, item.content, 160) && (
+                        <p className="text-sm text-ink-muted">
+                            {getMaterialPreviewText(item.summary, item.content, 160)}
+                        </p>
+                    )}
                 </Link>
             ))}
         </div>
@@ -190,9 +196,10 @@ function PhotoGrid({ items, onOpen }: { items: Material[]; onOpen: (index: numbe
     )
 }
 
-export function PersonTabs({ articles, photos, documents }: Props) {
+export function PersonTabs({ articles, news, photos, documents }: Props) {
     const tabs = [
         { key: "articles", label: "Статьи", count: articles.length },
+        { key: "news", label: "Новости", count: news.length },
         { key: "photos", label: "Фото", count: photos.length },
         { key: "documents", label: "Документы", count: documents.length },
     ].filter((t) => t.count > 0)
@@ -231,7 +238,8 @@ export function PersonTabs({ articles, photos, documents }: Props) {
                 ))}
             </div>
 
-            {activeTab === "articles" && <ArticleList items={articles} />}
+            {activeTab === "articles" && <ArticleList items={articles} emptyLabel="Нет статей." />}
+            {activeTab === "news" && <ArticleList items={news} emptyLabel="Нет новостей." />}
             {activeTab === "photos" && <PhotoGrid items={photos} onOpen={setLightboxIndex} />}
             {activeTab === "documents" && (
                 <DocumentGrid items={documents} onOpen={setDocLightboxIndex} onRead={setDocModal} />
