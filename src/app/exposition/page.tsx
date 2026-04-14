@@ -74,7 +74,7 @@ export default async function ExpositionPage() {
             .limit(1)
 
         if (entity) {
-            showcasePhotos = (await db
+            const rows = (await db
                 .select({
                     id: materials.id,
                     title: materials.title,
