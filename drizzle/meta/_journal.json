@@ -113,6 +113,27 @@
             "when": 1776100000000,
             "tag": "0015_add_group_photo_material_type_and_person_materials",
             "breakpoints": true
+        },
+        {
+            "idx": 16,
+            "version": "7",
+            "when": 1776200000000,
+            "tag": "0016_add_sources",
+            "breakpoints": true
+        },
+        {
+            "idx": 17,
+            "version": "7",
+            "when": 1776300000000,
+            "tag": "0017_migrate_material_source_urls",
+            "breakpoints": true
+        },
+        {
+            "idx": 18,
+            "version": "7",
+            "when": 1776400000000,
+            "tag": "0018_drop_material_source_url",
+            "breakpoints": true
         }
     ]
 }

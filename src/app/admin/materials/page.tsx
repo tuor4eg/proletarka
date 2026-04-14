@@ -1,7 +1,15 @@
 import Link from "next/link"
-import { desc, asc, ilike, eq, and, count } from "drizzle-orm"
+import { desc, asc, ilike, eq, and, count, inArray } from "drizzle-orm"
 import { db } from "@/db"
-import { materials, type MaterialType, type Status } from "@/db/schema"
+import {
+    materials,
+    entities,
+    people,
+    artifacts,
+    personMaterials,
+    type MaterialType,
+    type Status,
+} from "@/db/schema"
 import { AdminFilters } from "@/components/AdminFilters"
 import { PublishToggle } from "@/components/PublishToggle"
 import { Pagination } from "@/components/Pagination"
@@ -61,8 +69,16 @@ export default async function AdminMaterialsPage({ searchParams }: { searchParam
 
     const [items, [{ total }], allItems] = await Promise.all([
         db
-            .select()
+            .select({
+                material: materials,
+                entityType: entities.type,
+                personName: people.name,
+                artifactTitle: artifacts.title,
+            })
             .from(materials)
+            .leftJoin(entities, eq(materials.entityId, entities.id))
+            .leftJoin(people, eq(entities.personId, people.id))
+            .leftJoin(artifacts, eq(entities.artifactId, artifacts.id))
             .where(where)
             .orderBy(orderBy)
             .limit(PAGE_SIZE)
@@ -73,6 +89,42 @@ export default async function AdminMaterialsPage({ searchParams }: { searchParam
             .from(materials)
             .where(type ? eq(materials.materialType, type) : undefined),
     ])
+
+    const groupPhotoIds = items
+        .filter(({ material }) => material.materialType === "group_photo")
+        .map(({ material }) => material.id)
+
+    const linkedPeopleRows = groupPhotoIds.length
+        ? await db
+              .select({
+                  materialId: personMaterials.materialId,
+                  personName: people.name,
+              })
+              .from(personMaterials)
+              .innerJoin(people, eq(personMaterials.personId, people.id))
+              .where(inArray(personMaterials.materialId, groupPhotoIds))
+              .orderBy(asc(people.name))
+        : []
+
+    const linkedPeopleByMaterialId = new Map<number, string[]>()
+    for (const row of linkedPeopleRows) {
+        const current = linkedPeopleByMaterialId.get(row.materialId) ?? []
+        if (!current.includes(row.personName)) {
+            current.push(row.personName)
+        }
+        linkedPeopleByMaterialId.set(row.materialId, current)
+    }
+
+    const enrichedItems = items.map(({ material, entityType, personName, artifactTitle }) => ({
+        ...material,
+        relationLabel:
+            entityType === "person" && personName
+                ? `Человек: ${personName}`
+                : entityType === "artifact" && artifactTitle
+                  ? `Объект: ${artifactTitle}`
+                  : null,
+        linkedPeople: linkedPeopleByMaterialId.get(material.id) ?? [],
+    }))
 
     const totalPages = Math.ceil(total / PAGE_SIZE)
     const published = allItems.filter((i) => i.status === "published").length
@@ -102,7 +154,7 @@ export default async function AdminMaterialsPage({ searchParams }: { searchParam
             ) : (
                 <>
                     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
-                        {items.map((item) => (
+                        {enrichedItems.map((item) => (
                             <div
                                 key={item.id}
                                 className="flex items-center gap-2 px-4 hover:bg-gray-50 transition-colors"
@@ -111,9 +163,21 @@ export default async function AdminMaterialsPage({ searchParams }: { searchParam
                                     href={buildBackstackHref(`/admin/${item.id}`, nextBackstack)}
                                     className="flex items-center gap-3 py-2.5 flex-1 min-w-0"
                                 >
-                                    <span className="text-sm font-medium flex-1 min-w-0 truncate">
-                                        {item.title}
-                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium truncate">
+                                            {item.title}
+                                        </div>
+                                        {(item.relationLabel ||
+                                            (item.materialType === "group_photo" &&
+                                                item.linkedPeople.length > 0)) && (
+                                            <div className="text-xs text-gray-400 truncate">
+                                                {item.materialType === "group_photo" &&
+                                                item.linkedPeople.length > 0
+                                                    ? `На фото: ${item.linkedPeople.join(", ")}`
+                                                    : item.relationLabel}
+                                            </div>
+                                        )}
+                                    </div>
                                     <span className="text-xs text-gray-400 shrink-0">
                                         {TYPE_LABEL[item.materialType]}
                                     </span>

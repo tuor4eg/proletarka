@@ -15,6 +15,7 @@ import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
 import { CommentsSection } from "@/components/comments/CommentsSection"
+import { fetchMaterialSourcesMap } from "@/db/queries"
 
 type Props = {
     params: Promise<{ code: string }>
@@ -53,7 +54,6 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
                 materialType: materials.materialType,
                 coverImagePath: materials.coverImagePath,
                 content: materials.content,
-                sourceUrl: materials.sourceUrl,
                 sectionId: materials.sectionId,
                 position: materials.position,
             })
@@ -75,7 +75,6 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
                 materialType: materials.materialType,
                 coverImagePath: materials.coverImagePath,
                 content: materials.content,
-                sourceUrl: materials.sourceUrl,
                 sectionId: artifactMaterials.sectionId,
                 position: artifactMaterials.position,
                 personName: people.name,
@@ -92,6 +91,11 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
                 ),
             )
             .orderBy(sql`${artifactMaterials.position} ASC NULLS LAST`, asc(materials.id)),
+    ])
+
+    const materialSourcesMap = await fetchMaterialSourcesMap([
+        ...nativeMaterials.map((material) => material.id),
+        ...refMaterialRows.map((material) => material.id),
     ])
 
     const groupPhotoIds = [...nativeMaterials, ...refMaterialRows]
@@ -120,6 +124,7 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
     const seenIds = new Set(nativeMaterials.map((m) => m.id))
     const nativeWithAttrs = nativeMaterials.map((m) => ({
         ...m,
+        sources: materialSourcesMap.get(m.id) ?? [],
         personName: null,
         personCode: null,
         linkedPeople: linkedPeopleMap.get(m.id) ?? [],
@@ -128,6 +133,7 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
         .filter((m) => !seenIds.has(m.id))
         .map((m) => ({
             ...m,
+            sources: materialSourcesMap.get(m.id) ?? [],
             linkedPeople: linkedPeopleMap.get(m.id) ?? [],
         }))
     const allMaterials = [...nativeWithAttrs, ...refFiltered].sort(

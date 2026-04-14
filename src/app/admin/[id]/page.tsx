@@ -10,6 +10,8 @@ import {
     materialTopics,
     artifactMaterials,
     personMaterials,
+    materialSources,
+    sources,
 } from "@/db/schema"
 import { updateMaterial, deleteMaterial } from "../actions"
 import { MaterialForm } from "@/components/MaterialForm"
@@ -39,6 +41,7 @@ export default async function EditMaterialPage({ params, searchParams }: Props) 
         selectedRows,
         linkedArtifactRows,
         selectedPersonRows,
+        materialSourceRows,
     ] = await Promise.all([
         db.select().from(materials).where(eq(materials.id, numericId)).limit(1),
         db
@@ -65,6 +68,14 @@ export default async function EditMaterialPage({ params, searchParams }: Props) 
             .select({ personId: personMaterials.personId })
             .from(personMaterials)
             .where(eq(personMaterials.materialId, numericId)),
+        db
+            .select({
+                label: sources.label,
+                url: sources.url,
+            })
+            .from(materialSources)
+            .innerJoin(sources, eq(materialSources.sourceId, sources.id))
+            .where(eq(materialSources.materialId, numericId)),
     ])
 
     if (!material) {
@@ -110,6 +121,7 @@ export default async function EditMaterialPage({ params, searchParams }: Props) 
                 people={selectedPeople}
                 selectedTopicIds={selectedTopicIds}
                 selectedPersonIds={selectedPersonIds}
+                initialSources={materialSourceRows}
                 materialTypeLocked={
                     material.materialType === "news" || material.materialType === "group_photo"
                 }

@@ -6,6 +6,8 @@ import {
     people,
     materials,
     personMaterials,
+    personSources,
+    sources,
     events,
     eventTopics,
     topics,
@@ -15,6 +17,7 @@ import { PersonTabs } from "@/components/PersonTabs"
 import { PersonTimeline } from "@/components/PersonTimeline"
 import { BackButton } from "@/components/BackButton"
 import { CommentsSection } from "@/components/comments/CommentsSection"
+import { fetchMaterialSourcesMap } from "@/db/queries"
 
 type Props = {
     params: Promise<{ code: string }>
@@ -53,7 +56,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
         name: string
     }
 
-    const [nativeMaterials, groupPhotoMaterials, eventRows] = await Promise.all([
+    const [nativeMaterials, groupPhotoMaterials, eventRows, personSourceRows] = await Promise.all([
         db
             .select({
                 id: materials.id,
@@ -63,7 +66,6 @@ export default async function PersonPage({ params, searchParams }: Props) {
                 coverImagePath: materials.coverImagePath,
                 yearFrom: materials.yearFrom,
                 yearTo: materials.yearTo,
-                sourceUrl: materials.sourceUrl,
                 materialType: materials.materialType,
             })
             .from(materials)
@@ -77,7 +79,6 @@ export default async function PersonPage({ params, searchParams }: Props) {
                 coverImagePath: materials.coverImagePath,
                 yearFrom: materials.yearFrom,
                 yearTo: materials.yearTo,
-                sourceUrl: materials.sourceUrl,
                 materialType: materials.materialType,
             })
             .from(personMaterials)
@@ -103,9 +104,20 @@ export default async function PersonPage({ params, searchParams }: Props) {
             .leftJoin(topics, eq(topics.id, eventTopics.topicId))
             .where(eq(events.entityId, entity.id))
             .orderBy(asc(events.yearFrom), asc(events.id)),
+        db
+            .select({
+                id: sources.id,
+                label: sources.label,
+                url: sources.url,
+            })
+            .from(personSources)
+            .innerJoin(sources, eq(personSources.sourceId, sources.id))
+            .where(eq(personSources.personId, person.id))
+            .orderBy(asc(sources.label), asc(sources.id)),
     ])
 
     const groupPhotoIds = groupPhotoMaterials.map((item) => item.id)
+    const materialIds = [...nativeMaterials, ...groupPhotoMaterials].map((material) => material.id)
     const linkedPeopleRows = groupPhotoIds.length
         ? await db
               .select({
@@ -117,6 +129,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
               .innerJoin(people, eq(personMaterials.personId, people.id))
               .where(inArray(personMaterials.materialId, groupPhotoIds))
         : []
+    const materialSourcesMap = await fetchMaterialSourcesMap(materialIds)
 
     const linkedPeopleMap = new Map<number, LinkedPerson[]>()
     for (const row of linkedPeopleRows) {
@@ -127,11 +140,15 @@ export default async function PersonPage({ params, searchParams }: Props) {
 
     const normalizedGroupPhotos = groupPhotoMaterials.map((material) => ({
         ...material,
+        sources: materialSourcesMap.get(material.id) ?? [],
         linkedPeople: linkedPeopleMap.get(material.id) ?? [],
     }))
 
     const linkedMaterials = [
-        ...nativeMaterials,
+        ...nativeMaterials.map((material) => ({
+            ...material,
+            sources: materialSourcesMap.get(material.id) ?? [],
+        })),
         ...normalizedGroupPhotos.filter(
             (groupPhoto) => !nativeMaterials.some((material) => material.id === groupPhoto.id),
         ),
@@ -209,6 +226,25 @@ export default async function PersonPage({ params, searchParams }: Props) {
                         {years && <p className="text-sm text-ink-muted">{years}</p>}
                         {person.shortBio && (
                             <p className="text-sm text-ink-secondary mt-2">{person.shortBio}</p>
+                        )}
+                        {personSourceRows.length > 0 && (
+                            <div className="mt-3">
+                                <p className="text-xs text-ink-muted mb-1">Внешние источники</p>
+                                <ol className="list-decimal pl-4 space-y-1">
+                                    {personSourceRows.map((source) => (
+                                        <li key={source.id} className="text-xs text-ink-muted">
+                                            <a
+                                                href={source.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-sepia hover:underline"
+                                            >
+                                                {source.label}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
                         )}
                     </div>
                 </div>

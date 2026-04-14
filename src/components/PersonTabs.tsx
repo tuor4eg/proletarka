@@ -5,6 +5,7 @@ import Link from "next/link"
 import { X, FileText } from "lucide-react"
 import { Lightbox } from "@/components/Lightbox"
 import { getMaterialPreviewText } from "@/lib/materialPresentation"
+import type { SourceLink } from "@/db/queries"
 
 type Material = {
     id: number
@@ -14,7 +15,7 @@ type Material = {
     coverImagePath: string | null
     yearFrom: number | null
     yearTo: number | null
-    sourceUrl: string | null
+    sources: SourceLink[]
     materialType?: string | null
     linkedPeople?: Array<{
         code: string
@@ -149,6 +150,28 @@ function DocumentGrid({
                         </div>
                         <p className="text-xs text-ink-secondary leading-tight">{item.title}</p>
                         <YearRange yearFrom={item.yearFrom} yearTo={item.yearTo} />
+                        {item.sources.length > 0 && (
+                            <div>
+                                <p className="text-xs text-ink-muted mt-1 mb-1">
+                                    Внешние источники
+                                </p>
+                                <ol className="list-decimal pl-4 space-y-1">
+                                    {item.sources.map((source) => (
+                                        <li key={source.id} className="text-xs text-ink-muted">
+                                            <a
+                                                href={source.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-sepia hover:underline"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {source.label}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
+                        )}
                         {item.content && (
                             <button
                                 onClick={() => onRead(item)}
@@ -194,6 +217,28 @@ function PhotoGrid({ items, onOpen }: { items: Material[]; onOpen: (index: numbe
                         </div>
                         <p className="text-xs text-ink-secondary leading-tight">{item.title}</p>
                         <YearRange yearFrom={item.yearFrom} yearTo={item.yearTo} />
+                        {item.sources.length > 0 && (
+                            <div>
+                                <p className="text-xs text-ink-muted mt-1 mb-1">
+                                    Внешние источники
+                                </p>
+                                <ol className="list-decimal pl-4 space-y-1">
+                                    {item.sources.map((source) => (
+                                        <li key={source.id} className="text-xs text-ink-muted">
+                                            <a
+                                                href={source.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-sepia hover:underline"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {source.label}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
+                        )}
                         {item.materialType === "group_photo" &&
                             item.linkedPeople &&
                             item.linkedPeople.length > 0 && (

@@ -65,6 +65,13 @@ export const people = pgTable("people", {
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
+export const sources = pgTable("sources", {
+    id: serial("id").primaryKey(),
+    label: text("label").notNull(),
+    url: text("url").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
 export const entities = pgTable("entities", {
     id: serial("id").primaryKey(),
     type: entityTypeEnum("type").notNull(),
@@ -101,7 +108,6 @@ export const materials = pgTable("materials", {
     yearFrom: integer("year_from"),
     yearTo: integer("year_to"),
     coverImagePath: text("cover_image_path"),
-    sourceUrl: text("source_url"),
     position: integer("position"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -131,6 +137,32 @@ export const personMaterials = pgTable(
             .references(() => materials.id, { onDelete: "cascade" }),
     },
     (t) => [primaryKey({ columns: [t.personId, t.materialId] })],
+)
+
+export const personSources = pgTable(
+    "person_sources",
+    {
+        personId: integer("person_id")
+            .notNull()
+            .references(() => people.id, { onDelete: "cascade" }),
+        sourceId: integer("source_id")
+            .notNull()
+            .references(() => sources.id, { onDelete: "cascade" }),
+    },
+    (t) => [primaryKey({ columns: [t.personId, t.sourceId] })],
+)
+
+export const materialSources = pgTable(
+    "material_sources",
+    {
+        materialId: integer("material_id")
+            .notNull()
+            .references(() => materials.id, { onDelete: "cascade" }),
+        sourceId: integer("source_id")
+            .notNull()
+            .references(() => sources.id, { onDelete: "cascade" }),
+    },
+    (t) => [primaryKey({ columns: [t.materialId, t.sourceId] })],
 )
 
 export const events = pgTable("events", {
@@ -261,6 +293,7 @@ export const artifactSectionsRelations = relations(artifactSections, ({ one, man
 export const peopleRelations = relations(people, ({ many }) => ({
     entities: many(entities),
     personMaterials: many(personMaterials),
+    personSources: many(personSources),
 }))
 
 export const entitiesRelations = relations(entities, ({ one, many }) => ({
@@ -280,12 +313,31 @@ export const materialsRelations = relations(materials, ({ one, many }) => ({
     }),
     materialTopics: many(materialTopics),
     personMaterials: many(personMaterials),
+    materialSources: many(materialSources),
     artifactMaterials: many(artifactMaterials),
 }))
 
 export const personMaterialsRelations = relations(personMaterials, ({ one }) => ({
     person: one(people, { fields: [personMaterials.personId], references: [people.id] }),
     material: one(materials, { fields: [personMaterials.materialId], references: [materials.id] }),
+}))
+
+export const sourcesRelations = relations(sources, ({ many }) => ({
+    personSources: many(personSources),
+    materialSources: many(materialSources),
+}))
+
+export const personSourcesRelations = relations(personSources, ({ one }) => ({
+    person: one(people, { fields: [personSources.personId], references: [people.id] }),
+    source: one(sources, { fields: [personSources.sourceId], references: [sources.id] }),
+}))
+
+export const materialSourcesRelations = relations(materialSources, ({ one }) => ({
+    material: one(materials, {
+        fields: [materialSources.materialId],
+        references: [materials.id],
+    }),
+    source: one(sources, { fields: [materialSources.sourceId], references: [sources.id] }),
 }))
 
 export const artifactMaterialsRelations = relations(artifactMaterials, ({ one }) => ({

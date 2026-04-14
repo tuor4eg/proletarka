@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Lightbox } from "@/components/Lightbox"
+import type { SourceLink } from "@/db/queries"
 
 type Photo = {
     id: number
@@ -13,7 +14,7 @@ type Photo = {
     yearFrom: number | null
     yearTo: number | null
     content: string | null
-    sourceUrl?: string | null
+    sources?: SourceLink[]
     personName?: string | null
     personCode?: string | null
     materialType?: string | null
@@ -60,6 +61,7 @@ export function PhotoCarousel({ photos }: Props) {
                     index={lightboxIndex}
                     onClose={() => setLightboxIndex(null)}
                     onNavigate={setLightboxIndex}
+                    linkedPeopleLabel="На фото"
                 />
             )}
 
@@ -162,15 +164,24 @@ export function PhotoCarousel({ photos }: Props) {
                                 </div>
                             )
                         })()}
-                    {photo.sourceUrl && (
-                        <a
-                            href={photo.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-sepia hover:underline mt-1 inline-block"
-                        >
-                            Источник →
-                        </a>
+                    {photo.sources && photo.sources.length > 0 && (
+                        <div className="mt-1">
+                            <p className="text-xs text-ink-muted mb-1">Внешние источники</p>
+                            <ol className="list-decimal pl-4 space-y-1">
+                                {photo.sources.map((source) => (
+                                    <li key={source.id} className="text-xs text-ink-muted">
+                                        <a
+                                            href={source.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sepia hover:underline inline-block"
+                                        >
+                                            {source.label}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ol>
+                        </div>
                     )}
                 </div>
             </div>

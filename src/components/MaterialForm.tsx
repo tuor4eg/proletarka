@@ -9,6 +9,7 @@ import { InferSelectModel } from "drizzle-orm"
 import { materials, type MaterialType, type Status, type EntityType } from "@/db/schema"
 import { ImageUpload } from "@/components/ImageUpload"
 import { DeleteButton } from "@/components/DeleteButton"
+import { SourcesInput, type SourceInputItem } from "@/components/SourcesInput"
 
 type Material = InferSelectModel<typeof materials>
 
@@ -84,6 +85,7 @@ type Props = {
     materialTypeLocked?: boolean
     defaultSectionId?: number
     backstack?: string
+    initialSources?: SourceInputItem[]
 }
 
 function FormActions({
@@ -273,6 +275,7 @@ export function MaterialForm({
     materialTypeLocked = false,
     defaultSectionId,
     backstack,
+    initialSources = [],
 }: Props) {
     const [state, formAction] = useActionState(action, null)
     const formRef = useRef<HTMLFormElement>(null)
@@ -370,13 +373,8 @@ export function MaterialForm({
                         label="Обложка"
                     />
 
-                    <Field label="Ссылка на источник">
-                        <input
-                            name="sourceUrl"
-                            type="url"
-                            defaultValue={material?.sourceUrl ?? ""}
-                            className={inputClass}
-                        />
+                    <Field label="Внешние источники">
+                        <SourcesInput initialSources={initialSources} />
                     </Field>
                 </div>
 
@@ -528,24 +526,16 @@ export function MaterialForm({
                                 <input type="hidden" name="sectionId" value={defaultSectionId} />
                             )}
 
-                            {people.length > 0 && (
-                                <Field
-                                    label="Люди на фото"
-                                    hint="Для группового фото нужно выбрать минимум двух человек."
-                                >
-                                    <PeopleMultiSelect
-                                        people={people}
-                                        selectedIds={groupPhotoPersonIds}
-                                        onChange={setGroupPhotoPersonIds}
-                                    />
-                                </Field>
-                            )}
-
-                            {groupPhotoNeedsMorePeople && (
-                                <p className="text-xs text-red-500">
-                                    Для группового фото нужно выбрать минимум двух человек.
-                                </p>
-                            )}
+                            <Field
+                                label="Люди на фото"
+                                hint="Найдите и добавьте минимум двух человек."
+                            >
+                                <PeopleMultiSelect
+                                    people={people}
+                                    selectedIds={groupPhotoPersonIds}
+                                    onChange={setGroupPhotoPersonIds}
+                                />
+                            </Field>
                         </>
                     )}
                 </div>

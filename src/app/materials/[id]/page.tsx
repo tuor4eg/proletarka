@@ -7,6 +7,7 @@ import { BackButton } from "@/components/BackButton"
 import { PageHero } from "@/components/PageHero"
 import { CoverImage } from "@/components/CoverImage"
 import { formatMaterialDate } from "@/lib/materialPresentation"
+import { fetchMaterialSourcesMap } from "@/db/queries"
 
 type Props = {
     params: Promise<{ id: string }>
@@ -38,8 +39,10 @@ export default async function MaterialPage({ params }: Props) {
                   .where(eq(personMaterials.materialId, numericId))
             : []
 
-    const { title, yearFrom, yearTo, content, sourceUrl, coverImagePath, materialType, createdAt } =
-        material
+    const sourcesMap = await fetchMaterialSourcesMap([material.id])
+    const materialSources = sourcesMap.get(material.id) ?? []
+
+    const { title, yearFrom, yearTo, content, coverImagePath, materialType, createdAt } = material
 
     const yearLabel = yearFrom && yearTo ? `${yearFrom}–${yearTo}` : yearFrom ? `${yearFrom}` : null
     const metaLabel = materialType === "news" ? formatMaterialDate(createdAt) : yearLabel
@@ -74,15 +77,24 @@ export default async function MaterialPage({ params }: Props) {
                         {content}
                     </div>
                 )}
-                {sourceUrl && (
-                    <a
-                        href={sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-6 inline-block text-sm text-sepia hover:underline"
-                    >
-                        Источник →
-                    </a>
+                {materialSources.length > 0 && (
+                    <div className="mt-6">
+                        <p className="text-xs text-ink-muted mb-1">Внешние источники</p>
+                        <ol className="list-decimal pl-4 space-y-1">
+                            {materialSources.map((source) => (
+                                <li key={source.id} className="text-sm text-ink-muted">
+                                    <a
+                                        href={source.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-sepia hover:underline"
+                                    >
+                                        {source.label}
+                                    </a>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
                 )}
             </main>
         </>

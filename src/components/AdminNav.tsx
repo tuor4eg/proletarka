@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -54,6 +54,7 @@ export function AdminNav({ hasPendingComments = false }: { hasPendingComments?: 
     const searchParams = useSearchParams()
     const currentArtifactType = searchParams.get("type") ?? ""
     const currentMaterialType = searchParams.get("type") ?? ""
+    const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
     const [isManagementOpen, setIsManagementOpen] = useState(false)
     const [isArtifactsOpen, setIsArtifactsOpen] = useState(false)
     const [isMaterialsOpen, setIsMaterialsOpen] = useState(false)
@@ -72,194 +73,378 @@ export function AdminNav({ hasPendingComments = false }: { hasPendingComments?: 
 
     return (
         <nav className="border-b border-gray-200 bg-white sticky top-0 z-10">
-            <div className="max-w-4xl mx-auto px-4 h-11 flex items-center gap-6">
-                <span className="text-sm font-semibold text-gray-900 shrink-0">Админка</span>
-                <div className="flex items-center gap-0.5 flex-1">
-                    {NAV_LINKS.map(({ href, label, exact }) => (
-                        <Link
-                            key={href}
-                            href={href}
-                            className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                                isActive(href, exact)
-                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                            }`}
-                        >
-                            {label}
-                        </Link>
-                    ))}
-                    <div
-                        className="relative"
-                        onMouseEnter={() => setIsArtifactsOpen(true)}
-                        onMouseLeave={() => setIsArtifactsOpen(false)}
+            <div className="max-w-4xl mx-auto px-4">
+                <div className="h-11 flex items-center justify-between md:hidden">
+                    <span className="text-sm font-semibold text-gray-900 shrink-0">Админка</span>
+                    <button
+                        type="button"
+                        onClick={() => setIsMobileNavOpen((open) => !open)}
+                        className="inline-flex items-center justify-center rounded-lg p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                        aria-label={isMobileNavOpen ? "Закрыть меню" : "Открыть меню"}
+                        aria-expanded={isMobileNavOpen}
                     >
-                        <button
-                            type="button"
-                            onClick={() => setIsArtifactsOpen((open) => !open)}
-                            className={`text-sm px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 ${
-                                isArtifactsActive
-                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                            }`}
-                        >
-                            Объекты
-                            <ChevronDown
-                                className={`size-4 transition-transform duration-150 ${
-                                    isArtifactsOpen ? "rotate-180" : ""
-                                }`}
-                            />
-                        </button>
-                        <div
-                            className={`absolute left-0 top-full pt-2 transition-all duration-150 ${
-                                isArtifactsOpen
-                                    ? "opacity-100 pointer-events-auto translate-y-0"
-                                    : "opacity-0 pointer-events-none translate-y-1"
-                            }`}
-                        >
-                            <div className="w-48 rounded-xl border border-gray-200 bg-white shadow-lg p-1.5">
-                                {ARTIFACT_LINKS.map(({ href, label, type }) => {
-                                    const active =
-                                        pathname === "/admin/artifacts" &&
-                                        currentArtifactType === type
-
-                                    return (
-                                        <Link
-                                            key={href}
-                                            href={href}
-                                            onClick={() => setIsArtifactsOpen(false)}
-                                            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                                                active
-                                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                            }`}
-                                        >
-                                            {label}
-                                        </Link>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                    <div
-                        className="relative"
-                        onMouseEnter={() => setIsMaterialsOpen(true)}
-                        onMouseLeave={() => setIsMaterialsOpen(false)}
-                    >
-                        <button
-                            type="button"
-                            onClick={() => setIsMaterialsOpen((open) => !open)}
-                            className={`text-sm px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 ${
-                                isMaterialsActive
-                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                            }`}
-                        >
-                            Материалы
-                            <ChevronDown
-                                className={`size-4 transition-transform duration-150 ${
-                                    isMaterialsOpen ? "rotate-180" : ""
-                                }`}
-                            />
-                        </button>
-                        <div
-                            className={`absolute left-0 top-full pt-2 transition-all duration-150 ${
-                                isMaterialsOpen
-                                    ? "opacity-100 pointer-events-auto translate-y-0"
-                                    : "opacity-0 pointer-events-none translate-y-1"
-                            }`}
-                        >
-                            <div className="w-48 rounded-xl border border-gray-200 bg-white shadow-lg p-1.5">
-                                {MATERIAL_LINKS.map(({ href, label, type }) => {
-                                    const active =
-                                        pathname === "/admin/materials" &&
-                                        currentMaterialType === type
-
-                                    return (
-                                        <Link
-                                            key={href}
-                                            href={href}
-                                            onClick={() => setIsMaterialsOpen(false)}
-                                            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                                                active
-                                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                            }`}
-                                        >
-                                            {label}
-                                        </Link>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    </div>
+                        {isMobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+                    </button>
                 </div>
-                <div className="flex items-center gap-4">
-                    <div
-                        className="relative group"
-                        onMouseEnter={() => setIsManagementOpen(true)}
-                        onMouseLeave={() => setIsManagementOpen(false)}
-                    >
-                        <button
-                            type="button"
-                            onClick={() => setIsManagementOpen((open) => !open)}
-                            className={`text-sm px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 ${
-                                isManagementActive
-                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                            }`}
-                        >
-                            Инструменты
-                            {hasPendingComments ? <NewCommentsIndicator /> : null}
-                            <ChevronDown
-                                className={`size-4 transition-transform duration-150 ${
-                                    isManagementOpen ? "rotate-180" : ""
-                                }`}
-                            />
-                        </button>
-                        <div
-                            className={`absolute right-0 top-full pt-2 transition-all duration-150 ${
-                                isManagementOpen
-                                    ? "opacity-100 pointer-events-auto translate-y-0"
-                                    : "opacity-0 pointer-events-none translate-y-1"
-                            }`}
-                        >
-                            <div className="w-48 rounded-xl border border-gray-200 bg-white shadow-lg p-1.5">
-                                {MANAGEMENT_LINKS.map(({ href, label }) => (
-                                    <Link
-                                        key={href}
-                                        href={href}
-                                        onClick={() => setIsManagementOpen(false)}
-                                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                                            pathname.startsWith(href)
-                                                ? "bg-gray-100 text-gray-900 font-medium"
-                                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+
+                {isMobileNavOpen && (
+                    <div className="md:hidden pb-4">
+                        <div className="rounded-xl border border-gray-200 bg-white p-2 space-y-1">
+                            {NAV_LINKS.map(({ href, label, exact }) => (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    onClick={() => setIsMobileNavOpen(false)}
+                                    className={`flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
+                                        isActive(href, exact)
+                                            ? "bg-gray-100 text-gray-900 font-medium"
+                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    }`}
+                                >
+                                    {label}
+                                </Link>
+                            ))}
+
+                            <div className="pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsArtifactsOpen((open) => !open)}
+                                    className={`w-full inline-flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                                        isArtifactsActive
+                                            ? "bg-gray-100 text-gray-900 font-medium"
+                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    }`}
+                                >
+                                    <span>Объекты</span>
+                                    <ChevronDown
+                                        className={`size-4 transition-transform duration-150 ${
+                                            isArtifactsOpen ? "rotate-180" : ""
                                         }`}
-                                    >
-                                        <span>{label}</span>
-                                        {href === "/admin/comments" && hasPendingComments ? (
-                                            <NewCommentsIndicator />
-                                        ) : null}
-                                    </Link>
-                                ))}
-                                <div className="my-1 h-px bg-gray-100" />
-                                <form action="/admin/logout" method="POST">
-                                    <button
-                                        type="submit"
-                                        onClick={() => setIsManagementOpen(false)}
-                                        className="block w-full text-left rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                                    >
-                                        Выйти
-                                    </button>
-                                </form>
+                                    />
+                                </button>
+                                {isArtifactsOpen && (
+                                    <div className="mt-1 ml-2 space-y-1 border-l border-gray-100 pl-2">
+                                        {ARTIFACT_LINKS.map(({ href, label, type }) => {
+                                            const active =
+                                                pathname === "/admin/artifacts" &&
+                                                currentArtifactType === type
+
+                                            return (
+                                                <Link
+                                                    key={href}
+                                                    href={href}
+                                                    onClick={() => setIsMobileNavOpen(false)}
+                                                    className={`flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
+                                                        active
+                                                            ? "bg-gray-100 text-gray-900 font-medium"
+                                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                                    }`}
+                                                >
+                                                    {label}
+                                                </Link>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMaterialsOpen((open) => !open)}
+                                    className={`w-full inline-flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                                        isMaterialsActive
+                                            ? "bg-gray-100 text-gray-900 font-medium"
+                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    }`}
+                                >
+                                    <span>Материалы</span>
+                                    <ChevronDown
+                                        className={`size-4 transition-transform duration-150 ${
+                                            isMaterialsOpen ? "rotate-180" : ""
+                                        }`}
+                                    />
+                                </button>
+                                {isMaterialsOpen && (
+                                    <div className="mt-1 ml-2 space-y-1 border-l border-gray-100 pl-2">
+                                        {MATERIAL_LINKS.map(({ href, label, type }) => {
+                                            const active =
+                                                pathname === "/admin/materials" &&
+                                                currentMaterialType === type
+
+                                            return (
+                                                <Link
+                                                    key={href}
+                                                    href={href}
+                                                    onClick={() => setIsMobileNavOpen(false)}
+                                                    className={`flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
+                                                        active
+                                                            ? "bg-gray-100 text-gray-900 font-medium"
+                                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                                    }`}
+                                                >
+                                                    {label}
+                                                </Link>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsManagementOpen((open) => !open)}
+                                    className={`w-full inline-flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                                        isManagementActive
+                                            ? "bg-gray-100 text-gray-900 font-medium"
+                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    }`}
+                                >
+                                    <span className="inline-flex items-center gap-2">
+                                        Инструменты
+                                        {hasPendingComments ? <NewCommentsIndicator /> : null}
+                                    </span>
+                                    <ChevronDown
+                                        className={`size-4 transition-transform duration-150 ${
+                                            isManagementOpen ? "rotate-180" : ""
+                                        }`}
+                                    />
+                                </button>
+                                {isManagementOpen && (
+                                    <div className="mt-1 ml-2 space-y-1 border-l border-gray-100 pl-2">
+                                        {MANAGEMENT_LINKS.map(({ href, label }) => (
+                                            <Link
+                                                key={href}
+                                                href={href}
+                                                onClick={() => setIsMobileNavOpen(false)}
+                                                className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                                    pathname.startsWith(href)
+                                                        ? "bg-gray-100 text-gray-900 font-medium"
+                                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                                }`}
+                                            >
+                                                <span>{label}</span>
+                                                {href === "/admin/comments" &&
+                                                hasPendingComments ? (
+                                                    <NewCommentsIndicator />
+                                                ) : null}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-2 h-px bg-gray-100" />
+                            <Link
+                                href="/"
+                                onClick={() => setIsMobileNavOpen(false)}
+                                className="flex items-center rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                            >
+                                ← Сайт
+                            </Link>
+                            <form action="/admin/logout" method="POST">
+                                <button
+                                    type="submit"
+                                    onClick={() => setIsMobileNavOpen(false)}
+                                    className="block w-full text-left rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                                >
+                                    Выйти
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                <div className="hidden md:flex h-11 items-center gap-6">
+                    <span className="text-sm font-semibold text-gray-900 shrink-0">Админка</span>
+                    <div className="flex items-center gap-0.5 flex-1">
+                        {NAV_LINKS.map(({ href, label, exact }) => (
+                            <Link
+                                key={href}
+                                href={href}
+                                className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                                    isActive(href, exact)
+                                        ? "bg-gray-100 text-gray-900 font-medium"
+                                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                                }`}
+                            >
+                                {label}
+                            </Link>
+                        ))}
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setIsArtifactsOpen(true)}
+                            onMouseLeave={() => setIsArtifactsOpen(false)}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setIsArtifactsOpen((open) => !open)}
+                                className={`text-sm px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 ${
+                                    isArtifactsActive
+                                        ? "bg-gray-100 text-gray-900 font-medium"
+                                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                                }`}
+                            >
+                                Объекты
+                                <ChevronDown
+                                    className={`size-4 transition-transform duration-150 ${
+                                        isArtifactsOpen ? "rotate-180" : ""
+                                    }`}
+                                />
+                            </button>
+                            <div
+                                className={`absolute left-0 top-full pt-2 transition-all duration-150 ${
+                                    isArtifactsOpen
+                                        ? "opacity-100 pointer-events-auto translate-y-0"
+                                        : "opacity-0 pointer-events-none translate-y-1"
+                                }`}
+                            >
+                                <div className="w-48 rounded-xl border border-gray-200 bg-white shadow-lg p-1.5">
+                                    {ARTIFACT_LINKS.map(({ href, label, type }) => {
+                                        const active =
+                                            pathname === "/admin/artifacts" &&
+                                            currentArtifactType === type
+
+                                        return (
+                                            <Link
+                                                key={href}
+                                                href={href}
+                                                onClick={() => setIsArtifactsOpen(false)}
+                                                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                                    active
+                                                        ? "bg-gray-100 text-gray-900 font-medium"
+                                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                                }`}
+                                            >
+                                                {label}
+                                            </Link>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setIsMaterialsOpen(true)}
+                            onMouseLeave={() => setIsMaterialsOpen(false)}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setIsMaterialsOpen((open) => !open)}
+                                className={`text-sm px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 ${
+                                    isMaterialsActive
+                                        ? "bg-gray-100 text-gray-900 font-medium"
+                                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                                }`}
+                            >
+                                Материалы
+                                <ChevronDown
+                                    className={`size-4 transition-transform duration-150 ${
+                                        isMaterialsOpen ? "rotate-180" : ""
+                                    }`}
+                                />
+                            </button>
+                            <div
+                                className={`absolute left-0 top-full pt-2 transition-all duration-150 ${
+                                    isMaterialsOpen
+                                        ? "opacity-100 pointer-events-auto translate-y-0"
+                                        : "opacity-0 pointer-events-none translate-y-1"
+                                }`}
+                            >
+                                <div className="w-48 rounded-xl border border-gray-200 bg-white shadow-lg p-1.5">
+                                    {MATERIAL_LINKS.map(({ href, label, type }) => {
+                                        const active =
+                                            pathname === "/admin/materials" &&
+                                            currentMaterialType === type
+
+                                        return (
+                                            <Link
+                                                key={href}
+                                                href={href}
+                                                onClick={() => setIsMaterialsOpen(false)}
+                                                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                                    active
+                                                        ? "bg-gray-100 text-gray-900 font-medium"
+                                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                                }`}
+                                            >
+                                                {label}
+                                            </Link>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <Link
-                        href="/"
-                        className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
-                    >
-                        ← Сайт
-                    </Link>
+                    <div className="flex items-center gap-4">
+                        <div
+                            className="relative group"
+                            onMouseEnter={() => setIsManagementOpen(true)}
+                            onMouseLeave={() => setIsManagementOpen(false)}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setIsManagementOpen((open) => !open)}
+                                className={`text-sm px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 ${
+                                    isManagementActive
+                                        ? "bg-gray-100 text-gray-900 font-medium"
+                                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                                }`}
+                            >
+                                Инструменты
+                                {hasPendingComments ? <NewCommentsIndicator /> : null}
+                                <ChevronDown
+                                    className={`size-4 transition-transform duration-150 ${
+                                        isManagementOpen ? "rotate-180" : ""
+                                    }`}
+                                />
+                            </button>
+                            <div
+                                className={`absolute right-0 top-full pt-2 transition-all duration-150 ${
+                                    isManagementOpen
+                                        ? "opacity-100 pointer-events-auto translate-y-0"
+                                        : "opacity-0 pointer-events-none translate-y-1"
+                                }`}
+                            >
+                                <div className="w-48 rounded-xl border border-gray-200 bg-white shadow-lg p-1.5">
+                                    {MANAGEMENT_LINKS.map(({ href, label }) => (
+                                        <Link
+                                            key={href}
+                                            href={href}
+                                            onClick={() => setIsManagementOpen(false)}
+                                            className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                                pathname.startsWith(href)
+                                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                            }`}
+                                        >
+                                            <span>{label}</span>
+                                            {href === "/admin/comments" && hasPendingComments ? (
+                                                <NewCommentsIndicator />
+                                            ) : null}
+                                        </Link>
+                                    ))}
+                                    <div className="my-1 h-px bg-gray-100" />
+                                    <form action="/admin/logout" method="POST">
+                                        <button
+                                            type="submit"
+                                            onClick={() => setIsManagementOpen(false)}
+                                            className="block w-full text-left rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                                        >
+                                            Выйти
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <Link
+                            href="/"
+                            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
+                        >
+                            ← Сайт
+                        </Link>
+                    </div>
                 </div>
             </div>
         </nav>

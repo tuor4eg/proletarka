@@ -2,7 +2,15 @@ import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { eq, desc, and, inArray } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, people, materials, topics, personMaterials } from "@/db/schema"
+import {
+    entities,
+    people,
+    materials,
+    topics,
+    personMaterials,
+    personSources,
+    sources,
+} from "@/db/schema"
 import {
     updatePerson,
     deletePerson,
@@ -19,6 +27,8 @@ import { EventsBlock } from "@/components/EventsBlock"
 import { LinkedMaterialsList, TYPE_LABEL, STATUS_LABEL } from "@/components/LinkedMaterialsList"
 import { CodeField } from "@/components/CodeField"
 import { GroupPhotoLinkSearch } from "@/components/GroupPhotoLinkSearch"
+import { SourcesInput } from "@/components/SourcesInput"
+import { EditPersonFormTabs } from "@/components/EditPersonFormTabs"
 import {
     buildBackstackHref,
     getBackHref,
@@ -58,7 +68,7 @@ export default async function EditPersonPage({ params, searchParams }: Props) {
 
     const { entity, person } = row
 
-    const [linkedMaterials, groupPhotos, allTopics, entityEvents] = await Promise.all([
+    const [linkedMaterials, groupPhotos, allTopics, entityEvents, sourceRows] = await Promise.all([
         db
             .select({
                 id: materials.id,
@@ -88,6 +98,14 @@ export default async function EditPersonPage({ params, searchParams }: Props) {
             .orderBy(desc(materials.createdAt)),
         db.select({ id: topics.id, title: topics.title }).from(topics).orderBy(topics.title),
         getEventsByEntityId(entity.id),
+        db
+            .select({
+                label: sources.label,
+                url: sources.url,
+            })
+            .from(personSources)
+            .innerJoin(sources, eq(personSources.sourceId, sources.id))
+            .where(eq(personSources.personId, person.id)),
     ])
 
     const updateAction = updatePerson.bind(null, person.id)
@@ -128,69 +146,82 @@ export default async function EditPersonPage({ params, searchParams }: Props) {
                 <CodeField code={person.code} />
             </div>
             <form action={updateAction} className="flex flex-col gap-4">
-                <Field label="Имя *">
-                    <input
-                        name="name"
-                        type="text"
-                        required
-                        defaultValue={person.name}
-                        className={inputClass}
-                    />
-                </Field>
-                <Field label="Краткая биография">
-                    <textarea
-                        name="shortBio"
-                        rows={3}
-                        defaultValue={person.shortBio ?? ""}
-                        className={inputClass}
-                    />
-                </Field>
-                <div className="flex gap-4">
-                    <Field label="Год рождения">
-                        <input
-                            name="birthYear"
-                            type="number"
-                            min={1800}
-                            max={2100}
-                            defaultValue={person.birthYear ?? ""}
-                            className={inputClass}
-                        />
-                    </Field>
-                    <Field label="Год смерти">
-                        <input
-                            name="deathYear"
-                            type="number"
-                            min={1800}
-                            max={2100}
-                            defaultValue={person.deathYear ?? ""}
-                            className={inputClass}
-                        />
-                    </Field>
-                </div>
-                <Field
-                    label="Годы жизни (если точные неизвестны)"
-                    hint="Например: «не позднее 1917» или «ок. 1890–1943»"
-                >
-                    <input
-                        name="yearsLabel"
-                        type="text"
-                        defaultValue={person.yearsLabel ?? ""}
-                        className={inputClass}
-                    />
-                </Field>
-                <ImageUpload
-                    fileInputName="mainPhotoFile"
-                    urlInputName="mainPhotoPath"
-                    defaultUrl={person.mainPhotoPath ?? undefined}
-                    label="Обложка"
+                <EditPersonFormTabs
+                    main={
+                        <>
+                            <Field label="Имя *">
+                                <input
+                                    name="name"
+                                    type="text"
+                                    required
+                                    defaultValue={person.name}
+                                    className={inputClass}
+                                />
+                            </Field>
+                            <Field label="Краткая биография">
+                                <textarea
+                                    name="shortBio"
+                                    rows={3}
+                                    defaultValue={person.shortBio ?? ""}
+                                    className={inputClass}
+                                />
+                            </Field>
+                            <div className="flex gap-4">
+                                <Field label="Год рождения">
+                                    <input
+                                        name="birthYear"
+                                        type="number"
+                                        min={1800}
+                                        max={2100}
+                                        defaultValue={person.birthYear ?? ""}
+                                        className={inputClass}
+                                    />
+                                </Field>
+                                <Field label="Год смерти">
+                                    <input
+                                        name="deathYear"
+                                        type="number"
+                                        min={1800}
+                                        max={2100}
+                                        defaultValue={person.deathYear ?? ""}
+                                        className={inputClass}
+                                    />
+                                </Field>
+                            </div>
+                            <Field
+                                label="Годы жизни (если точные неизвестны)"
+                                hint="Например: «не позднее 1917» или «ок. 1890–1943»"
+                            >
+                                <input
+                                    name="yearsLabel"
+                                    type="text"
+                                    defaultValue={person.yearsLabel ?? ""}
+                                    className={inputClass}
+                                />
+                            </Field>
+                            <ImageUpload
+                                fileInputName="mainPhotoFile"
+                                urlInputName="mainPhotoPath"
+                                defaultUrl={person.mainPhotoPath ?? undefined}
+                                label="Обложка"
+                            />
+                        </>
+                    }
+                    sources={
+                        <Field label="Внешние источники">
+                            <SourcesInput initialSources={sourceRows} />
+                        </Field>
+                    }
+                    events={
+                        <Field label="События">
+                            <EventsBlock
+                                entityId={entity.id}
+                                initialEvents={entityEvents}
+                                topics={allTopics}
+                            />
+                        </Field>
+                    }
                 />
-                <Field label="События">
-                    <EventsBlock
-                        entityId={entity.id}
-                        initialEvents={entityEvents}
-                        topics={allTopics}
-                    />
-                </Field>
                 <div className="flex items-center gap-3 mt-0">
                     <SubmitButton label="Сохранить" />
                     <DeleteButton

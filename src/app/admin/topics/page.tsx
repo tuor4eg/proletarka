@@ -19,7 +19,6 @@ export default async function TopicsPage({ searchParams }: { searchParams: Searc
             .select({
                 id: topics.id,
                 title: topics.title,
-                code: topics.code,
                 materialCount: count(materialTopics.materialId),
             })
             .from(topics)
@@ -60,7 +59,6 @@ export default async function TopicsPage({ searchParams }: { searchParams: Searc
                                         <span className="text-sm font-medium flex-1 truncate">
                                             {topic.title}
                                         </span>
-                                        <span className="text-xs text-gray-400">{topic.code}</span>
                                     </Link>
                                     <span className="text-xs text-gray-400 shrink-0 min-w-[3ch] text-right">
                                         {topic.materialCount > 0 ? topic.materialCount : ""}

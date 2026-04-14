@@ -22,9 +22,16 @@ type Props = {
     index: number
     onClose: () => void
     onNavigate: (index: number) => void
+    linkedPeopleLabel?: string
 }
 
-export function Lightbox({ items, index, onClose, onNavigate }: Props) {
+export function Lightbox({
+    items,
+    index,
+    onClose,
+    onNavigate,
+    linkedPeopleLabel = "На фото также",
+}: Props) {
     const item = items[index]
     const [portrait, setPortrait] = useState(false)
 
@@ -110,7 +117,7 @@ export function Lightbox({ items, index, onClose, onNavigate }: Props) {
                             item.linkedPeople &&
                             item.linkedPeople.length > 0 && (
                                 <p className="text-white/70 text-xs mt-2 leading-relaxed">
-                                    На фото также:{" "}
+                                    {linkedPeopleLabel}:{" "}
                                     {item.linkedPeople.map((person, index) => (
                                         <span key={person.code}>
                                             {index > 0 ? ", " : ""}

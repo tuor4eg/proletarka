@@ -16,6 +16,7 @@ import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 import { logAdminAction } from "@/lib/logAdminAction"
 import { appendBackstackParam } from "@/lib/adminBackstack"
+import { parseSourcesForm, replaceMaterialSources } from "@/lib/adminSources"
 
 async function parseFormData(formData: FormData) {
     const yearFromRaw = formData.get("yearFrom") as string
@@ -35,7 +36,6 @@ async function parseFormData(formData: FormData) {
         sectionId: isNews ? null : sectionIdRaw ? Number(sectionIdRaw) : null,
         summary: isNews ? null : (formData.get("summary") as string) || null,
         content: (formData.get("content") as string) || null,
-        sourceUrl: (formData.get("sourceUrl") as string) || null,
         coverImagePath: await resolveImageUpload(formData, "coverImageFile", "coverImagePath"),
         yearFrom: isNews ? null : yearFromRaw ? Number(yearFromRaw) : null,
         yearTo: isNews ? null : yearToRaw ? Number(yearToRaw) : null,
@@ -71,6 +71,7 @@ export async function createMaterial(
     const values = await parseFormData(formData)
     const topicIds = parseTopicIds(formData, values.materialType)
     const personIds = parsePersonIds(formData, values.materialType)
+    const sourceItems = parseSourcesForm(formData)
     const groupPhotoValidation = validateGroupPhotoPeople(personIds, values.materialType)
 
     if (groupPhotoValidation) {
@@ -95,6 +96,8 @@ export async function createMaterial(
             .insert(personMaterials)
             .values(personIds.map((personId) => ({ personId, materialId: inserted.id })))
     }
+
+    await replaceMaterialSources(inserted.id, sourceItems)
 
     await logAdminAction("create", "material", inserted.id, values.title)
     redirect(
@@ -143,6 +146,7 @@ export async function updateMaterial(
 
     const topicIds = parseTopicIds(formData, values.materialType)
     const personIds = parsePersonIds(formData, values.materialType)
+    const sourceItems = parseSourcesForm(formData)
     const groupPhotoValidation = validateGroupPhotoPeople(personIds, values.materialType)
 
     if (groupPhotoValidation) {
@@ -175,6 +179,8 @@ export async function updateMaterial(
             .insert(personMaterials)
             .values(personIds.map((personId) => ({ personId, materialId: id })))
     }
+
+    await replaceMaterialSources(id, sourceItems)
 
     await logAdminAction("update", "material", id, values.title)
     revalidatePath("/admin", "layout")

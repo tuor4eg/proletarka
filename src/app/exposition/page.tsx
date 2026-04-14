@@ -4,7 +4,7 @@ import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts, materials, showcases } from "@/db/schema"
 import { eq, asc, inArray, and, isNotNull, sql } from "drizzle-orm"
-import { fetchFirstPhotoMap } from "@/db/queries"
+import { fetchFirstPhotoMap, fetchMaterialSourcesMap, type SourceLink } from "@/db/queries"
 import { PageHero } from "@/components/PageHero"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
 
@@ -63,7 +63,7 @@ export default async function ExpositionPage() {
         yearFrom: number | null
         yearTo: number | null
         content: string | null
-        sourceUrl: string | null
+        sources: SourceLink[]
     }[] = []
 
     if (showcaseRow[0]) {
@@ -82,7 +82,6 @@ export default async function ExpositionPage() {
                     yearFrom: materials.yearFrom,
                     yearTo: materials.yearTo,
                     content: materials.content,
-                    sourceUrl: materials.sourceUrl,
                 })
                 .from(materials)
                 .where(
@@ -93,7 +92,15 @@ export default async function ExpositionPage() {
                         isNotNull(materials.coverImagePath),
                     ),
                 )
-                .orderBy(asc(materials.position), asc(materials.id))) as typeof showcasePhotos
+                .orderBy(asc(materials.position), asc(materials.id))) as Array<
+                Omit<(typeof showcasePhotos)[number], "sources">
+            >
+
+            const sourcesMap = await fetchMaterialSourcesMap(rows.map((row) => row.id))
+            showcasePhotos = rows.map((row) => ({
+                ...row,
+                sources: sourcesMap.get(row.id) ?? [],
+            }))
         }
     }
 

@@ -3,6 +3,7 @@ import { inputClass, Field } from "@/components/MaterialForm"
 import { ImageUpload } from "@/components/ImageUpload"
 import { SubmitButton } from "@/components/SubmitButton"
 import { CodeField } from "@/components/CodeField"
+import { SourcesInput } from "@/components/SourcesInput"
 
 export default function NewPersonPage() {
     return (
@@ -46,6 +47,9 @@ export default function NewPersonPage() {
                     urlInputName="mainPhotoPath"
                     label="Обложка"
                 />
+                <Field label="Внешние источники">
+                    <SourcesInput />
+                </Field>
                 <CodeField />
                 <SubmitButton label="Сохранить" className="mt-2" />
             </form>

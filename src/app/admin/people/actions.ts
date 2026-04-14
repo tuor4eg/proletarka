@@ -16,6 +16,7 @@ import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 import { logAdminAction } from "@/lib/logAdminAction"
+import { parseSourcesForm, replacePersonSources } from "@/lib/adminSources"
 
 export type EventInput = {
     text: string
@@ -116,6 +117,7 @@ export async function parsePersonForm(formData: FormData) {
 
 export async function createPerson(formData: FormData) {
     const personValues = await parsePersonForm(formData)
+    const sourceItems = parseSourcesForm(formData)
 
     const customCodeRaw = (formData.get("customCode") as string)?.trim()
     let code: string
@@ -142,10 +144,9 @@ export async function createPerson(formData: FormData) {
         .values({ ...personValues, code })
         .returning({ id: people.id })
 
-    const [entity] = await db
-        .insert(entities)
-        .values({ type: "person", personId: person.id, code })
-        .returning({ id: entities.id })
+    await db.insert(entities).values({ type: "person", personId: person.id, code })
+
+    await replacePersonSources(person.id, sourceItems)
 
     await logAdminAction("create", "person", person.id, personValues.name)
     redirect(`/admin/people/${code}${flashParam("Человек добавлен")}`)
@@ -159,12 +160,13 @@ export async function updatePerson(personId: number, formData: FormData) {
         .limit(1)
 
     const personValues = await parsePersonForm(formData)
+    const sourceItems = parseSourcesForm(formData)
 
     if (current?.mainPhotoPath && current.mainPhotoPath !== personValues.mainPhotoPath) {
         await deleteImage(current.mainPhotoPath)
     }
 
-    const [[entity], [updatedPerson]] = await Promise.all([
+    const [[entityRow], [updatedPerson]] = await Promise.all([
         db
             .select({ id: entities.id })
             .from(entities)
@@ -177,12 +179,14 @@ export async function updatePerson(personId: number, formData: FormData) {
             .returning({ code: people.code }),
     ])
 
-    if (!entity?.id) redirect("/admin/people")
+    if (!entityRow?.id) redirect("/admin/people")
+
+    await replacePersonSources(personId, sourceItems)
 
     const newEventsRaw = formData.get("newEvents") as string
     if (newEventsRaw) {
         const newEvents: EventInput[] = JSON.parse(newEventsRaw)
-        await createEvents(entity.id, newEvents)
+        await createEvents(entityRow.id, newEvents)
     }
 
     await logAdminAction("update", "person", personId, personValues.name)
