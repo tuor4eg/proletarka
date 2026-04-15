@@ -33,6 +33,7 @@ const MATERIAL_LINKS = [
 ] as const
 
 const MANAGEMENT_LINKS: { href: string; label: string }[] = [
+    { href: "/admin/docs", label: "Документация" },
     { href: "/admin/comments", label: "Комментарии" },
     { href: "/admin/logs", label: "Журнал" },
     { href: "/admin/settings", label: "Настройки" },
