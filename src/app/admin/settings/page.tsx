@@ -5,12 +5,15 @@ import { db } from "@/db"
 import { users, artifacts, showcases } from "@/db/schema"
 import { getSession } from "@/lib/session"
 import { inputClass, Field } from "@/components/MaterialForm"
-import { updateProfile, updatePassword, setShowcase } from "./actions"
+import { updateProfile, updatePassword, setShowcases } from "./actions"
 import { SubmitButton } from "@/components/SubmitButton"
 
 type SearchParams = Promise<{ tab?: string }>
 
-const SITE_SECTIONS = [{ code: "exposition", label: "Выставка" }]
+const SITE_SECTIONS = [
+    { code: "exposition", label: "Выставка" },
+    { code: "war", label: "Война" },
+]
 
 const tabClass = (active: boolean) =>
     `text-sm px-3 py-1.5 rounded-lg transition-colors ${
@@ -130,13 +133,12 @@ async function ShowcasesTab() {
     )
 
     return (
-        <div className="flex flex-col gap-6">
+        <form action={setShowcases} className="flex flex-col gap-6">
             {SITE_SECTIONS.map((section) => (
-                <form key={section.code} action={setShowcase} className="flex flex-col gap-3">
-                    <input type="hidden" name="sectionCode" value={section.code} />
+                <div key={section.code} className="flex flex-col gap-3">
                     <Field label={section.label}>
                         <select
-                            name="artifactId"
+                            name={`showcase:${section.code}`}
                             defaultValue={showcaseMap[section.code] ?? ""}
                             className={inputClass}
                         >
@@ -148,9 +150,9 @@ async function ShowcasesTab() {
                             ))}
                         </select>
                     </Field>
-                    <SubmitButton label="Сохранить" className="self-start" />
-                </form>
+                </div>
             ))}
-        </div>
+            <SubmitButton label="Сохранить" className="self-start" />
+        </form>
     )
 }

@@ -2,12 +2,23 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { db } from "@/db"
-import { entities, people, materials, materialTopics, events, eventTopics } from "@/db/schema"
-import { eq, and, asc } from "drizzle-orm"
+import {
+    entities,
+    people,
+    materials,
+    materialTopics,
+    events,
+    eventTopics,
+    showcases,
+    artifacts,
+} from "@/db/schema"
+import { eq, and, asc, isNotNull } from "drizzle-orm"
 import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
 import { WarTimeline } from "@/components/WarTimeline"
 import { WarPhotoGrid } from "@/components/WarPhotoGrid"
+import { PhotoCarousel } from "@/components/PhotoCarousel"
+import { fetchMaterialSourcesMap, type SourceLink } from "@/db/queries"
 import { warPeopleTabGroups } from "@/lib/warSections"
 import { getWarPeopleBuckets } from "@/lib/warPeople"
 
@@ -58,7 +69,7 @@ export default async function WarPage() {
         )
     }
 
-    const [timelineEvents, warPhotos] = await Promise.all([
+    const [timelineEvents, warPhotos, showcaseRow] = await Promise.all([
         db
             .select({
                 id: events.id,
@@ -95,7 +106,68 @@ export default async function WarPage() {
             )
             .orderBy(asc(materials.yearFrom))
             .limit(9),
+        db
+            .select({
+                artifactId: showcases.artifactId,
+                title: artifacts.title,
+                description: artifacts.description,
+            })
+            .from(showcases)
+            .innerJoin(artifacts, eq(artifacts.id, showcases.artifactId))
+            .where(eq(showcases.sectionCode, "war"))
+            .limit(1),
     ])
+
+    const showcaseMeta = showcaseRow[0]
+        ? { title: showcaseRow[0].title, description: showcaseRow[0].description }
+        : null
+    let showcasePhotos: {
+        id: number
+        title: string
+        coverImagePath: string
+        yearFrom: number | null
+        yearTo: number | null
+        content: string | null
+        sources: SourceLink[]
+    }[] = []
+
+    if (showcaseRow[0]) {
+        const [entity] = await db
+            .select({ id: entities.id })
+            .from(entities)
+            .where(eq(entities.artifactId, showcaseRow[0].artifactId))
+            .limit(1)
+
+        if (entity) {
+            const rows = (await db
+                .select({
+                    id: materials.id,
+                    title: materials.title,
+                    coverImagePath: materials.coverImagePath,
+                    yearFrom: materials.yearFrom,
+                    yearTo: materials.yearTo,
+                    content: materials.content,
+                })
+                .from(materials)
+                .where(
+                    and(
+                        eq(materials.entityId, entity.id),
+                        eq(materials.materialType, "photo"),
+                        eq(materials.status, "published"),
+                        isNotNull(materials.coverImagePath),
+                    ),
+                )
+                .orderBy(asc(materials.position), asc(materials.id))) as Array<
+                Omit<(typeof showcasePhotos)[number], "sources">
+            >
+
+            const sourcesMap = await fetchMaterialSourcesMap(rows.map((row) => row.id))
+            showcasePhotos = rows.map((row) => ({
+                ...row,
+                sources: sourcesMap.get(row.id) ?? [],
+            }))
+        }
+    }
 
     return (
         <>
@@ -105,7 +177,28 @@ export default async function WarPage() {
                     <BackButton />
                 </div>
 
-                <section className="mb-10">
+                {showcasePhotos.length > 0 && (
+                    <section className="border-t border-paper-border pt-8 mb-10">
+                        {showcaseMeta && (
+                            <div className="mb-4">
+                                <h2 className="text-lg font-semibold text-ink">
+                                    {showcaseMeta.title}
+                                </h2>
+                                {showcaseMeta.description && (
+                                    <p className="text-sm text-ink-secondary mt-1 leading-relaxed">
+                                        {showcaseMeta.description}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                        <PhotoCarousel photos={showcasePhotos} />
+                    </section>
+                )}
+
+                <section className="border-t border-paper-border pt-8 mb-10">
+                    <div className="mb-4">
+                        <h2 className="text-lg font-semibold text-ink">Списки участников</h2>
+                    </div>
                     <div className="space-y-8">
                         {warStatGroups.map((group) => (
                             <div key={group.title}>
@@ -143,7 +236,7 @@ export default async function WarPage() {
                 </div>
 
                 {/* Блок 3: Хронология */}
-                <section className="mb-10">
+                <section className="border-t border-paper-border pt-8 mb-10">
                     <div className="flex items-baseline justify-between mb-4">
                         <h2 className="text-lg font-semibold text-ink">Хронология</h2>
                         {timelineEvents.length > 0 && (
@@ -158,7 +251,7 @@ export default async function WarPage() {
                 </section>
 
                 {/* Блок 4: Фото войны */}
-                <section className="mb-10">
+                <section className="border-t border-paper-border pt-8 mb-10">
                     <div className="flex items-baseline justify-between mb-4">
                         <h2 className="text-lg font-semibold text-ink">Фото войны</h2>
                         {warPhotos.length > 0 && (

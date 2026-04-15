@@ -47,13 +47,22 @@ export async function updatePassword(formData: FormData) {
     redirect(`/admin/settings${flashParam("Пароль изменён")}`)
 }
 
-export async function setShowcase(formData: FormData) {
-    const sectionCode = formData.get("sectionCode") as string
-    const artifactIdRaw = formData.get("artifactId") as string
+export async function setShowcases(formData: FormData) {
+    await currentUser()
 
-    if (!artifactIdRaw) {
-        await db.delete(showcases).where(eq(showcases.sectionCode, sectionCode))
-    } else {
+    const showcaseEntries = Array.from(formData.entries()).filter(([key]) =>
+        key.startsWith("showcase:"),
+    )
+
+    for (const [key, value] of showcaseEntries) {
+        const sectionCode = key.slice("showcase:".length)
+        const artifactIdRaw = String(value)
+
+        if (!artifactIdRaw) {
+            await db.delete(showcases).where(eq(showcases.sectionCode, sectionCode))
+            continue
+        }
+
         const artifactId = Number(artifactIdRaw)
         await db
             .insert(showcases)
