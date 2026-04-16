@@ -7,7 +7,6 @@ import {
     entities,
     artifacts,
     materials,
-    topics,
     entityTopics,
     artifactSections,
     artifactMaterials,
@@ -30,6 +29,7 @@ import { LinkedArtifactMaterialsBlock } from "@/components/LinkedArtifactMateria
 import { ImageUpload } from "@/components/ImageUpload"
 import { CodeField } from "@/components/CodeField"
 import { SortableMaterialsList } from "@/components/SortableMaterialsList"
+import { TopicTreePicker } from "@/components/TopicTreePicker"
 import {
     buildBackstackHref,
     getBackHref,
@@ -37,6 +37,7 @@ import {
     parseBackstack,
     pushBackstack,
 } from "@/lib/adminBackstack"
+import { fetchTopicTree } from "@/db/queries"
 
 type Props = {
     params: Promise<{ code: string }>
@@ -62,7 +63,7 @@ export default async function EditArtifactPage({ params, searchParams }: Props) 
     if (!row) notFound()
 
     const [allTopics, selectedTopicRows] = await Promise.all([
-        db.select({ id: topics.id, title: topics.title }).from(topics),
+        fetchTopicTree(),
         db
             .select({ topicId: entityTopics.topicId })
             .from(entityTopics)
@@ -179,23 +180,7 @@ export default async function EditArtifactPage({ params, searchParams }: Props) 
                 </div>
                 {allTopics.length > 0 && (
                     <Field label="Темы">
-                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-0.5">
-                            {allTopics.map((topic) => (
-                                <label
-                                    key={topic.id}
-                                    className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        name="topicIds"
-                                        value={topic.id}
-                                        defaultChecked={selectedTopicIds.includes(topic.id)}
-                                        className="rounded"
-                                    />
-                                    {topic.title}
-                                </label>
-                            ))}
-                        </div>
+                        <TopicTreePicker topics={allTopics} selectedTopicIds={selectedTopicIds} />
                     </Field>
                 )}
                 <Field label="Тип">

@@ -8,7 +8,7 @@
 
 Главный источник проектной рамки:
 
-- `/home/tuor4eg/pets/proletarka/AGENTS.md`
+- `/home/tuor4eg/pets/proletarka/PROJECT_CONTEXT.md`
 
 ## Что это за проект
 

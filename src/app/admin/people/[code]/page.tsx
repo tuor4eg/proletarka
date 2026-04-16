@@ -2,15 +2,7 @@ import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { eq, desc, and, inArray } from "drizzle-orm"
 import { db } from "@/db"
-import {
-    entities,
-    people,
-    materials,
-    topics,
-    personMaterials,
-    personSources,
-    sources,
-} from "@/db/schema"
+import { entities, people, materials, personMaterials, personSources, sources } from "@/db/schema"
 import {
     updatePerson,
     deletePerson,
@@ -36,6 +28,7 @@ import {
     pushBackstack,
     serializeBackstack,
 } from "@/lib/adminBackstack"
+import { fetchTopicTree } from "@/db/queries"
 
 type Props = {
     params: Promise<{ code: string }>
@@ -96,7 +89,7 @@ export default async function EditPersonPage({ params, searchParams }: Props) {
                 ),
             )
             .orderBy(desc(materials.createdAt)),
-        db.select({ id: topics.id, title: topics.title }).from(topics).orderBy(topics.title),
+        fetchTopicTree(),
         getEventsByEntityId(entity.id),
         db
             .select({

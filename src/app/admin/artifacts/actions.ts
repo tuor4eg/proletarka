@@ -16,6 +16,7 @@ import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 import { logAdminAction } from "@/lib/logAdminAction"
+import { validateTopicSelection } from "@/lib/topicValidation"
 
 const ARTIFACT_TYPES: ArtifactType[] = ["stand", "rarity", "fund", "general"]
 
@@ -34,6 +35,11 @@ export async function createArtifact(formData: FormData) {
     const artifactType = parseArtifactType(formData.get("artifactType") as string)
     const coverImagePath = await resolveImageUpload(formData, "coverImageFile", "coverImagePath")
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
+    const topicValidation = await validateTopicSelection(topicIds)
+
+    if (!topicValidation.ok) {
+        redirect(`/admin/artifacts/new${flashParam(topicValidation.message, "error")}`)
+    }
 
     const customCodeRaw = (formData.get("customCode") as string)?.trim()
     let code: string
@@ -74,10 +80,10 @@ export async function createArtifact(formData: FormData) {
         .values({ type: "artifact", artifactId: artifact.id, code })
         .returning({ id: entities.id })
 
-    if (topicIds.length > 0) {
+    if (topicValidation.topicIds.length > 0) {
         await db
             .insert(entityTopics)
-            .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
+            .values(topicValidation.topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
     }
 
     await logAdminAction("create", "artifact", artifact.id, title)
@@ -94,12 +100,24 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
     const yearTo = yearToRaw ? Number(yearToRaw) : null
     const artifactType = parseArtifactType(formData.get("artifactType") as string)
     const topicIds = formData.getAll("topicIds").map(Number).filter(Boolean)
+    const topicValidation = await validateTopicSelection(topicIds)
 
     const [current] = await db
         .select({ coverImagePath: artifacts.coverImagePath })
         .from(artifacts)
         .where(eq(artifacts.id, artifactId))
         .limit(1)
+
+    if (!topicValidation.ok) {
+        const [artifact] = await db
+            .select({ code: artifacts.code })
+            .from(artifacts)
+            .where(eq(artifacts.id, artifactId))
+            .limit(1)
+        redirect(
+            `/admin/artifacts/${artifact?.code ?? artifactId}${flashParam(topicValidation.message, "error")}`,
+        )
+    }
 
     const coverImagePath = await resolveImageUpload(formData, "coverImageFile", "coverImagePath")
 
@@ -132,10 +150,10 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
     if (!entity?.id) redirect("/admin/artifacts")
 
     await db.delete(entityTopics).where(eq(entityTopics.entityId, entity.id))
-    if (topicIds.length > 0) {
+    if (topicValidation.topicIds.length > 0) {
         await db
             .insert(entityTopics)
-            .values(topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
+            .values(topicValidation.topicIds.map((topicId) => ({ entityId: entity.id, topicId })))
     }
 
     await logAdminAction("update", "artifact", artifactId, title)

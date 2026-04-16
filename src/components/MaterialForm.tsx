@@ -7,6 +7,8 @@ import { toast } from "sonner"
 import type { ActionResult } from "@/app/admin/actions"
 import { InferSelectModel } from "drizzle-orm"
 import { materials, type MaterialType, type Status, type EntityType } from "@/db/schema"
+import type { TopicTreeItem } from "@/db/queries"
+import { TopicTreePicker } from "@/components/TopicTreePicker"
 import { ImageUpload } from "@/components/ImageUpload"
 import { DeleteButton } from "@/components/DeleteButton"
 import { SourcesInput, type SourceInputItem } from "@/components/SourcesInput"
@@ -19,10 +21,7 @@ export type EntityOption = {
     displayName: string
 }
 
-export type TopicOption = {
-    id: number
-    title: string
-}
+export type TopicOption = TopicTreeItem
 
 export type PersonOption = {
     id: number
@@ -472,25 +471,9 @@ export function MaterialForm({
                         <input type="hidden" name="sectionId" value={defaultSectionId} />
                     )}
 
-                    {!isNews && topics.length > 0 && (
+                    {!isNews && (
                         <Field label="Темы">
-                            <div className="flex flex-col gap-1.5 pt-0.5">
-                                {topics.map((topic) => (
-                                    <label
-                                        key={topic.id}
-                                        className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            name="topicIds"
-                                            value={topic.id}
-                                            defaultChecked={selectedTopicIds.includes(topic.id)}
-                                            className="rounded"
-                                        />
-                                        {topic.title}
-                                    </label>
-                                ))}
-                            </div>
+                            <TopicTreePicker topics={topics} selectedTopicIds={selectedTopicIds} />
                         </Field>
                     )}
 

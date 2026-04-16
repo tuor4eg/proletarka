@@ -4,7 +4,7 @@ import { entities, people, events, eventTopics, topics } from "@/db/schema"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import type { WarPeopleTabKey } from "@/lib/warSections"
 
-const WAR_RELATED_TOPIC_CODES = ["war", "factory", "retired"] as const
+const WAR_RELATED_TOPIC_CODES = ["war", "factory", "factory-dismissed"] as const
 const WAR_DEATH_YEAR_THRESHOLD = 1945
 
 type WarRelatedTopicCode = (typeof WAR_RELATED_TOPIC_CODES)[number]
@@ -22,7 +22,7 @@ export type WarPerson = {
 
 type WarPersonComputed = WarPerson & {
     hasWar: boolean
-    hasRetired: boolean
+    hasDismissed: boolean
     firstWarYear: number | null
     firstFactoryYear: number | null
 }
@@ -42,7 +42,7 @@ function getInitialComputedPerson(row: WarPerson): WarPersonComputed {
     return {
         ...row,
         hasWar: false,
-        hasRetired: false,
+        hasDismissed: false,
         firstWarYear: null,
         firstFactoryYear: null,
     }
@@ -68,8 +68,8 @@ function applyTopicToPerson(
                 : Math.min(person.firstFactoryYear, yearFrom)
     }
 
-    if (topicCode === "retired") {
-        person.hasRetired = true
+    if (topicCode === "factory-dismissed") {
+        person.hasDismissed = true
     }
 }
 
@@ -108,14 +108,14 @@ function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
                 person.hasWar &&
                 isDeadBeforeOrIn1945(person) &&
                 hasFactoryEarlierThanWar(person) &&
-                !person.hasRetired,
+                !person.hasDismissed,
         ),
         "former-workers": people.filter(
             (person) =>
                 person.hasWar &&
                 isDeadBeforeOrIn1945(person) &&
                 hasFactoryEarlierThanWar(person) &&
-                person.hasRetired,
+                person.hasDismissed,
         ),
         "factory-to-front": people.filter(
             (person) =>
@@ -206,7 +206,11 @@ export async function getWarPeopleBuckets() {
 
         const person = peopleMap.get(row.entityId)!
 
-        if (row.topicCode === "war" || row.topicCode === "factory" || row.topicCode === "retired") {
+        if (
+            row.topicCode === "war" ||
+            row.topicCode === "factory" ||
+            row.topicCode === "factory-dismissed"
+        ) {
             applyTopicToPerson(person, row.topicCode, row.yearFrom)
         }
     }

@@ -17,6 +17,7 @@ import { flashParam } from "@/lib/flash"
 import { logAdminAction } from "@/lib/logAdminAction"
 import { appendBackstackParam } from "@/lib/adminBackstack"
 import { parseSourcesForm, replaceMaterialSources } from "@/lib/adminSources"
+import { validateTopicSelection } from "@/lib/topicValidation"
 
 async function parseFormData(formData: FormData) {
     const yearFromRaw = formData.get("yearFrom") as string
@@ -78,6 +79,15 @@ export async function createMaterial(
         return groupPhotoValidation
     }
 
+    const topicValidation = await validateTopicSelection(topicIds)
+    if (!topicValidation.ok) {
+        return {
+            message: topicValidation.message,
+            type: "error",
+            materialType: values.materialType,
+        }
+    }
+
     const code = generateCode(values.title)
 
     const [inserted] = await db
@@ -88,7 +98,9 @@ export async function createMaterial(
     if (topicIds.length > 0) {
         await db
             .insert(materialTopics)
-            .values(topicIds.map((topicId) => ({ materialId: inserted.id, topicId })))
+            .values(
+                topicValidation.topicIds.map((topicId) => ({ materialId: inserted.id, topicId })),
+            )
     }
 
     if (personIds.length > 0) {
@@ -157,6 +169,16 @@ export async function updateMaterial(
         }
     }
 
+    const topicValidation = await validateTopicSelection(topicIds)
+    if (!topicValidation.ok) {
+        return {
+            message: topicValidation.message,
+            type: "error",
+            status: values.status,
+            materialType: values.materialType,
+        }
+    }
+
     if (current?.coverImagePath && current.coverImagePath !== values.coverImagePath) {
         await deleteImage(current.coverImagePath)
     }
@@ -167,10 +189,10 @@ export async function updateMaterial(
         .where(eq(materials.id, id))
 
     await db.delete(materialTopics).where(eq(materialTopics.materialId, id))
-    if (topicIds.length > 0) {
+    if (topicValidation.topicIds.length > 0) {
         await db
             .insert(materialTopics)
-            .values(topicIds.map((topicId) => ({ materialId: id, topicId })))
+            .values(topicValidation.topicIds.map((topicId) => ({ materialId: id, topicId })))
     }
 
     await db.delete(personMaterials).where(eq(personMaterials.materialId, id))

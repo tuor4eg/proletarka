@@ -1,11 +1,19 @@
 import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm"
 import { db } from "@/db"
-import { materials, materialSources, sources } from "@/db/schema"
+import { materials, materialSources, sources, topics } from "@/db/schema"
 
 export type SourceLink = {
     id: number
     label: string
     url: string
+}
+
+export type TopicTreeItem = {
+    id: number
+    code: string
+    title: string
+    parentId: number | null
+    children: TopicTreeItem[]
 }
 
 export async function fetchFirstPhotoMap(entityIds: number[]): Promise<Map<number, string>> {
@@ -64,4 +72,46 @@ export async function fetchMaterialSourcesMap(
     }
 
     return map
+}
+
+export async function fetchTopicTree(): Promise<TopicTreeItem[]> {
+    const rows = await db
+        .select({
+            id: topics.id,
+            code: topics.code,
+            title: topics.title,
+            parentId: topics.parentId,
+        })
+        .from(topics)
+        .orderBy(asc(topics.title), asc(topics.id))
+
+    const byId = new Map<number, TopicTreeItem>()
+
+    for (const row of rows) {
+        byId.set(row.id, {
+            id: row.id,
+            code: row.code,
+            title: row.title,
+            parentId: row.parentId,
+            children: [],
+        })
+    }
+
+    const roots: TopicTreeItem[] = []
+
+    for (const topic of byId.values()) {
+        if (topic.parentId === null) {
+            roots.push(topic)
+            continue
+        }
+
+        const parent = byId.get(topic.parentId)
+        if (parent) {
+            parent.children.push(topic)
+        } else {
+            roots.push(topic)
+        }
+    }
+
+    return roots
 }

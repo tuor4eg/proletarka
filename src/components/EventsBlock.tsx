@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react"
 import { X, Plus } from "lucide-react"
-import { inputClass, Field } from "@/components/MaterialForm"
+import { inputClass } from "@/components/MaterialForm"
 import type { TopicOption } from "@/components/MaterialForm"
+import { TopicTreePicker } from "@/components/TopicTreePicker"
 import { deleteEvent } from "@/app/admin/people/actions"
 import type { EventInput } from "@/app/admin/people/actions"
 
@@ -26,6 +27,10 @@ type Props = {
 
 let tempIdCounter = 0
 
+function flattenTopics(topics: TopicOption[]): TopicOption[] {
+    return topics.flatMap((topic) => [topic, ...topic.children])
+}
+
 export function EventsBlock({ entityId: _entityId, initialEvents, topics }: Props) {
     const [existing, setExisting] = useState<ExistingEvent[]>(initialEvents)
     const [pending, setPending] = useState<PendingEvent[]>([])
@@ -36,19 +41,12 @@ export function EventsBlock({ entityId: _entityId, initialEvents, topics }: Prop
     const [yearTo, setYearTo] = useState("")
     const [yearsLabel, setYearsLabel] = useState("")
     const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([])
-
     function resetForm() {
         setText("")
         setYearFrom("")
         setYearTo("")
         setYearsLabel("")
         setSelectedTopicIds([])
-    }
-
-    function toggleTopic(id: number) {
-        setSelectedTopicIds((prev) =>
-            prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id],
-        )
     }
 
     function addPending() {
@@ -77,6 +75,7 @@ export function EventsBlock({ entityId: _entityId, initialEvents, topics }: Prop
     }
 
     const allEmpty = existing.length === 0 && pending.length === 0
+    const flatTopics = flattenTopics(topics)
 
     return (
         <div className="flex flex-col gap-3">
@@ -98,7 +97,7 @@ export function EventsBlock({ entityId: _entityId, initialEvents, topics }: Prop
                             yearTo={e.yearTo}
                             yearsLabel={e.yearsLabel}
                             topicIds={e.topicIds}
-                            topics={topics}
+                            topics={flatTopics}
                             onRemove={() => removeExisting(e.id)}
                             disabled={isPending}
                         />
@@ -111,7 +110,7 @@ export function EventsBlock({ entityId: _entityId, initialEvents, topics }: Prop
                             yearTo={e.yearTo}
                             yearsLabel={e.yearsLabel}
                             topicIds={e.topicIds}
-                            topics={topics}
+                            topics={flatTopics}
                             onRemove={() => removePending(e.tempId)}
                             isPending
                         />
@@ -156,22 +155,14 @@ export function EventsBlock({ entityId: _entityId, initialEvents, topics }: Prop
                     className={inputClass}
                 />
                 {topics.length > 0 && (
-                    <div className="flex flex-wrap gap-x-3 gap-y-1.5 pt-0.5">
-                        {topics.map((t) => (
-                            <label
-                                key={t.id}
-                                className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selectedTopicIds.includes(t.id)}
-                                    onChange={() => toggleTopic(t.id)}
-                                    className="rounded"
-                                />
-                                {t.title}
-                            </label>
-                        ))}
-                    </div>
+                    <TopicTreePicker
+                        topics={topics}
+                        selectedTopicIds={selectedTopicIds}
+                        inputName="eventTopicIdsPreview"
+                        parentClassName="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+                        childClassName="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer"
+                        onSelectedIdsChange={setSelectedTopicIds}
+                    />
                 )}
                 <button
                     type="button"

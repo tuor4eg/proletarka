@@ -8,7 +8,7 @@
 
 Перед ревью обязательно прочитай:
 
-- `/home/tuor4eg/pets/proletarka/AGENTS.md`
+- `/home/tuor4eg/pets/proletarka/PROJECT_CONTEXT.md`
 
 ## Как смотреть на проект
 

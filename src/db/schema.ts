@@ -1,4 +1,13 @@
-import { pgEnum, pgTable, serial, text, integer, timestamp, primaryKey } from "drizzle-orm/pg-core"
+import {
+    pgEnum,
+    pgTable,
+    serial,
+    text,
+    integer,
+    timestamp,
+    primaryKey,
+    boolean,
+} from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
 export const statusEnum = pgEnum("status", ["draft", "published"])
@@ -32,6 +41,8 @@ export const topics = pgTable("topics", {
     id: serial("id").primaryKey(),
     code: text("code").notNull().unique(),
     title: text("title").notNull(),
+    isSystem: boolean("is_system").notNull().default(false),
+    parentId: integer("parent_id").references(() => topics.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
@@ -365,7 +376,9 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
     eventTopics: many(eventTopics),
 }))
 
-export const topicsRelations = relations(topics, ({ many }) => ({
+export const topicsRelations = relations(topics, ({ one, many }) => ({
+    parent: one(topics, { fields: [topics.parentId], references: [topics.id] }),
+    children: many(topics),
     materialTopics: many(materialTopics),
     eventTopics: many(eventTopics),
     entityTopics: many(entityTopics),

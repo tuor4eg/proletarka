@@ -2,10 +2,11 @@ import Link from "next/link"
 import { eq } from "drizzle-orm"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/db"
-import { entities, people, artifacts, topics, type MaterialType } from "@/db/schema"
+import { entities, people, artifacts, type MaterialType } from "@/db/schema"
 import { createMaterial } from "../actions"
 import { MaterialForm } from "@/components/MaterialForm"
 import { getBackHref, parseBackstack, serializeBackstack } from "@/lib/adminBackstack"
+import { fetchTopicTree } from "@/db/queries"
 
 type Props = {
     searchParams: Promise<{
@@ -35,7 +36,7 @@ export default async function NewMaterialPage({ searchParams }: Props) {
             .from(entities)
             .leftJoin(people, eq(entities.personId, people.id))
             .leftJoin(artifacts, eq(entities.artifactId, artifacts.id)),
-        db.select({ id: topics.id, title: topics.title }).from(topics),
+        fetchTopicTree(),
         numericPersonId
             ? db
                   .select({ id: people.id, name: people.name })

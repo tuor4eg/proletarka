@@ -6,7 +6,6 @@ import {
     entities,
     people,
     artifacts,
-    topics,
     materialTopics,
     artifactMaterials,
     personMaterials,
@@ -17,6 +16,7 @@ import { updateMaterial, deleteMaterial } from "../actions"
 import { MaterialForm } from "@/components/MaterialForm"
 import { EditPageHeader } from "@/components/EditPageHeader"
 import { getBackHref, parseBackstack } from "@/lib/adminBackstack"
+import { fetchTopicTree } from "@/db/queries"
 
 type Props = {
     params: Promise<{ id: string }>
@@ -54,7 +54,7 @@ export default async function EditMaterialPage({ params, searchParams }: Props) 
             .from(entities)
             .leftJoin(people, eq(entities.personId, people.id))
             .leftJoin(artifacts, eq(entities.artifactId, artifacts.id)),
-        db.select({ id: topics.id, title: topics.title }).from(topics),
+        fetchTopicTree(),
         db
             .select({ topicId: materialTopics.topicId })
             .from(materialTopics)

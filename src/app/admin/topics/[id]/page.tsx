@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { eq } from "drizzle-orm"
+import { count, eq, isNull } from "drizzle-orm"
 import { db } from "@/db"
 import { topics } from "@/db/schema"
 import { updateTopic, deleteTopic } from "../actions"
@@ -21,7 +21,20 @@ export default async function EditTopicPage({ params }: Props) {
         notFound()
     }
 
-    const [topic] = await db.select().from(topics).where(eq(topics.id, numericId)).limit(1)
+    const [topic, parentOptions, [{ childCount }]] = await Promise.all([
+        db
+            .select()
+            .from(topics)
+            .where(eq(topics.id, numericId))
+            .limit(1)
+            .then((rows) => rows[0]),
+        db
+            .select({ id: topics.id, title: topics.title })
+            .from(topics)
+            .where(isNull(topics.parentId))
+            .orderBy(topics.title),
+        db.select({ childCount: count() }).from(topics).where(eq(topics.parentId, numericId)),
+    ])
 
     if (!topic) {
         notFound()
@@ -29,6 +42,8 @@ export default async function EditTopicPage({ params }: Props) {
 
     const action = updateTopic.bind(null, numericId)
     const deleteAction = deleteTopic.bind(null, numericId)
+    const parentDisabled = childCount > 0 || topic.isSystem
+    const deleteDisabled = topic.isSystem
 
     return (
         <div className="py-6">
@@ -44,10 +59,36 @@ export default async function EditTopicPage({ params }: Props) {
                         className={inputClass}
                     />
                 </Field>
+                <Field label="Родительская тема">
+                    <select
+                        name="parentId"
+                        defaultValue={topic.parentId ?? ""}
+                        disabled={parentDisabled}
+                        className={`${inputClass} disabled:bg-gray-50 disabled:text-gray-400`}
+                    >
+                        <option value="">— без родителя —</option>
+                        {parentOptions
+                            .filter((option) => option.id !== topic.id)
+                            .map((option) => (
+                                <option key={option.id} value={option.id}>
+                                    {option.title}
+                                </option>
+                            ))}
+                    </select>
+                    {topic.isSystem ? (
+                        <p className="text-xs text-gray-400">
+                            У системной темы нельзя менять родителя.
+                        </p>
+                    ) : childCount > 0 ? (
+                        <p className="text-xs text-gray-400">
+                            У этой темы уже есть подтемы, поэтому сделать ее подтемой нельзя.
+                        </p>
+                    ) : null}
+                </Field>
                 <CodeField code={topic.code} />
                 <div className="flex items-center gap-3 mt-0">
                     <SubmitButton label="Сохранить" />
-                    <DeleteButton action={deleteAction} />
+                    {!deleteDisabled && <DeleteButton action={deleteAction} />}
                 </div>
             </form>
         </div>

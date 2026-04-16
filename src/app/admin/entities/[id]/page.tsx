@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { eq, desc } from "drizzle-orm"
 import { db } from "@/db"
-import { entities, people, materials, topics } from "@/db/schema"
+import { entities, people, materials } from "@/db/schema"
 import { updateEntity, deleteEntity, getEventsByEntityId } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { ImageUpload } from "@/components/ImageUpload"
@@ -12,6 +12,7 @@ import { EditPageHeader } from "@/components/EditPageHeader"
 import { PublishToggle } from "@/components/PublishToggle"
 import { EventsBlock } from "@/components/EventsBlock"
 import { TYPE_LABEL, STATUS_LABEL } from "@/components/LinkedMaterialsList"
+import { fetchTopicTree } from "@/db/queries"
 
 type Props = {
     params: Promise<{ id: string }>
@@ -47,7 +48,7 @@ export default async function EditEntityPage({ params }: Props) {
             .from(materials)
             .where(eq(materials.entityId, numericId))
             .orderBy(desc(materials.createdAt)),
-        db.select({ id: topics.id, title: topics.title }).from(topics).orderBy(topics.title),
+        fetchTopicTree(),
         getEventsByEntityId(numericId),
     ])
 

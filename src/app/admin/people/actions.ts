@@ -17,6 +17,7 @@ import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 import { logAdminAction } from "@/lib/logAdminAction"
 import { parseSourcesForm, replacePersonSources } from "@/lib/adminSources"
+import { validateTopicSelection } from "@/lib/topicValidation"
 
 export type EventInput = {
     text: string
@@ -75,6 +76,12 @@ export async function createEvents(entityId: number, inputs: EventInput[]) {
 
     await db.transaction(async (tx) => {
         for (const input of inputs) {
+            const topicValidation = await validateTopicSelection(input.topicIds)
+
+            if (!topicValidation.ok) {
+                throw new Error(topicValidation.message)
+            }
+
             const code = generateCode(input.text)
             const [event] = await tx
                 .insert(events)
@@ -88,10 +95,12 @@ export async function createEvents(entityId: number, inputs: EventInput[]) {
                 })
                 .returning({ id: events.id })
 
-            if (input.topicIds.length > 0) {
+            if (topicValidation.topicIds.length > 0) {
                 await tx
                     .insert(eventTopics)
-                    .values(input.topicIds.map((topicId) => ({ eventId: event.id, topicId })))
+                    .values(
+                        topicValidation.topicIds.map((topicId) => ({ eventId: event.id, topicId })),
+                    )
             }
         }
     })

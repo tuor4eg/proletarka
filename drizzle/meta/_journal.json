@@ -134,6 +134,27 @@
             "when": 1776400000000,
             "tag": "0018_drop_material_source_url",
             "breakpoints": true
+        },
+        {
+            "idx": 19,
+            "version": "7",
+            "when": 1776500000000,
+            "tag": "0019_add_topic_parent_id",
+            "breakpoints": true
+        },
+        {
+            "idx": 20,
+            "version": "7",
+            "when": 1776600000000,
+            "tag": "0020_add_system_topics",
+            "breakpoints": true
+        },
+        {
+            "idx": 21,
+            "version": "7",
+            "when": 1776700000000,
+            "tag": "0021_migrate_retired_topic_to_factory_dismissed",
+            "breakpoints": true
         }
     ]
 }

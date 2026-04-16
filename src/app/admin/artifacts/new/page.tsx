@@ -1,10 +1,11 @@
-import { db } from "@/db"
-import { topics, type ArtifactType } from "@/db/schema"
+import { type ArtifactType } from "@/db/schema"
 import { createArtifact } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
+import { TopicTreePicker } from "@/components/TopicTreePicker"
 import { ImageUpload } from "@/components/ImageUpload"
 import { SubmitButton } from "@/components/SubmitButton"
 import { CodeField } from "@/components/CodeField"
+import { fetchTopicTree } from "@/db/queries"
 
 const ARTIFACT_TYPES: ArtifactType[] = ["general", "stand", "rarity", "fund"]
 
@@ -14,7 +15,7 @@ type Props = {
 
 export default async function NewArtifactPage({ searchParams }: Props) {
     const { type } = await searchParams
-    const allTopics = await db.select({ id: topics.id, title: topics.title }).from(topics)
+    const allTopics = await fetchTopicTree()
     const defaultType = ARTIFACT_TYPES.includes(type as ArtifactType) ? type : undefined
     const typeLocked = Boolean(defaultType)
 
@@ -53,22 +54,7 @@ export default async function NewArtifactPage({ searchParams }: Props) {
                 </div>
                 {allTopics.length > 0 && (
                     <Field label="Темы">
-                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-0.5">
-                            {allTopics.map((topic) => (
-                                <label
-                                    key={topic.id}
-                                    className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        name="topicIds"
-                                        value={topic.id}
-                                        className="rounded"
-                                    />
-                                    {topic.title}
-                                </label>
-                            ))}
-                        </div>
+                        <TopicTreePicker topics={allTopics} selectedTopicIds={[]} />
                     </Field>
                 )}
                 <Field label="Тип">
