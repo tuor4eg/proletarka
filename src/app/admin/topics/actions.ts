@@ -18,10 +18,12 @@ const RESERVED_SYSTEM_TOPIC_CODES = new Set([
     "factory-dismissed",
 ])
 
+type ParentValidationResult = { parentId: number | null } | { error: string }
+
 async function parseAndValidateParentId(
     parentIdRaw: FormDataEntryValue | null,
     currentId?: number,
-) {
+): Promise<ParentValidationResult> {
     const raw = typeof parentIdRaw === "string" ? parentIdRaw : ""
     const parentId = raw ? Number(raw) : null
 

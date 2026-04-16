@@ -1,4 +1,5 @@
 import {
+    type AnyPgColumn,
     pgEnum,
     pgTable,
     serial,
@@ -42,7 +43,9 @@ export const topics = pgTable("topics", {
     code: text("code").notNull().unique(),
     title: text("title").notNull(),
     isSystem: boolean("is_system").notNull().default(false),
-    parentId: integer("parent_id").references(() => topics.id, { onDelete: "set null" }),
+    parentId: integer("parent_id").references((): AnyPgColumn => topics.id, {
+        onDelete: "set null",
+    }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
