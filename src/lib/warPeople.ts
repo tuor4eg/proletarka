@@ -4,7 +4,7 @@ import { entities, people, events, eventTopics, topics } from "@/db/schema"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import type { WarPeopleTabKey } from "@/lib/warSections"
 
-const WAR_RELATED_TOPIC_CODES = ["war", "factory", "factory-dismissed"] as const
+const WAR_RELATED_TOPIC_CODES = ["war", "war-mobilization", "factory", "factory-dismissed"] as const
 export const WAR_HOME_FRONT_WORKERS_TOPIC_CODE = "war-home-front-workers" as const
 export const WAR_PRISONERS_TOPIC_CODE = "war-prisoners" as const
 const WAR_DEATH_YEAR_THRESHOLD = 1945
@@ -62,7 +62,7 @@ function applyTopicToPerson(
     topicCode: WarRelatedTopicCode,
     yearFrom: number | null,
 ) {
-    if (topicCode === "war") {
+    if (topicCode === "war-mobilization") {
         person.hasWar = true
         if (yearFrom !== null) {
             person.firstWarYear =
@@ -108,6 +108,10 @@ function hasFactoryLaterThanWar(person: WarPersonComputed) {
 
 function getPersonFirstLetter(name: string) {
     return name.trim().charAt(0).toUpperCase()
+}
+
+function isWarRelatedTopicCode(topicCode: string): topicCode is WarRelatedTopicCode {
+    return (WAR_RELATED_TOPIC_CODES as readonly string[]).includes(topicCode)
 }
 
 async function getPeopleForExactTopicCode(topicCode: string): Promise<WarTopicPeopleResult> {
@@ -288,11 +292,7 @@ export async function getWarPeopleBuckets() {
 
         const person = peopleMap.get(row.entityId)!
 
-        if (
-            row.topicCode === "war" ||
-            row.topicCode === "factory" ||
-            row.topicCode === "factory-dismissed"
-        ) {
+        if (isWarRelatedTopicCode(row.topicCode)) {
             applyTopicToPerson(person, row.topicCode, row.yearFrom)
         }
     }

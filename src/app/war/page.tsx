@@ -26,11 +26,13 @@ const warStatGroups = [
                 title: warPeopleTabGroups[0].items[0].label,
                 tabKey: warPeopleTabGroups[0].items[0].key,
                 href: `/war/people?tab=${warPeopleTabGroups[0].items[0].key}`,
+                background: "/cards/war-1.jpg",
             },
             {
                 title: warPeopleTabGroups[0].items[1].label,
                 tabKey: warPeopleTabGroups[0].items[1].key,
                 href: `/war/people?tab=${warPeopleTabGroups[0].items[1].key}`,
+                background: "/cards/war-2.jpg",
             },
         ],
     },
@@ -41,11 +43,13 @@ const warStatGroups = [
                 title: warPeopleTabGroups[1].items[0].label,
                 tabKey: warPeopleTabGroups[1].items[0].key,
                 href: `/war/people?tab=${warPeopleTabGroups[1].items[0].key}`,
+                background: "/cards/war-3.jpg",
             },
             {
                 title: warPeopleTabGroups[1].items[1].label,
                 tabKey: warPeopleTabGroups[1].items[1].key,
                 href: `/war/people?tab=${warPeopleTabGroups[1].items[1].key}`,
+                background: "/cards/war-4.jpg",
             },
         ],
     },
@@ -182,7 +186,13 @@ export default async function WarPage() {
                                             href={item.href}
                                             className="group relative overflow-hidden rounded-2xl bg-paper-dark border border-paper-border min-h-44 px-5 py-5 flex items-end"
                                         >
-                                            <div className="absolute inset-y-0 right-3 flex items-center text-[5.5rem] leading-none font-semibold tracking-[-0.08em] text-ink/10 tabular-nums transition-transform duration-300 group-hover:scale-105 sm:text-[6.5rem]">
+                                            <img
+                                                src={item.background}
+                                                alt=""
+                                                className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                            <div className="absolute inset-0 bg-paper-dark/35" />
+                                            <div className="absolute inset-y-0 right-3 flex items-center text-[5.5rem] leading-none font-semibold tracking-[-0.08em] text-ink/25 tabular-nums transition-transform duration-300 group-hover:scale-105 sm:text-[6.5rem]">
                                                 {counts[item.tabKey]}
                                             </div>
                                             <div className="relative z-10 max-w-[60%]">
@@ -213,6 +223,12 @@ export default async function WarPage() {
                         href="/war/home-front-workers"
                         className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
                     >
+                        <img
+                            src="/cards/homeworkers.jpg"
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-paper-dark/35" />
                         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.2),transparent_60%),radial-gradient(circle_at_top_right,rgba(0,0,0,0.08),transparent_45%)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
                         <div className="relative flex items-start justify-between gap-5">
                             <div className="max-w-lg">
@@ -247,6 +263,12 @@ export default async function WarPage() {
                         href="/war/prisoners"
                         className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
                     >
+                        <img
+                            src="/cards/prisoners.jpg"
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-paper-dark/35" />
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,0,0,0.08),transparent_45%),linear-gradient(135deg,rgba(255,255,255,0.22),transparent_62%)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
                         <div className="relative flex items-start justify-between gap-5">
                             <div className="max-w-lg">
