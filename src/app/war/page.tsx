@@ -1,26 +1,17 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 import { db } from "@/db"
-import {
-    entities,
-    people,
-    materials,
-    materialTopics,
-    events,
-    eventTopics,
-    showcases,
-    artifacts,
-} from "@/db/schema"
+import { entities, materials, showcases, artifacts } from "@/db/schema"
 import { eq, and, asc, isNotNull } from "drizzle-orm"
 import { PageHero } from "@/components/PageHero"
 import { BackButton } from "@/components/BackButton"
-import { WarTimeline } from "@/components/WarTimeline"
-import { WarPhotoGrid } from "@/components/WarPhotoGrid"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
 import { fetchMaterialSourcesMap, type SourceLink } from "@/db/queries"
 import { warPeopleTabGroups } from "@/lib/warSections"
 import { getWarPeopleBuckets } from "@/lib/warPeople"
+import { getWarTimeline } from "@/lib/warTimeline"
 
 const warStatGroups = [
     {
@@ -69,43 +60,8 @@ export default async function WarPage() {
         )
     }
 
-    const [timelineEvents, warPhotos, showcaseRow] = await Promise.all([
-        db
-            .select({
-                id: events.id,
-                text: events.text,
-                yearFrom: events.yearFrom,
-                yearTo: events.yearTo,
-                yearsLabel: events.yearsLabel,
-                entityId: events.entityId,
-                personName: people.name,
-                personCode: people.code,
-            })
-            .from(events)
-            .innerJoin(eventTopics, eq(eventTopics.eventId, events.id))
-            .innerJoin(entities, eq(entities.id, events.entityId))
-            .innerJoin(people, eq(people.id, entities.personId))
-            .where(eq(eventTopics.topicId, warTopic.id))
-            .orderBy(asc(events.yearFrom)),
-        db
-            .select({
-                id: materials.id,
-                title: materials.title,
-                coverImagePath: materials.coverImagePath,
-                yearFrom: materials.yearFrom,
-                yearTo: materials.yearTo,
-            })
-            .from(materials)
-            .innerJoin(materialTopics, eq(materialTopics.materialId, materials.id))
-            .where(
-                and(
-                    eq(materialTopics.topicId, warTopic.id),
-                    eq(materials.materialType, "photo"),
-                    eq(materials.status, "published"),
-                ),
-            )
-            .orderBy(asc(materials.yearFrom))
-            .limit(9),
+    const [timelineEvents, showcaseRow] = await Promise.all([
+        getWarTimeline(warTopic.id),
         db
             .select({
                 artifactId: showcases.artifactId,
@@ -235,34 +191,38 @@ export default async function WarPage() {
                     </p>
                 </div>
 
-                {/* Блок 3: Хронология */}
                 <section className="border-t border-paper-border pt-8 mb-10">
-                    <div className="flex items-baseline justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-ink">Хронология</h2>
-                        {timelineEvents.length > 0 && (
-                            <span className="text-xs text-ink-muted">{timelineEvents.length}</span>
-                        )}
+                    <div className="mb-4">
+                        <h2 className="text-lg font-semibold text-ink">Военная хронология</h2>
                     </div>
-                    {timelineEvents.length === 0 ? (
-                        <div className="text-sm text-ink-muted italic">— нет данных —</div>
-                    ) : (
-                        <WarTimeline events={timelineEvents} />
-                    )}
-                </section>
-
-                {/* Блок 4: Фото войны */}
-                <section className="border-t border-paper-border pt-8 mb-10">
-                    <div className="flex items-baseline justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-ink">Фото войны</h2>
-                        {warPhotos.length > 0 && (
-                            <span className="text-xs text-ink-muted">{warPhotos.length}</span>
-                        )}
-                    </div>
-                    {warPhotos.length === 0 ? (
-                        <div className="text-sm text-ink-muted italic">— нет данных —</div>
-                    ) : (
-                        <WarPhotoGrid photos={warPhotos} />
-                    )}
+                    <Link
+                        href="/war/timeline"
+                        className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
+                    >
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(0,0,0,0.08),_transparent_45%),linear-gradient(135deg,rgba(255,255,255,0.24),transparent_60%)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+                        <div className="relative flex items-start justify-between gap-4">
+                            <div className="max-w-lg">
+                                <div className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-ink-muted">
+                                    <span>1939-1940-е</span>
+                                    {timelineEvents.length > 0 && (
+                                        <span className="rounded-full border border-paper-border bg-paper px-2 py-0.5 tracking-normal normal-case">
+                                            {timelineEvents.length} событий
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-xl font-semibold leading-tight text-ink sm:text-2xl">
+                                    Открыть полную ленту военных и послевоенных событий
+                                </p>
+                                <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-secondary">
+                                    От мобилизации и фронта до возвращения домой, потерь и памятных
+                                    дат.
+                                </p>
+                            </div>
+                            <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-paper-border bg-paper text-ink-muted transition-all duration-300 group-hover:translate-x-1 group-hover:text-ink">
+                                <ArrowRight size={20} />
+                            </span>
+                        </div>
+                    </Link>
                 </section>
             </main>
         </>

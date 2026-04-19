@@ -14,6 +14,8 @@ const RESERVED_SYSTEM_TOPIC_CODES = new Set([
     "war-mobilization",
     "war-demobilization",
     "war-killed",
+    "war-home-front-workers",
+    "war-prisoners",
     "factory-hired",
     "factory-dismissed",
 ])

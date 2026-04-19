@@ -155,6 +155,13 @@
             "when": 1776700000000,
             "tag": "0021_migrate_retired_topic_to_factory_dismissed",
             "breakpoints": true
+        },
+        {
+            "idx": 22,
+            "version": "7",
+            "when": 1776800000000,
+            "tag": "0022_add_war_people_system_subtopics",
+            "breakpoints": true
         }
     ]
 }
