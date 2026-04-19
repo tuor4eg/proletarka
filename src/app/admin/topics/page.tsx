@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { CornerDownRight, FolderTree } from "lucide-react"
-import { asc, count, eq } from "drizzle-orm"
+import { asc, count } from "drizzle-orm"
 import { db } from "@/db"
-import { topics, materialTopics } from "@/db/schema"
+import { topics } from "@/db/schema"
+import { getTopicUsageCountsMap } from "@/lib/adminTopics"
 import { deleteTopic } from "./actions"
 import { DeleteButton } from "@/components/DeleteButton"
 import { Pagination } from "@/components/Pagination"
@@ -15,6 +16,9 @@ type TopicListItem = {
     isSystem: boolean
     parentId: number | null
     materialCount: number
+    eventCount: number
+    entityCount: number
+    usageCount: number
     children: TopicListItem[]
 }
 
@@ -24,24 +28,36 @@ export default async function TopicsPage({ searchParams }: { searchParams: Searc
     const { page: pageParam } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
 
-    const [rows, childCountRows] = await Promise.all([
+    const [topicRows, childCountRows, usageCountMap] = await Promise.all([
         db
             .select({
                 id: topics.id,
                 title: topics.title,
                 isSystem: topics.isSystem,
                 parentId: topics.parentId,
-                materialCount: count(materialTopics.materialId),
             })
             .from(topics)
-            .leftJoin(materialTopics, eq(materialTopics.topicId, topics.id))
-            .groupBy(topics.id)
             .orderBy(asc(topics.title)),
         db
             .select({ parentId: topics.parentId, total: count() })
             .from(topics)
             .groupBy(topics.parentId),
+        getTopicUsageCountsMap(),
     ])
+    const rows = topicRows.map((topic) => {
+        const usageCounts = usageCountMap.get(topic.id)
+        const materialCount = usageCounts?.materialCount ?? 0
+        const eventCount = usageCounts?.eventCount ?? 0
+        const entityCount = usageCounts?.entityCount ?? 0
+
+        return {
+            ...topic,
+            materialCount,
+            eventCount,
+            entityCount,
+            usageCount: usageCounts?.usageCount ?? 0,
+        }
+    })
 
     const childCountMap = new Map(
         childCountRows
@@ -108,7 +124,7 @@ export default async function TopicsPage({ searchParams }: { searchParams: Searc
                             const deleteAction = deleteTopic.bind(null, topic.id)
                             const hasChildren = (childCountMap.get(topic.id) ?? 0) > 0
                             const deleteDisabled =
-                                topic.isSystem || topic.materialCount > 0 || hasChildren
+                                topic.isSystem || topic.usageCount > 0 || hasChildren
                             const parentTitle =
                                 topic.parentId !== null
                                     ? (byId.get(topic.parentId)?.title ?? null)
@@ -146,11 +162,24 @@ export default async function TopicsPage({ searchParams }: { searchParams: Searc
                                                         Системная тема
                                                     </span>
                                                 )}
+                                                {topic.usageCount > 0 && (
+                                                    <span className="text-[11px] text-gray-400 block">
+                                                        {topic.eventCount > 0
+                                                            ? `события: ${topic.eventCount}`
+                                                            : ""}
+                                                        {topic.materialCount > 0
+                                                            ? `${topic.eventCount > 0 ? " · " : ""}материалы: ${topic.materialCount}`
+                                                            : ""}
+                                                        {topic.entityCount > 0
+                                                            ? `${topic.eventCount > 0 || topic.materialCount > 0 ? " · " : ""}карточки: ${topic.entityCount}`
+                                                            : ""}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </Link>
                                     <span className="text-xs text-gray-400 shrink-0 min-w-[3ch] text-right">
-                                        {topic.materialCount > 0 ? topic.materialCount : ""}
+                                        {topic.usageCount > 0 ? topic.usageCount : ""}
                                     </span>
                                     {!topic.isSystem && (
                                         <DeleteButton
@@ -158,8 +187,8 @@ export default async function TopicsPage({ searchParams }: { searchParams: Searc
                                             icon
                                             disabled={deleteDisabled}
                                             disabledTooltip={
-                                                topic.materialCount > 0
-                                                    ? "Есть материалы"
+                                                topic.usageCount > 0
+                                                    ? "Есть связанные записи"
                                                     : "Есть подтемы"
                                             }
                                         />

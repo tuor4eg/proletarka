@@ -10,7 +10,12 @@ import { BackButton } from "@/components/BackButton"
 import { PhotoCarousel } from "@/components/PhotoCarousel"
 import { fetchMaterialSourcesMap, type SourceLink } from "@/db/queries"
 import { warPeopleTabGroups } from "@/lib/warSections"
-import { getWarPeopleBuckets } from "@/lib/warPeople"
+import {
+    getWarPeopleBuckets,
+    getWarTopicPeople,
+    WAR_HOME_FRONT_WORKERS_TOPIC_CODE,
+    WAR_PRISONERS_TOPIC_CODE,
+} from "@/lib/warPeople"
 import { getWarTimeline } from "@/lib/warTimeline"
 
 const warStatGroups = [
@@ -60,7 +65,7 @@ export default async function WarPage() {
         )
     }
 
-    const [timelineEvents, showcaseRow] = await Promise.all([
+    const [timelineEvents, showcaseRow, homeFrontWorkers, prisoners] = await Promise.all([
         getWarTimeline(warTopic.id),
         db
             .select({
@@ -72,6 +77,8 @@ export default async function WarPage() {
             .innerJoin(artifacts, eq(artifacts.id, showcases.artifactId))
             .where(eq(showcases.sectionCode, "war"))
             .limit(1),
+        getWarTopicPeople(WAR_HOME_FRONT_WORKERS_TOPIC_CODE),
+        getWarTopicPeople(WAR_PRISONERS_TOPIC_CODE),
     ])
 
     const showcaseMeta = showcaseRow[0]
@@ -133,6 +140,13 @@ export default async function WarPage() {
                     <BackButton />
                 </div>
 
+                <div className="mb-8">
+                    <p className="text-ink-muted text-sm leading-relaxed pt-4">
+                        Работники Пролетарки в годы Великой Отечественной войны — те, кто ушёл на
+                        фронт, кто остался у станка и кто не вернулся.
+                    </p>
+                </div>
+
                 {showcasePhotos.length > 0 && (
                     <section className="border-t border-paper-border pt-8 mb-10">
                         {showcaseMeta && (
@@ -153,7 +167,7 @@ export default async function WarPage() {
 
                 <section className="border-t border-paper-border pt-8 mb-10">
                     <div className="mb-4">
-                        <h2 className="text-lg font-semibold text-ink">Списки участников</h2>
+                        <h2 className="text-lg font-semibold text-ink">Прошедшие войну</h2>
                     </div>
                     <div className="space-y-8">
                         {warStatGroups.map((group) => (
@@ -184,12 +198,73 @@ export default async function WarPage() {
                     </div>
                 </section>
 
-                <div className="mb-8">
-                    <p className="text-ink-muted text-sm leading-relaxed pt-4">
-                        Работники Пролетарки в годы Великой Отечественной войны — те, кто ушёл на
-                        фронт, кто остался у станка и кто не вернулся.
+                <section className="border-t border-paper-border pt-8 mb-10">
+                    <div className="mb-4 flex items-baseline justify-between gap-3">
+                        <h2 className="text-lg font-semibold text-ink">Труженики тыла</h2>
+                        <span className="text-xs text-ink-muted tabular-nums">
+                            {homeFrontWorkers.count}
+                        </span>
+                    </div>
+                    <p className="mb-4 text-sm leading-relaxed text-ink-muted">
+                        Работники, которые в годы войны поддерживали производство, хозяйство и
+                        повседневную жизнь завода вдали от фронта.
                     </p>
-                </div>
+                    <Link
+                        href="/war/home-front-workers"
+                        className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
+                    >
+                        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.2),transparent_60%),radial-gradient(circle_at_top_right,rgba(0,0,0,0.08),transparent_45%)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+                        <div className="relative flex items-start justify-between gap-5">
+                            <div className="max-w-lg">
+                                <p className="text-xl font-semibold leading-tight text-ink sm:text-2xl">
+                                    Открыть список
+                                </p>
+                                <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-secondary">
+                                    {homeFrontWorkers.count > 0
+                                        ? "Имена тех, чья военная история прошла через работу, заботу и стойкость в тылу."
+                                        : "Этот список ещё ждёт своих имён и свидетельств."}
+                                </p>
+                            </div>
+                            <div className="flex min-h-16 min-w-16 shrink-0 items-center justify-center rounded-full border border-paper-border bg-paper px-4 text-3xl font-semibold tabular-nums tracking-[-0.06em] text-ink">
+                                {homeFrontWorkers.count}
+                            </div>
+                        </div>
+                    </Link>
+                </section>
+
+                <section className="border-t border-paper-border pt-8 mb-10">
+                    <div className="mb-4 flex items-baseline justify-between gap-3">
+                        <h2 className="text-lg font-semibold text-ink">В фашистской неволе</h2>
+                        <span className="text-xs text-ink-muted tabular-nums">
+                            {prisoners.count}
+                        </span>
+                    </div>
+                    <p className="mb-4 text-sm leading-relaxed text-ink-muted">
+                        Судьбы людей, прошедших через плен, оккупацию, принудительную разлуку с
+                        домом и тяжёлый путь возвращения к мирной жизни.
+                    </p>
+                    <Link
+                        href="/war/prisoners"
+                        className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
+                    >
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,0,0,0.08),transparent_45%),linear-gradient(135deg,rgba(255,255,255,0.22),transparent_62%)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+                        <div className="relative flex items-start justify-between gap-5">
+                            <div className="max-w-lg">
+                                <p className="text-xl font-semibold leading-tight text-ink sm:text-2xl">
+                                    Открыть список
+                                </p>
+                                <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-secondary">
+                                    {prisoners.count > 0
+                                        ? "Имена тех, чья память хранит неволю, ожидание и возвращение домой."
+                                        : "Этот список ещё ждёт своих имён и свидетельств."}
+                                </p>
+                            </div>
+                            <div className="flex min-h-16 min-w-16 shrink-0 items-center justify-center rounded-full border border-paper-border bg-paper px-4 text-3xl font-semibold tabular-nums tracking-[-0.06em] text-ink">
+                                {prisoners.count}
+                            </div>
+                        </div>
+                    </Link>
+                </section>
 
                 <section className="border-t border-paper-border pt-8 mb-10">
                     <div className="mb-4">

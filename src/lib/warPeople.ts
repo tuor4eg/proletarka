@@ -5,6 +5,8 @@ import { fetchFirstPhotoMap } from "@/db/queries"
 import type { WarPeopleTabKey } from "@/lib/warSections"
 
 const WAR_RELATED_TOPIC_CODES = ["war", "factory", "factory-dismissed"] as const
+export const WAR_HOME_FRONT_WORKERS_TOPIC_CODE = "war-home-front-workers" as const
+export const WAR_PRISONERS_TOPIC_CODE = "war-prisoners" as const
 const WAR_DEATH_YEAR_THRESHOLD = 1945
 
 type WarRelatedTopicCode = (typeof WAR_RELATED_TOPIC_CODES)[number]
@@ -28,6 +30,13 @@ type WarPersonComputed = WarPerson & {
 }
 
 export type WarPeopleBuckets = Record<WarPeopleTabKey, WarPerson[]>
+export type WarTopicPeopleResult = {
+    topic: { id: number } | null
+    people: WarPerson[]
+    count: number
+    availableLetters: string[]
+    fallbackMap: Map<number, string>
+}
 
 export function formatWarPersonYears(
     birthYear: number | null,
@@ -99,6 +108,79 @@ function hasFactoryLaterThanWar(person: WarPersonComputed) {
 
 function getPersonFirstLetter(name: string) {
     return name.trim().charAt(0).toUpperCase()
+}
+
+async function getPeopleForExactTopicCode(topicCode: string): Promise<WarTopicPeopleResult> {
+    const [topicRow] = await db
+        .select({ id: topics.id })
+        .from(topics)
+        .where(eq(topics.code, topicCode))
+        .limit(1)
+
+    if (!topicRow) {
+        return {
+            topic: null,
+            people: [],
+            count: 0,
+            availableLetters: [],
+            fallbackMap: new Map<number, string>(),
+        }
+    }
+
+    const rows = await db
+        .select({
+            entityId: entities.id,
+            code: people.code,
+            name: people.name,
+            birthYear: people.birthYear,
+            deathYear: people.deathYear,
+            yearsLabel: people.yearsLabel,
+            mainPhotoPath: people.mainPhotoPath,
+            shortBio: people.shortBio,
+        })
+        .from(entities)
+        .innerJoin(people, eq(entities.personId, people.id))
+        .innerJoin(events, eq(events.entityId, entities.id))
+        .innerJoin(eventTopics, eq(eventTopics.eventId, events.id))
+        .innerJoin(topics, eq(topics.id, eventTopics.topicId))
+        .where(eq(topics.code, topicCode))
+
+    const peopleMap = new Map<number, WarPerson>()
+
+    for (const row of rows) {
+        if (!peopleMap.has(row.entityId)) {
+            peopleMap.set(row.entityId, {
+                entityId: row.entityId,
+                code: row.code,
+                name: row.name,
+                birthYear: row.birthYear,
+                deathYear: row.deathYear,
+                yearsLabel: row.yearsLabel,
+                mainPhotoPath: row.mainPhotoPath,
+                shortBio: row.shortBio,
+            })
+        }
+    }
+
+    const topicPeople = Array.from(peopleMap.values()).sort((a, b) =>
+        a.name.localeCompare(b.name, "ru"),
+    )
+    const availableLetters = Array.from(
+        new Set(topicPeople.map((person) => getPersonFirstLetter(person.name))),
+    ).sort((a, b) => a.localeCompare(b, "ru"))
+
+    const noPhotoIds = topicPeople
+        .filter((person) => !person.mainPhotoPath)
+        .map((person) => person.entityId)
+    const fallbackMap = await fetchFirstPhotoMap(noPhotoIds)
+
+    return {
+        topic: { id: topicRow.id },
+        people: topicPeople,
+        count: topicPeople.length,
+        availableLetters,
+        fallbackMap,
+    }
 }
 
 function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
@@ -256,4 +338,8 @@ export async function getWarPeopleBuckets() {
         availableLettersByTab,
         fallbackMap,
     }
+}
+
+export async function getWarTopicPeople(topicCode: string) {
+    return getPeopleForExactTopicCode(topicCode)
 }

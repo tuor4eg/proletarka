@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation"
 import { eq, count } from "drizzle-orm"
 import { db } from "@/db"
-import { topics, materialTopics, eventTopics, entityTopics } from "@/db/schema"
+import { topics } from "@/db/schema"
+import { getTopicUsageCounts } from "@/lib/adminTopics"
 import { flashParam } from "@/lib/flash"
 import { logAdminAction } from "@/lib/logAdminAction"
 import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
@@ -98,7 +99,6 @@ export async function createTopic(formData: FormData) {
 
 export async function updateTopic(id: number, formData: FormData) {
     const title = (formData.get("title") as string).trim()
-    const parentResult = await parseAndValidateParentId(formData.get("parentId"), id)
     const [[currentTopic], [{ childCount }]] = await Promise.all([
         db
             .select({
@@ -110,6 +110,9 @@ export async function updateTopic(id: number, formData: FormData) {
             .limit(1),
         db.select({ childCount: count() }).from(topics).where(eq(topics.parentId, id)),
     ])
+    const parentResult = currentTopic?.isSystem
+        ? { parentId: currentTopic.parentId }
+        : await parseAndValidateParentId(formData.get("parentId"), id)
 
     if ("error" in parentResult) {
         redirect(`/admin/topics/${id}${flashParam(parentResult.error, "error")}`)
@@ -131,32 +134,16 @@ export async function updateTopic(id: number, formData: FormData) {
 }
 
 export async function deleteTopic(id: number) {
-    const [
-        [{ materialCount }],
-        [{ eventCount }],
-        [{ entityCount }],
-        [{ childCount }],
-        [topicToDelete],
-    ] = await Promise.all([
-        db
-            .select({ materialCount: count(materialTopics.materialId) })
-            .from(materialTopics)
-            .where(eq(materialTopics.topicId, id)),
-        db
-            .select({ eventCount: count(eventTopics.eventId) })
-            .from(eventTopics)
-            .where(eq(eventTopics.topicId, id)),
-        db
-            .select({ entityCount: count(entityTopics.entityId) })
-            .from(entityTopics)
-            .where(eq(entityTopics.topicId, id)),
+    const [[{ childCount }], [topicToDelete], usageCounts] = await Promise.all([
         db.select({ childCount: count() }).from(topics).where(eq(topics.parentId, id)),
         db
             .select({ title: topics.title, isSystem: topics.isSystem })
             .from(topics)
             .where(eq(topics.id, id))
             .limit(1),
+        getTopicUsageCounts(id),
     ])
+    const { materialCount, eventCount, entityCount } = usageCounts
 
     if (topicToDelete?.isSystem) {
         redirect(`/admin/topics${flashParam("Системную тему нельзя удалить", "error")}`)
