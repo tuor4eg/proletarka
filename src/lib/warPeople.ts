@@ -90,11 +90,11 @@ function isDeadAfter1945OrAlive(person: WarPersonComputed) {
     return person.deathYear === null || person.deathYear > WAR_DEATH_YEAR_THRESHOLD
 }
 
-function hasFactoryEarlierThanWar(person: WarPersonComputed) {
+function hasFactoryBeforeOrInWarYear(person: WarPersonComputed) {
     return (
         person.firstFactoryYear !== null &&
         person.firstWarYear !== null &&
-        person.firstFactoryYear < person.firstWarYear
+        person.firstFactoryYear <= person.firstWarYear
     )
 }
 
@@ -193,19 +193,21 @@ function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
             (person) =>
                 person.hasWar &&
                 isDeadBeforeOrIn1945(person) &&
-                hasFactoryEarlierThanWar(person) &&
+                hasFactoryBeforeOrInWarYear(person) &&
                 !person.hasDismissed,
         ),
         "former-workers": people.filter(
             (person) =>
                 person.hasWar &&
                 isDeadBeforeOrIn1945(person) &&
-                hasFactoryEarlierThanWar(person) &&
+                hasFactoryBeforeOrInWarYear(person) &&
                 person.hasDismissed,
         ),
         "factory-to-front": people.filter(
             (person) =>
-                person.hasWar && isDeadAfter1945OrAlive(person) && hasFactoryEarlierThanWar(person),
+                person.hasWar &&
+                isDeadAfter1945OrAlive(person) &&
+                hasFactoryBeforeOrInWarYear(person),
         ),
         "joined-after-war": people.filter(
             (person) =>
