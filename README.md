@@ -100,6 +100,7 @@ For example:
     - `war-mobilization`
     - `war-demobilization`
     - `war-killed`
+    - `war-234-division`
 - `factory`
     - `factory-hired`
     - `factory-dismissed`

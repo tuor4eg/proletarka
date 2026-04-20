@@ -4,10 +4,16 @@ import { entities, people, events, eventTopics, topics } from "@/db/schema"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import type { WarPeopleTabKey } from "@/lib/warSections"
 
-const WAR_RELATED_TOPIC_CODES = ["war", "war-mobilization", "factory", "factory-dismissed"] as const
+const WAR_RELATED_TOPIC_CODES = [
+    "war",
+    "war-mobilization",
+    "war-killed",
+    "factory",
+    "factory-dismissed",
+] as const
 export const WAR_HOME_FRONT_WORKERS_TOPIC_CODE = "war-home-front-workers" as const
 export const WAR_PRISONERS_TOPIC_CODE = "war-prisoners" as const
-const WAR_DEATH_YEAR_THRESHOLD = 1945
+export const WAR_234_DIVISION_TOPIC_CODE = "war-234-division" as const
 
 type WarRelatedTopicCode = (typeof WAR_RELATED_TOPIC_CODES)[number]
 
@@ -24,6 +30,7 @@ export type WarPerson = {
 
 type WarPersonComputed = WarPerson & {
     hasWar: boolean
+    hasWarKilled: boolean
     hasDismissed: boolean
     firstWarYear: number | null
     firstFactoryYear: number | null
@@ -51,6 +58,7 @@ function getInitialComputedPerson(row: WarPerson): WarPersonComputed {
     return {
         ...row,
         hasWar: false,
+        hasWarKilled: false,
         hasDismissed: false,
         firstWarYear: null,
         firstFactoryYear: null,
@@ -62,7 +70,7 @@ function applyTopicToPerson(
     topicCode: WarRelatedTopicCode,
     yearFrom: number | null,
 ) {
-    if (topicCode === "war-mobilization") {
+    if (topicCode === "war-mobilization" || topicCode === "war-killed") {
         person.hasWar = true
         if (yearFrom !== null) {
             person.firstWarYear =
@@ -80,14 +88,10 @@ function applyTopicToPerson(
     if (topicCode === "factory-dismissed") {
         person.hasDismissed = true
     }
-}
 
-function isDeadBeforeOrIn1945(person: WarPersonComputed) {
-    return person.deathYear !== null && person.deathYear <= WAR_DEATH_YEAR_THRESHOLD
-}
-
-function isDeadAfter1945OrAlive(person: WarPersonComputed) {
-    return person.deathYear === null || person.deathYear > WAR_DEATH_YEAR_THRESHOLD
+    if (topicCode === "war-killed") {
+        person.hasWarKilled = true
+    }
 }
 
 function hasFactoryBeforeOrInWarYear(person: WarPersonComputed) {
@@ -192,26 +196,23 @@ function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
         "not-returned": people.filter(
             (person) =>
                 person.hasWar &&
-                isDeadBeforeOrIn1945(person) &&
+                person.hasWarKilled &&
                 hasFactoryBeforeOrInWarYear(person) &&
                 !person.hasDismissed,
         ),
         "former-workers": people.filter(
             (person) =>
                 person.hasWar &&
-                isDeadBeforeOrIn1945(person) &&
+                person.hasWarKilled &&
                 hasFactoryBeforeOrInWarYear(person) &&
                 person.hasDismissed,
         ),
         "factory-to-front": people.filter(
             (person) =>
-                person.hasWar &&
-                isDeadAfter1945OrAlive(person) &&
-                hasFactoryBeforeOrInWarYear(person),
+                person.hasWar && !person.hasWarKilled && hasFactoryBeforeOrInWarYear(person),
         ),
         "joined-after-war": people.filter(
-            (person) =>
-                person.hasWar && isDeadAfter1945OrAlive(person) && hasFactoryLaterThanWar(person),
+            (person) => person.hasWar && !person.hasWarKilled && hasFactoryLaterThanWar(person),
         ),
     }
 }

@@ -13,6 +13,7 @@ import { warPeopleTabGroups } from "@/lib/warSections"
 import {
     getWarPeopleBuckets,
     getWarTopicPeople,
+    WAR_234_DIVISION_TOPIC_CODE,
     WAR_HOME_FRONT_WORKERS_TOPIC_CODE,
     WAR_PRISONERS_TOPIC_CODE,
 } from "@/lib/warPeople"
@@ -69,21 +70,23 @@ export default async function WarPage() {
         )
     }
 
-    const [timelineEvents, showcaseRow, homeFrontWorkers, prisoners] = await Promise.all([
-        getWarTimeline(warTopic.id),
-        db
-            .select({
-                artifactId: showcases.artifactId,
-                title: artifacts.title,
-                description: artifacts.description,
-            })
-            .from(showcases)
-            .innerJoin(artifacts, eq(artifacts.id, showcases.artifactId))
-            .where(eq(showcases.sectionCode, "war"))
-            .limit(1),
-        getWarTopicPeople(WAR_HOME_FRONT_WORKERS_TOPIC_CODE),
-        getWarTopicPeople(WAR_PRISONERS_TOPIC_CODE),
-    ])
+    const [timelineEvents, showcaseRow, division234, homeFrontWorkers, prisoners] =
+        await Promise.all([
+            getWarTimeline(warTopic.id),
+            db
+                .select({
+                    artifactId: showcases.artifactId,
+                    title: artifacts.title,
+                    description: artifacts.description,
+                })
+                .from(showcases)
+                .innerJoin(artifacts, eq(artifacts.id, showcases.artifactId))
+                .where(eq(showcases.sectionCode, "war"))
+                .limit(1),
+            getWarTopicPeople(WAR_234_DIVISION_TOPIC_CODE),
+            getWarTopicPeople(WAR_HOME_FRONT_WORKERS_TOPIC_CODE),
+            getWarTopicPeople(WAR_PRISONERS_TOPIC_CODE),
+        ])
 
     const showcaseMeta = showcaseRow[0]
         ? { title: showcaseRow[0].title, description: showcaseRow[0].description }
@@ -206,6 +209,48 @@ export default async function WarPage() {
                             </div>
                         ))}
                     </div>
+                </section>
+
+                <section className="border-t border-paper-border pt-8 mb-10">
+                    <div className="mb-4 flex items-baseline justify-between gap-3">
+                        <h2 className="text-lg font-semibold text-ink">234 стрелковая дивизия</h2>
+                        <span className="text-xs text-ink-muted tabular-nums">
+                            {division234.count}
+                        </span>
+                    </div>
+                    <p className="mb-4 text-sm leading-relaxed text-ink-muted">
+                        234-я стрелковая дивизия (2-го формирования), известная как «Ярославская
+                        коммунистическая», была сформирована в октябре-ноябре 1941 года из
+                        добровольцев Ярославской области. Состояли в ней и работники Пролетарки,
+                        ушедшие на фронт в первые месяцы войны.
+                    </p>
+                    <Link
+                        href="/war/234-division"
+                        className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
+                    >
+                        <img
+                            src="/cards/234div.jpg"
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-paper-dark/35" />
+                        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.22),transparent_60%),radial-gradient(circle_at_top_right,rgba(0,0,0,0.1),transparent_45%)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+                        <div className="relative flex items-start justify-between gap-5">
+                            <div className="max-w-lg">
+                                <p className="text-xl font-semibold leading-tight text-ink sm:text-2xl">
+                                    Открыть список
+                                </p>
+                                <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-secondary">
+                                    {division234.count > 0
+                                        ? "Имена тех, чьи военные истории связаны с 234-й стрелковой дивизией."
+                                        : "Этот список ещё ждёт своих имён и свидетельств."}
+                                </p>
+                            </div>
+                            <div className="flex min-h-16 min-w-16 shrink-0 items-center justify-center rounded-full border border-paper-border bg-paper px-4 text-3xl font-semibold tabular-nums tracking-[-0.06em] text-ink">
+                                {division234.count}
+                            </div>
+                        </div>
+                    </Link>
                 </section>
 
                 <section className="border-t border-paper-border pt-8 mb-10">

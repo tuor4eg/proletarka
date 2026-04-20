@@ -10,24 +10,24 @@ When in doubt, use an agent.
 
 ## Local Agent Source
 
-Specialized agents are defined by files in the repository-local `.agents/` directory.
+Specialized agents are defined by files in the repository-local `.codex/agents/` directory.
 
 Codex must treat these files as the source of truth for agent behavior:
 
-- `.agents/architect.md`
-- `.agents/implementer.md`
-- `.agents/reviewer.md`
-- `.agents/doc_writer.md`
+- `.codex/agents/architect.md`
+- `.codex/agents/implementer.md`
+- `.codex/agents/reviewer.md`
+- `.codex/agents/doc_writer.md`
 
-When a routing rule requires a role, Codex must first read the corresponding file from `.agents/` and follow those instructions for that role.
+When a routing rule requires a role, Codex must first read the corresponding file from `.codex/agents/` and follow those instructions for that role.
 
-Do not create generic ad-hoc agents when a matching `.agents/` role file exists. Reuse the local agent definition from `.agents/` instead.
+Do not create generic ad-hoc agents when a matching `.codex/agents/` role file exists. Reuse the local agent definition from `.codex/agents/` instead.
 
-If a required `.agents/` file is missing, Codex must say that the local agent definition is missing and then proceed with the role description from this `AGENTS.md` as a fallback.
+If a required `.codex/agents/` file is missing, Codex must say that the local agent definition is missing and then proceed with the role description from this `AGENTS.md` as a fallback.
 
 ## Mandatory Agent Routing
 
-For every non-trivial task, Codex must route work through the specialized local agents defined in `.agents/`.
+For every non-trivial task, Codex must route work through the specialized local agents defined in `.codex/agents/`.
 
 Codex may work directly without a specialized agent only for:
 
@@ -40,12 +40,12 @@ If Codex skips agent routing, the task must clearly fit one of these exceptions.
 
 ## Roles
 
-The role names below map to local agent definition files in `.agents/`.
+The role names below map to local agent definition files in `.codex/agents/`.
 
-- `architect` — `.agents/architect.md` — structure, naming, data model, boundaries, feature design, route design, database shape.
-- `implementer` — `.agents/implementer.md` — code implementation, refactors, migrations, UI changes, query changes.
-- `reviewer` — `.agents/reviewer.md` — code review, business logic, edge cases, regressions, maintainability, validation of existing changes.
-- `doc_writer` — `.agents/doc_writer.md` — documentation, admin guides, UI wording, non-technical explanations.
+- `architect` — `.codex/agents/architect.md` — structure, naming, data model, boundaries, feature design, route design, database shape.
+- `implementer` — `.codex/agents/implementer.md` — code implementation, refactors, migrations, UI changes, query changes.
+- `reviewer` — `.codex/agents/reviewer.md` — code review, business logic, edge cases, regressions, maintainability, validation of existing changes.
+- `doc_writer` — `.codex/agents/doc_writer.md` — documentation, admin guides, UI wording, non-technical explanations.
 
 Do not overload one agent with work that belongs to another.
 
@@ -89,7 +89,7 @@ If the task is primarily documentation, admin instructions, explanatory text, or
 
 When using agents:
 
-- Use the matching local definition from `.agents/` for the required role.
+- Use the matching local definition from `.codex/agents/` for the required role.
 - Reuse an already-loaded role definition during the same task instead of inventing a new generic agent.
 - Give each agent a narrow, concrete task.
 - Do not ask one agent to do another role's work.
