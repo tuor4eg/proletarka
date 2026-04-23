@@ -1,3 +1,5 @@
+import { Send } from "lucide-react"
+
 export function HomeAbout() {
     return (
         <section className="border-t border-paper-border pt-8 mb-10">
@@ -8,6 +10,18 @@ export function HomeAbout() {
                 Это архив памяти людей, работавших и работающих на заводе "Пролетарская свобода".
                 Здесь собираются биографии, фотографии и документы — всё, что остается живой
                 историей завода и его работников.
+            </p>
+            <p className="mt-4 flex flex-wrap items-center gap-2 text-sm text-ink-secondary">
+                <span>Музей в телеграм</span>
+                <a
+                    href="https://t.me/muzeiprolsvoboda"
+                    className="inline-flex items-center gap-1.5 font-medium text-ink underline underline-offset-4"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    <Send size={15} aria-hidden="true" />
+                    @muzeiprolsvoboda
+                </a>
             </p>
         </section>
     )

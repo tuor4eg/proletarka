@@ -14,6 +14,7 @@ const WAR_RELATED_TOPIC_CODES = [
 export const WAR_HOME_FRONT_WORKERS_TOPIC_CODE = "war-home-front-workers" as const
 export const WAR_PRISONERS_TOPIC_CODE = "war-prisoners" as const
 export const WAR_234_DIVISION_TOPIC_CODE = "war-234-division" as const
+export const WAR_PARTISANS_TOPIC_CODE = "war-partisans" as const
 
 type WarRelatedTopicCode = (typeof WAR_RELATED_TOPIC_CODES)[number]
 
