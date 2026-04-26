@@ -1,11 +1,13 @@
 IMAGE = ghcr.io/tuor4eg/proletarka:latest
+ENV_FILE ?= .env
+ENV_EXAMPLE ?= .env.example
 
 ifneq (,$(wildcard .env.local))
   include .env.local
   export
 endif
 
-.PHONY: push deploy migrate logs restart stop ps create-user lint
+.PHONY: push deploy migrate logs restart stop ps create-user lint sync-env
 
 # Собрать образ локально и запушить в registry
 push:
@@ -48,3 +50,33 @@ create-user:
 # Форматировать весь код (prettier)
 lint:
 	npx prettier --write "src/**/*.{ts,tsx}"
+
+# Добавить в .env отсутствующие переменные из .env.example без значений
+sync-env:
+	@test -f "$(ENV_EXAMPLE)" || (echo "$(ENV_EXAMPLE) not found" && exit 1)
+	@touch "$(ENV_FILE)"
+	@awk -F= '\
+		FNR == NR {\
+			if ($$0 ~ /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=/) {\
+				key = $$1;\
+				gsub(/^[[:space:]]+|[[:space:]]+$$/, "", key);\
+				existing[key] = 1;\
+			}\
+			next;\
+		}\
+		$$0 ~ /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=/ {\
+			key = $$1;\
+			gsub(/^[[:space:]]+|[[:space:]]+$$/, "", key);\
+			if (!(key in existing)) {\
+				print key "=";\
+				added += 1;\
+			}\
+		}\
+		END {\
+			if (added > 0) {\
+				printf("Added %d missing env variable(s) to $(ENV_FILE)\n", added) > "/dev/stderr";\
+			} else {\
+				printf("$(ENV_FILE) already has all variables from $(ENV_EXAMPLE)\n") > "/dev/stderr";\
+			}\
+		}\
+	' "$(ENV_FILE)" "$(ENV_EXAMPLE)" >> "$(ENV_FILE)"

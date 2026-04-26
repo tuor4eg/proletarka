@@ -8,7 +8,7 @@
 
 Главный источник проектной рамки:
 
-- `/home/tuor4eg/pets/proletarka/PROJECT_CONTEXT.md`
+- `PROJECT_CONTEXT.md` в корне проекта
 
 ## Что это за проект
 

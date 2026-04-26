@@ -12,12 +12,13 @@ import {
     events,
     eventTopics,
 } from "@/db/schema"
-import { generateCode, CODE_PATTERN } from "@/lib/generateCode"
+import { generateCode } from "@/lib/generateCode"
 import { resolveImageUpload, deleteImage } from "@/lib/s3"
 import { flashParam } from "@/lib/flash"
 import { logAdminAction } from "@/lib/logAdminAction"
 import { parseSourcesForm, replacePersonSources } from "@/lib/adminSources"
 import { validateTopicSelection } from "@/lib/topicValidation"
+import { createPersonRecord, type CreatePersonRecordResult } from "@/lib/people/createPersonRecord"
 
 export type EventInput = {
     text: string
@@ -129,36 +130,21 @@ export async function createPerson(formData: FormData) {
     const sourceItems = parseSourcesForm(formData)
 
     const customCodeRaw = (formData.get("customCode") as string)?.trim()
-    let code: string
+    let created: CreatePersonRecordResult
 
-    if (customCodeRaw) {
-        if (!CODE_PATTERN.test(customCodeRaw)) {
-            redirect(`/admin/people/new${flashParam("Недопустимый формат code")}`)
-        }
-        const existing = await db
-            .select({ id: people.id })
-            .from(people)
-            .where(eq(people.code, customCodeRaw))
-            .limit(1)
-        if (existing.length > 0) {
-            redirect(`/admin/people/new${flashParam("Этот code уже занят")}`)
-        }
-        code = customCodeRaw
-    } else {
-        code = generateCode(personValues.name)
+    try {
+        created = await createPersonRecord({
+            person: personValues,
+            sources: sourceItems,
+            code: customCodeRaw || undefined,
+        })
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Не удалось создать человека"
+        redirect(`/admin/people/new${flashParam(message, "error")}`)
     }
 
-    const [person] = await db
-        .insert(people)
-        .values({ ...personValues, code })
-        .returning({ id: people.id })
-
-    await db.insert(entities).values({ type: "person", personId: person.id, code })
-
-    await replacePersonSources(person.id, sourceItems)
-
-    await logAdminAction("create", "person", person.id, personValues.name)
-    redirect(`/admin/people/${code}${flashParam("Человек добавлен")}`)
+    await logAdminAction("create", "person", created.personId, personValues.name)
+    redirect(`/admin/people/${created.code}${flashParam("Человек добавлен")}`)
 }
 
 export async function updatePerson(personId: number, formData: FormData) {

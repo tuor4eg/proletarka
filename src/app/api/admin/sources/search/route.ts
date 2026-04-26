@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { asc, ilike } from "drizzle-orm"
-import { db } from "@/db"
-import { sources } from "@/db/schema"
+import { searchSources } from "@/db/queries"
 
 export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl
@@ -11,14 +9,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json([])
     }
 
-    const rows = await db
-        .selectDistinct({
-            label: sources.label,
-        })
-        .from(sources)
-        .where(ilike(sources.label, `%${q}%`))
-        .orderBy(asc(sources.label))
-        .limit(20)
+    const rows = await searchSources(q, 20)
 
-    return NextResponse.json(rows)
+    return NextResponse.json(rows.map((row) => ({ label: row.label })))
 }

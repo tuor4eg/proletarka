@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm"
+import { and, asc, eq, ilike, inArray, isNotNull, or, sql } from "drizzle-orm"
 import { db } from "@/db"
 import { materials, materialSources, sources, topics } from "@/db/schema"
 
@@ -13,7 +13,20 @@ export type TopicTreeItem = {
     code: string
     title: string
     parentId: number | null
+    isSystem: boolean
     children: TopicTreeItem[]
+}
+
+export type SourceSearchItem = {
+    label: string
+    url: string
+}
+
+export type ImportTopicItem = {
+    code: string
+    title: string
+    parentCode: string | null
+    isSystem: boolean
 }
 
 export async function fetchFirstPhotoMap(entityIds: number[]): Promise<Map<number, string>> {
@@ -81,6 +94,7 @@ export async function fetchTopicTree(): Promise<TopicTreeItem[]> {
             code: topics.code,
             title: topics.title,
             parentId: topics.parentId,
+            isSystem: topics.isSystem,
         })
         .from(topics)
         .orderBy(asc(topics.title), asc(topics.id))
@@ -93,6 +107,7 @@ export async function fetchTopicTree(): Promise<TopicTreeItem[]> {
             code: row.code,
             title: row.title,
             parentId: row.parentId,
+            isSystem: row.isSystem,
             children: [],
         })
     }
@@ -114,4 +129,46 @@ export async function fetchTopicTree(): Promise<TopicTreeItem[]> {
     }
 
     return roots
+}
+
+export async function fetchImportTopics(): Promise<ImportTopicItem[]> {
+    const tree = await fetchTopicTree()
+    const result: ImportTopicItem[] = []
+
+    function visit(topic: TopicTreeItem, parentCode: string | null) {
+        result.push({
+            code: topic.code,
+            title: topic.title,
+            parentCode,
+            isSystem: topic.isSystem,
+        })
+
+        for (const child of topic.children) {
+            visit(child, topic.code)
+        }
+    }
+
+    for (const topic of tree) {
+        visit(topic, null)
+    }
+
+    return result
+}
+
+export async function searchSources(q: string, limit: number): Promise<SourceSearchItem[]> {
+    const trimmedQ = q.trim()
+    const where =
+        trimmedQ.length >= 2
+            ? or(ilike(sources.label, `%${trimmedQ}%`), ilike(sources.url, `%${trimmedQ}%`))
+            : undefined
+
+    return db
+        .selectDistinct({
+            label: sources.label,
+            url: sources.url,
+        })
+        .from(sources)
+        .where(where)
+        .orderBy(asc(sources.label), asc(sources.url))
+        .limit(limit)
 }

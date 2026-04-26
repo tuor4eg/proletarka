@@ -8,7 +8,7 @@
 
 Перед ревью обязательно прочитай:
 
-- `/home/tuor4eg/pets/proletarka/PROJECT_CONTEXT.md`
+- `PROJECT_CONTEXT.md` в корне проекта
 
 ## Как смотреть на проект
 
