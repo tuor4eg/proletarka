@@ -115,7 +115,6 @@ export async function POST(request: NextRequest) {
                 },
                 created: {
                     eventsCount: created.eventsCount,
-                    sourcesCount: created.sourcesCount,
                 },
                 warnings: validation.warnings,
                 possibleDuplicates: validation.possibleDuplicates,

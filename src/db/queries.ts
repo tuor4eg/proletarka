@@ -27,6 +27,7 @@ export type ImportTopicItem = {
     title: string
     parentCode: string | null
     isSystem: boolean
+    children: ImportTopicItem[]
 }
 
 export async function fetchFirstPhotoMap(entityIds: number[]): Promise<Map<number, string>> {
@@ -131,28 +132,36 @@ export async function fetchTopicTree(): Promise<TopicTreeItem[]> {
     return roots
 }
 
-export async function fetchImportTopics(): Promise<ImportTopicItem[]> {
-    const tree = await fetchTopicTree()
-    const result: ImportTopicItem[] = []
+export type ImportTopicFilter = "system" | "nonSystem" | "all"
 
-    function visit(topic: TopicTreeItem, parentCode: string | null) {
-        result.push({
+function topicMatchesImportFilter(topic: TopicTreeItem, filter: ImportTopicFilter): boolean {
+    if (filter === "all") return true
+    if (filter === "system") return topic.isSystem
+    return !topic.isSystem
+}
+
+export async function fetchImportTopicTree(
+    filter: ImportTopicFilter = "system",
+): Promise<ImportTopicItem[]> {
+    const tree = await fetchTopicTree()
+
+    function convert(topic: TopicTreeItem, parentCode: string | null): ImportTopicItem | null {
+        if (!topicMatchesImportFilter(topic, filter)) return null
+
+        const children = topic.children
+            .map((child) => convert(child, topic.code))
+            .filter((child): child is ImportTopicItem => child !== null)
+
+        return {
             code: topic.code,
             title: topic.title,
             parentCode,
             isSystem: topic.isSystem,
-        })
-
-        for (const child of topic.children) {
-            visit(child, topic.code)
+            children,
         }
     }
 
-    for (const topic of tree) {
-        visit(topic, null)
-    }
-
-    return result
+    return tree.map((topic) => convert(topic, null)).filter((topic) => topic !== null)
 }
 
 export async function searchSources(q: string, limit: number): Promise<SourceSearchItem[]> {

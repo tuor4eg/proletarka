@@ -2,6 +2,7 @@ import { and, eq, ilike, or } from "drizzle-orm"
 import { db } from "@/db"
 import { people, topics } from "@/db/schema"
 import type { CreatePersonRecordInput } from "@/lib/people/createPersonRecord"
+import { validateTopicSelection } from "@/lib/topicValidation"
 
 export type PersonImportPayload = {
     person?: {
@@ -13,7 +14,6 @@ export type PersonImportPayload = {
         mainPhotoPath?: unknown
     }
     events?: unknown
-    sources?: unknown
     allowPossibleDuplicate?: unknown
 }
 
@@ -40,8 +40,6 @@ const MAX_NAME_LENGTH = 200
 const MAX_BIO_LENGTH = 2000
 const MAX_EVENTS = 30
 const MAX_EVENT_TEXT_LENGTH = 1000
-const MAX_SOURCES = 10
-const MAX_SOURCE_LABEL_LENGTH = 300
 const MIN_YEAR = 1700
 const MAX_YEAR = 2100
 
@@ -105,7 +103,17 @@ async function resolveTopicCodes(
         })
     }
 
-    return rows.map((row) => row.id)
+    const topicIds = rows.map((row) => row.id)
+    const validation = await validateTopicSelection(topicIds)
+    if (!validation.ok) {
+        fields.push({
+            path,
+            message: validation.message,
+        })
+        return topicIds
+    }
+
+    return validation.topicIds
 }
 
 async function findPossibleDuplicates(name: string, birthYear: number | null) {
@@ -243,49 +251,12 @@ export async function validatePersonImportPayload(
         }
     }
 
-    const sourcesRaw = payload.sources
-    const sourceInputs: CreatePersonRecordInput["sources"] = []
-    if (sourcesRaw !== undefined && sourcesRaw !== null) {
-        if (!Array.isArray(sourcesRaw)) {
-            fields.push({ path: "sources", message: "sources должен быть массивом" })
-        } else if (sourcesRaw.length > MAX_SOURCES) {
-            fields.push({
-                path: "sources",
-                message: `Не больше ${MAX_SOURCES} источников за импорт`,
-            })
-        } else {
-            for (const [index, sourceRaw] of sourcesRaw.entries()) {
-                const basePath = `sources.${index}`
-                if (!isRecord(sourceRaw)) {
-                    fields.push({ path: basePath, message: "Источник должен быть объектом" })
-                    continue
-                }
-
-                const label = optionalString(sourceRaw.label)
-                const url = optionalString(sourceRaw.url)
-                if (!label)
-                    fields.push({
-                        path: `${basePath}.label`,
-                        message: "Название источника обязательно",
-                    })
-                if (!url)
-                    fields.push({ path: `${basePath}.url`, message: "URL источника обязателен" })
-                if (label && label.length > MAX_SOURCE_LABEL_LENGTH) {
-                    fields.push({
-                        path: `${basePath}.label`,
-                        message: `Название источника не длиннее ${MAX_SOURCE_LABEL_LENGTH} символов`,
-                    })
-                }
-                if (url) {
-                    try {
-                        new URL(url)
-                    } catch {
-                        fields.push({ path: `${basePath}.url`, message: "Некорректный URL" })
-                    }
-                }
-                if (label && url) sourceInputs.push({ label, url })
-            }
-        }
+    if ("sources" in payload) {
+        fields.push({
+            path: "sources",
+            message:
+                "Импорт источников через бота не поддерживается. Добавьте источники в админке.",
+        })
     }
 
     if (fields.length > 0 || !name) {
@@ -324,7 +295,6 @@ export async function validatePersonImportPayload(
                 yearsLabel,
                 mainPhotoPath: null,
             },
-            sources: sourceInputs,
             events: eventInputs,
         },
         warnings,

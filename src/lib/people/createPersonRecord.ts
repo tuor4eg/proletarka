@@ -43,7 +43,6 @@ export type CreatePersonRecordResult = {
     entityId: number
     code: string
     eventsCount: number
-    sourcesCount: number
 }
 
 async function validateEventTopicIds(topicIds: number[]): Promise<number[]> {
@@ -176,7 +175,6 @@ export async function createPersonRecord(
             entityId: entity.id,
             code,
             eventsCount: validatedEvents.length,
-            sourcesCount: sourceItems.length,
         }
     })
 }
