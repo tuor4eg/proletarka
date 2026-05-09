@@ -4,6 +4,7 @@ import { warPeopleTabs } from "@/lib/warSections"
 
 export async function HomeWar() {
     const { warTopic, counts } = await getWarPeopleBuckets()
+    const visibleTabs = warPeopleTabs.filter((item) => item.key !== "former-workers-survived")
 
     if (!warTopic) return null
 
@@ -39,7 +40,7 @@ export async function HomeWar() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                        {warPeopleTabs.map((item) => (
+                        {visibleTabs.map((item) => (
                             <Link
                                 key={item.key}
                                 href={`/war/people?tab=${item.key}`}

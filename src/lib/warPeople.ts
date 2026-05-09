@@ -3,6 +3,7 @@ import { db } from "@/db"
 import { entities, people, events, eventTopics, topics } from "@/db/schema"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import type { WarPeopleTabKey } from "@/lib/warSections"
+import { WAR_YEAR_FROM } from "@/lib/constants"
 
 const WAR_RELATED_TOPIC_CODES = [
     "war",
@@ -35,6 +36,7 @@ type WarPersonComputed = WarPerson & {
     hasDismissed: boolean
     firstWarYear: number | null
     firstFactoryYear: number | null
+    firstDismissedYear: number | null
 }
 
 export type WarPeopleBuckets = Record<WarPeopleTabKey, WarPerson[]>
@@ -63,6 +65,7 @@ function getInitialComputedPerson(row: WarPerson): WarPersonComputed {
         hasDismissed: false,
         firstWarYear: null,
         firstFactoryYear: null,
+        firstDismissedYear: null,
     }
 }
 
@@ -88,6 +91,12 @@ function applyTopicToPerson(
 
     if (topicCode === "factory-dismissed") {
         person.hasDismissed = true
+        if (yearFrom !== null) {
+            person.firstDismissedYear =
+                person.firstDismissedYear === null
+                    ? yearFrom
+                    : Math.min(person.firstDismissedYear, yearFrom)
+        }
     }
 
     if (topicCode === "war-killed") {
@@ -108,6 +117,15 @@ function hasFactoryLaterThanWar(person: WarPersonComputed) {
         person.firstFactoryYear !== null &&
         person.firstWarYear !== null &&
         person.firstFactoryYear > person.firstWarYear
+    )
+}
+
+function hasDismissedBeforeWarStart(person: WarPersonComputed) {
+    return (
+        person.firstFactoryYear !== null &&
+        person.firstDismissedYear !== null &&
+        person.firstFactoryYear <= person.firstDismissedYear &&
+        person.firstDismissedYear < WAR_YEAR_FROM
     )
 }
 
@@ -205,12 +223,22 @@ function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
             (person) =>
                 person.hasWar &&
                 person.hasWarKilled &&
-                hasFactoryBeforeOrInWarYear(person) &&
-                person.hasDismissed,
+                person.hasDismissed &&
+                hasDismissedBeforeWarStart(person),
+        ),
+        "former-workers-survived": people.filter(
+            (person) =>
+                person.hasWar &&
+                !person.hasWarKilled &&
+                person.hasDismissed &&
+                hasDismissedBeforeWarStart(person),
         ),
         "factory-to-front": people.filter(
             (person) =>
-                person.hasWar && !person.hasWarKilled && hasFactoryBeforeOrInWarYear(person),
+                person.hasWar &&
+                !person.hasWarKilled &&
+                hasFactoryBeforeOrInWarYear(person) &&
+                !hasDismissedBeforeWarStart(person),
         ),
         "joined-after-war": people.filter(
             (person) => person.hasWar && !person.hasWarKilled && hasFactoryLaterThanWar(person),
@@ -230,6 +258,7 @@ export async function getWarPeopleBuckets() {
     const emptyBuckets = {
         "not-returned": [],
         "former-workers": [],
+        "former-workers-survived": [],
         "factory-to-front": [],
         "joined-after-war": [],
     } satisfies WarPeopleBuckets
@@ -242,12 +271,14 @@ export async function getWarPeopleBuckets() {
             counts: {
                 "not-returned": 0,
                 "former-workers": 0,
+                "former-workers-survived": 0,
                 "factory-to-front": 0,
                 "joined-after-war": 0,
             } as Record<WarPeopleTabKey, number>,
             availableLettersByTab: {
                 "not-returned": [],
                 "former-workers": [],
+                "former-workers-survived": [],
                 "factory-to-front": [],
                 "joined-after-war": [],
             } as Record<WarPeopleTabKey, string[]>,
@@ -310,6 +341,7 @@ export async function getWarPeopleBuckets() {
     const counts = {
         "not-returned": buckets["not-returned"].length,
         "former-workers": buckets["former-workers"].length,
+        "former-workers-survived": buckets["former-workers-survived"].length,
         "factory-to-front": buckets["factory-to-front"].length,
         "joined-after-war": buckets["joined-after-war"].length,
     } satisfies Record<WarPeopleTabKey, number>
@@ -320,6 +352,13 @@ export async function getWarPeopleBuckets() {
         ).sort((a, b) => a.localeCompare(b, "ru")),
         "former-workers": Array.from(
             new Set(buckets["former-workers"].map((person) => getPersonFirstLetter(person.name))),
+        ).sort((a, b) => a.localeCompare(b, "ru")),
+        "former-workers-survived": Array.from(
+            new Set(
+                buckets["former-workers-survived"].map((person) =>
+                    getPersonFirstLetter(person.name),
+                ),
+            ),
         ).sort((a, b) => a.localeCompare(b, "ru")),
         "factory-to-front": Array.from(
             new Set(buckets["factory-to-front"].map((person) => getPersonFirstLetter(person.name))),

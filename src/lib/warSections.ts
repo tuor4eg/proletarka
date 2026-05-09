@@ -11,6 +11,7 @@ export const warPeopleTabGroups = [
         items: [
             { key: "factory-to-front", label: "С завода на фронт" },
             { key: "joined-after-war", label: "Пришли на завод после войны" },
+            { key: "former-workers-survived", label: "Бывшие заводчане" },
         ],
     },
 ] as const
