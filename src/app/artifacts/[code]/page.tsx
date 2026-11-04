@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/imageUrl"
 import { notFound } from "next/navigation"
 import { eq, and, asc, sql, inArray } from "drizzle-orm"
 import Link from "next/link"
@@ -170,7 +171,7 @@ export default async function ArtifactPage({ params, searchParams }: Props) {
                                 <div className="flex items-start gap-4">
                                     {m.coverImagePath && (
                                         <img
-                                            src={m.coverImagePath}
+                                            src={getImageUrl(m.coverImagePath)}
                                             alt={m.title}
                                             className="w-20 h-20 object-cover rounded-xl shrink-0"
                                         />

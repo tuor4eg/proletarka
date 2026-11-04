@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/imageUrl"
 import { notFound } from "next/navigation"
 import { eq, and, asc, inArray } from "drizzle-orm"
 import { db } from "@/db"
@@ -211,7 +212,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
                                 null
                             return avatarSrc ? (
                                 <img
-                                    src={avatarSrc}
+                                    src={getImageUrl(avatarSrc)}
                                     alt={person.name}
                                     className="w-full h-full object-cover"
                                 />

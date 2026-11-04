@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { db } from "@/db"
 import { materials, entities, people } from "@/db/schema"
@@ -90,7 +91,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
                                     <div className="flex items-start gap-4">
                                         {item.coverImagePath && (
                                             <img
-                                                src={item.coverImagePath}
+                                                src={getImageUrl(item.coverImagePath)}
                                                 alt={item.title}
                                                 className="w-20 h-20 object-cover rounded-xl shrink-0"
                                             />

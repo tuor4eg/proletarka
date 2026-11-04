@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts } from "@/db/schema"
@@ -42,7 +43,7 @@ export async function HomeExposition() {
                         <div className="aspect-square rounded-xl overflow-hidden bg-paper-dark">
                             {stand.coverImagePath ? (
                                 <img
-                                    src={stand.coverImagePath}
+                                    src={getImageUrl(stand.coverImagePath)}
                                     alt={stand.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 />

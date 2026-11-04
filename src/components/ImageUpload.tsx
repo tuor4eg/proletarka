@@ -1,5 +1,6 @@
 "use client"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import { useState, useRef } from "react"
 
 type Props = {
@@ -44,7 +45,7 @@ export function ImageUpload({ fileInputName, urlInputName, defaultUrl, label = "
                         className="block w-32 h-32"
                     >
                         <img
-                            src={displayUrl}
+                            src={getImageUrl(displayUrl)}
                             alt="preview"
                             className="w-32 h-32 object-cover rounded-xl border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in"
                         />
@@ -65,7 +66,7 @@ export function ImageUpload({ fileInputName, urlInputName, defaultUrl, label = "
                     onClick={() => setLightbox(false)}
                 >
                     <img
-                        src={displayUrl}
+                        src={getImageUrl(displayUrl)}
                         alt="preview full"
                         className="max-w-[90vw] max-h-[90vh] rounded-xl shadow-2xl"
                         onClick={(e) => e.stopPropagation()}

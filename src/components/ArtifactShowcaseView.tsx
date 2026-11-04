@@ -1,5 +1,6 @@
 "use client"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { useState, useRef } from "react"
 import { type InferSelectModel } from "drizzle-orm"
@@ -58,7 +59,7 @@ export function ArtifactShowcaseView({ artifact, materials, code }: Props) {
                 >
                     <img
                         key={photos[current].id}
-                        src={photos[current].coverImagePath!}
+                        src={getImageUrl(photos[current].coverImagePath!)}
                         alt={photos[current].title}
                         className="w-full h-full object-cover"
                     />

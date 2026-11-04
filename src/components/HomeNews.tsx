@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { and, desc, eq } from "drizzle-orm"
 import { db } from "@/db"
@@ -49,7 +50,7 @@ export async function HomeNews() {
                                 <div className="w-14 h-14 rounded-xl overflow-hidden bg-paper-dark shrink-0">
                                     {item.coverImagePath ? (
                                         <img
-                                            src={item.coverImagePath}
+                                            src={getImageUrl(item.coverImagePath)}
                                             alt={item.title}
                                             className="w-full h-full object-cover"
                                         />

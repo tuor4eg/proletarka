@@ -1,5 +1,6 @@
 "use client"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
@@ -100,7 +101,7 @@ export function Lightbox({
                 >
                     <img
                         key={item.id}
-                        src={item.coverImagePath}
+                        src={getImageUrl(item.coverImagePath)}
                         alt={item.title}
                         onLoad={(e) => {
                             const img = e.currentTarget

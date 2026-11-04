@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts, materials, showcases } from "@/db/schema"
@@ -167,7 +168,7 @@ function ArtifactGrid({ items }: { items: ArtifactItem[] }) {
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-paper-dark">
                         {item.coverImagePath ? (
                             <img
-                                src={item.coverImagePath}
+                                src={getImageUrl(item.coverImagePath)}
                                 alt={item.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />

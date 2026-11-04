@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts } from "@/db/schema"
@@ -55,7 +56,7 @@ export async function HomeFunds() {
                                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-paper-dark">
                                     {fund.coverImagePath ? (
                                         <img
-                                            src={fund.coverImagePath}
+                                            src={getImageUrl(fund.coverImagePath)}
                                             alt={fund.title}
                                             className="w-full h-full object-cover"
                                         />

@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { and, desc, eq } from "drizzle-orm"
 import { db } from "@/db"
@@ -41,7 +42,7 @@ export default async function NewsPage() {
                                         <div className="flex items-start gap-4">
                                             {item.coverImagePath && (
                                                 <img
-                                                    src={item.coverImagePath}
+                                                    src={getImageUrl(item.coverImagePath)}
                                                     alt={item.title}
                                                     className="w-24 h-24 object-cover rounded-xl shrink-0"
                                                 />

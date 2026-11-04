@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { User } from "lucide-react"
 import { db } from "@/db"
@@ -113,10 +114,10 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                                             {(row.mainPhotoPath ??
                                             fallbackMap.get(row.entityId)) ? (
                                                 <img
-                                                    src={
+                                                    src={getImageUrl(
                                                         (row.mainPhotoPath ??
-                                                            fallbackMap.get(row.entityId))!
-                                                    }
+                                                            fallbackMap.get(row.entityId))!,
+                                                    )}
                                                     alt={row.name}
                                                     className="w-full h-full object-cover"
                                                 />

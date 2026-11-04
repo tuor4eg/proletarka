@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { User } from "lucide-react"
 
@@ -17,7 +18,11 @@ export function PersonCard({ code, name, years, context, mainPhotoPath }: Props)
         >
             <div className="w-16 h-16 rounded-xl overflow-hidden bg-paper-dark flex items-center justify-center">
                 {mainPhotoPath ? (
-                    <img src={mainPhotoPath} alt={name} className="w-full h-full object-cover" />
+                    <img
+                        src={getImageUrl(mainPhotoPath)}
+                        alt={name}
+                        className="w-full h-full object-cover"
+                    />
                 ) : (
                     <User size={22} className="text-ink-muted" />
                 )}

@@ -1,5 +1,6 @@
 "use client"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import useEmblaCarousel from "embla-carousel-react"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
@@ -72,7 +73,7 @@ export function PhotoCarousel({ photos }: Props) {
                             {photos.map((p) => (
                                 <div key={p.id} className="flex-none w-full">
                                     <img
-                                        src={p.coverImagePath}
+                                        src={getImageUrl(p.coverImagePath)}
                                         alt={p.title}
                                         className="w-full aspect-[4/3] object-cover cursor-zoom-in"
                                         onClick={() => setLightboxIndex(current)}

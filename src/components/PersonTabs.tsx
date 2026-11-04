@@ -1,5 +1,6 @@
 "use client"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { X, FileText } from "lucide-react"
@@ -140,7 +141,7 @@ function DocumentGrid({
                         >
                             {item.coverImagePath ? (
                                 <img
-                                    src={item.coverImagePath}
+                                    src={getImageUrl(item.coverImagePath)}
                                     alt={item.title}
                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
@@ -205,7 +206,7 @@ function PhotoGrid({ items, onOpen }: { items: Material[]; onOpen: (index: numbe
                         >
                             {item.coverImagePath ? (
                                 <img
-                                    src={item.coverImagePath}
+                                    src={getImageUrl(item.coverImagePath)}
                                     alt={item.title}
                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />

@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { db } from "@/db"
 import { entities, artifacts, entityTopics, topics } from "@/db/schema"
@@ -149,7 +150,7 @@ export default async function FundsPage({
                                 <div className="aspect-[4/3] rounded-xl overflow-hidden bg-paper-dark">
                                     {coverImagePath ? (
                                         <img
-                                            src={coverImagePath}
+                                            src={getImageUrl(coverImagePath)}
                                             alt={row.title}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />

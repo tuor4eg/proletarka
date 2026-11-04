@@ -1,5 +1,6 @@
 "use client"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { X } from "lucide-react"
@@ -28,7 +29,7 @@ export function CoverImage({ src, alt }: Props) {
     return (
         <>
             <img
-                src={src}
+                src={getImageUrl(src)}
                 alt={alt}
                 onClick={() => setOpen(true)}
                 className="w-full rounded-xl mb-4 object-cover max-h-80 cursor-zoom-in"
@@ -46,7 +47,7 @@ export function CoverImage({ src, alt }: Props) {
                             <X size={20} />
                         </button>
                         <img
-                            src={src}
+                            src={getImageUrl(src)}
                             alt={alt}
                             onClick={(e) => e.stopPropagation()}
                             className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"

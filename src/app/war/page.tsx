@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { getImageUrl } from "@/lib/imageUrl"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { db } from "@/db"
@@ -201,7 +202,7 @@ export default async function WarPage() {
                                             className="group relative overflow-hidden rounded-2xl bg-paper-dark border border-paper-border min-h-44 px-5 py-5 flex items-end"
                                         >
                                             <img
-                                                src={item.background}
+                                                src={getImageUrl(item.background)}
                                                 alt=""
                                                 className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
                                             />
