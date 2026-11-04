@@ -2,6 +2,7 @@ services:
     app:
         image: ghcr.io/tuor4eg/proletarka:latest
         restart: unless-stopped
+        networks: [default, backend]
         ports:
             - "127.0.0.1:3000:3000"
         extra_hosts:
@@ -30,6 +31,7 @@ services:
             context: .
             target: migrator
         command: npm run db:migrate
+        networks: [default, backend]
         environment:
             DATABASE_URL: ${DATABASE_URL}
         profiles: [migrate]
@@ -50,3 +52,7 @@ services:
 
 volumes:
     minio_data:
+
+networks:
+    backend:
+        external: true
