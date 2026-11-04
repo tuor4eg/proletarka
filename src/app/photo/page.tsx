@@ -6,6 +6,7 @@ import { entities, artifacts, entityTopics, topics } from "@/db/schema"
 import { eq, asc, sql, isNull, and } from "drizzle-orm"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import { PageHero } from "@/components/PageHero"
+import { Pagination } from "@/components/Pagination"
 
 const PAGE_SIZE = 12
 
@@ -167,39 +168,11 @@ export default async function FundsPage({
                     })}
                 </div>
 
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 mt-8">
-                        {safePage > 1 && (
-                            <Link
-                                href={`/photo?topic=${activeCode}&page=${safePage - 1}`}
-                                className="px-3 py-1 rounded text-sm text-ink-muted hover:text-ink transition-colors"
-                            >
-                                ←
-                            </Link>
-                        )}
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                            <Link
-                                key={p}
-                                href={`/photo?topic=${activeCode}&page=${p}`}
-                                className={`w-7 h-7 flex items-center justify-center rounded text-sm transition-colors ${
-                                    p === safePage
-                                        ? "bg-ink text-paper font-medium"
-                                        : "text-ink-muted hover:text-ink"
-                                }`}
-                            >
-                                {p}
-                            </Link>
-                        ))}
-                        {safePage < totalPages && (
-                            <Link
-                                href={`/photo?topic=${activeCode}&page=${safePage + 1}`}
-                                className="px-3 py-1 rounded text-sm text-ink-muted hover:text-ink transition-colors"
-                            >
-                                →
-                            </Link>
-                        )}
-                    </div>
-                )}
+                <Pagination
+                    page={safePage}
+                    totalPages={totalPages}
+                    searchParams={{ topic: activeCode }}
+                />
             </main>
         </>
     )

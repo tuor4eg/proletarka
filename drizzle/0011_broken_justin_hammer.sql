@@ -1,1 +1,0 @@
-ALTER TABLE "artifact_sections" ADD COLUMN "description" text;

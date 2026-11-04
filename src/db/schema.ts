@@ -8,6 +8,7 @@ import {
     timestamp,
     primaryKey,
     boolean,
+    index,
 } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
@@ -86,46 +87,74 @@ export const sources = pgTable("sources", {
     createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
-export const entities = pgTable("entities", {
-    id: serial("id").primaryKey(),
-    type: entityTypeEnum("type").notNull(),
-    personId: integer("person_id").references(() => people.id),
-    artifactId: integer("artifact_id").references(() => artifacts.id, { onDelete: "cascade" }),
-    code: text("code").notNull().unique(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-})
+export const entities = pgTable(
+    "entities",
+    {
+        id: serial("id").primaryKey(),
+        type: entityTypeEnum("type").notNull(),
+        personId: integer("person_id").references(() => people.id),
+        artifactId: integer("artifact_id").references(() => artifacts.id, { onDelete: "cascade" }),
+        code: text("code").notNull().unique(),
+        createdAt: timestamp("created_at").notNull().defaultNow(),
+        updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    },
+    (t) => [
+        index("entities_person_id_idx").on(t.personId),
+        index("entities_artifact_id_idx").on(t.artifactId),
+    ],
+)
 
-export const artifactSections = pgTable("artifact_sections", {
-    id: serial("id").primaryKey(),
-    artifactId: integer("artifact_id")
-        .notNull()
-        .references(() => artifacts.id, { onDelete: "cascade" }),
-    title: text("title").notNull(),
-    description: text("description"),
-    position: integer("position").notNull().default(0),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-})
+export const artifactSections = pgTable(
+    "artifact_sections",
+    {
+        id: serial("id").primaryKey(),
+        artifactId: integer("artifact_id")
+            .notNull()
+            .references(() => artifacts.id, { onDelete: "cascade" }),
+        title: text("title").notNull(),
+        description: text("description"),
+        position: integer("position").notNull().default(0),
+        createdAt: timestamp("created_at").notNull().defaultNow(),
+    },
+    (t) => [index("artifact_sections_artifact_id_position_idx").on(t.artifactId, t.position)],
+)
 
-export const materials = pgTable("materials", {
-    id: serial("id").primaryKey(),
-    code: text("code").notNull().unique(),
-    title: text("title").notNull(),
-    summary: text("summary"),
-    content: text("content"),
-    materialType: materialTypeEnum("material_type").notNull().default("article"),
-    status: statusEnum("status").notNull().default("draft"),
-    entityId: integer("entity_id").references(() => entities.id),
-    sectionId: integer("section_id").references(() => artifactSections.id, {
-        onDelete: "set null",
-    }),
-    yearFrom: integer("year_from"),
-    yearTo: integer("year_to"),
-    coverImagePath: text("cover_image_path"),
-    position: integer("position"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-})
+export const materials = pgTable(
+    "materials",
+    {
+        id: serial("id").primaryKey(),
+        code: text("code").notNull().unique(),
+        title: text("title").notNull(),
+        summary: text("summary"),
+        content: text("content"),
+        materialType: materialTypeEnum("material_type").notNull().default("article"),
+        status: statusEnum("status").notNull().default("draft"),
+        entityId: integer("entity_id").references(() => entities.id),
+        sectionId: integer("section_id").references(() => artifactSections.id, {
+            onDelete: "set null",
+        }),
+        yearFrom: integer("year_from"),
+        yearTo: integer("year_to"),
+        coverImagePath: text("cover_image_path"),
+        position: integer("position"),
+        createdAt: timestamp("created_at").notNull().defaultNow(),
+        updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    },
+    (t) => [
+        index("materials_entity_id_created_at_idx").on(t.entityId, t.createdAt.desc().nullsFirst()),
+        index("materials_entity_id_status_position_id_idx").on(
+            t.entityId,
+            t.status,
+            t.position,
+            t.id,
+        ),
+        index("materials_type_status_created_at_idx").on(
+            t.materialType,
+            t.status,
+            t.createdAt.desc().nullsFirst(),
+        ),
+    ],
+)
 
 export const materialTopics = pgTable(
     "material_topics",
@@ -137,7 +166,10 @@ export const materialTopics = pgTable(
             .notNull()
             .references(() => topics.id),
     },
-    (t) => [primaryKey({ columns: [t.materialId, t.topicId] })],
+    (t) => [
+        primaryKey({ columns: [t.materialId, t.topicId] }),
+        index("material_topics_topic_id_idx").on(t.topicId),
+    ],
 )
 
 export const personMaterials = pgTable(
@@ -150,7 +182,10 @@ export const personMaterials = pgTable(
             .notNull()
             .references(() => materials.id, { onDelete: "cascade" }),
     },
-    (t) => [primaryKey({ columns: [t.personId, t.materialId] })],
+    (t) => [
+        primaryKey({ columns: [t.personId, t.materialId] }),
+        index("person_materials_material_id_idx").on(t.materialId),
+    ],
 )
 
 export const personSources = pgTable(
@@ -179,19 +214,23 @@ export const materialSources = pgTable(
     (t) => [primaryKey({ columns: [t.materialId, t.sourceId] })],
 )
 
-export const events = pgTable("events", {
-    id: serial("id").primaryKey(),
-    code: text("code").notNull().unique(),
-    entityId: integer("entity_id")
-        .notNull()
-        .references(() => entities.id, { onDelete: "cascade" }),
-    text: text("text").notNull(),
-    yearFrom: integer("year_from"),
-    yearTo: integer("year_to"),
-    yearsLabel: text("years_label"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-})
+export const events = pgTable(
+    "events",
+    {
+        id: serial("id").primaryKey(),
+        code: text("code").notNull().unique(),
+        entityId: integer("entity_id")
+            .notNull()
+            .references(() => entities.id, { onDelete: "cascade" }),
+        text: text("text").notNull(),
+        yearFrom: integer("year_from"),
+        yearTo: integer("year_to"),
+        yearsLabel: text("years_label"),
+        createdAt: timestamp("created_at").notNull().defaultNow(),
+        updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    },
+    (t) => [index("events_entity_id_year_from_id_idx").on(t.entityId, t.yearFrom, t.id)],
+)
 
 export const eventTopics = pgTable(
     "event_topics",
@@ -203,7 +242,10 @@ export const eventTopics = pgTable(
             .notNull()
             .references(() => topics.id, { onDelete: "cascade" }),
     },
-    (t) => [primaryKey({ columns: [t.eventId, t.topicId] })],
+    (t) => [
+        primaryKey({ columns: [t.eventId, t.topicId] }),
+        index("event_topics_topic_id_idx").on(t.topicId),
+    ],
 )
 
 export const entityTopics = pgTable(
@@ -216,7 +258,10 @@ export const entityTopics = pgTable(
             .notNull()
             .references(() => topics.id, { onDelete: "cascade" }),
     },
-    (t) => [primaryKey({ columns: [t.entityId, t.topicId] })],
+    (t) => [
+        primaryKey({ columns: [t.entityId, t.topicId] }),
+        index("entity_topics_topic_id_idx").on(t.topicId),
+    ],
 )
 
 export const artifactMaterials = pgTable(
@@ -233,7 +278,10 @@ export const artifactMaterials = pgTable(
         }),
         position: integer("position"),
     },
-    (t) => [primaryKey({ columns: [t.artifactId, t.materialId] })],
+    (t) => [
+        primaryKey({ columns: [t.artifactId, t.materialId] }),
+        index("artifact_materials_material_id_idx").on(t.materialId),
+    ],
 )
 
 export const showcases = pgTable("showcases", {
@@ -243,19 +291,26 @@ export const showcases = pgTable("showcases", {
         .references(() => artifacts.id, { onDelete: "cascade" }),
 })
 
-export const comments = pgTable("comments", {
-    id: serial("id").primaryKey(),
-    entityId: integer("entity_id")
-        .notNull()
-        .references(() => entities.id, { onDelete: "cascade" }),
-    status: commentStatusEnum("status").notNull().default("pending"),
-    author: text("author"),
-    body: text("body").notNull(),
-    ipHash: text("ip_hash"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    moderatedAt: timestamp("moderated_at"),
-    moderatedBy: integer("moderated_by").references(() => users.id),
-})
+export const comments = pgTable(
+    "comments",
+    {
+        id: serial("id").primaryKey(),
+        entityId: integer("entity_id")
+            .notNull()
+            .references(() => entities.id, { onDelete: "cascade" }),
+        status: commentStatusEnum("status").notNull().default("pending"),
+        author: text("author"),
+        body: text("body").notNull(),
+        ipHash: text("ip_hash"),
+        createdAt: timestamp("created_at").notNull().defaultNow(),
+        moderatedAt: timestamp("moderated_at"),
+        moderatedBy: integer("moderated_by").references(() => users.id),
+    },
+    (t) => [
+        index("comments_status_created_at_idx").on(t.status, t.createdAt.desc().nullsFirst()),
+        index("comments_entity_id_created_at_idx").on(t.entityId, t.createdAt.desc().nullsFirst()),
+    ],
+)
 
 export const adminActionEnum = pgEnum("admin_action", [
     "create",

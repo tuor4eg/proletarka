@@ -1,41 +1,38 @@
 import { drizzle } from "drizzle-orm/node-postgres"
+import { readMigrationFiles } from "drizzle-orm/migrator"
 import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Pool } from "pg"
-import fs from "node:fs"
+
+if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is required.")
+}
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-const db = drizzle(pool)
 
-const journal = JSON.parse(fs.readFileSync("./drizzle/meta/_journal.json", "utf-8"))
-const entries: { tag: string; when: number }[] = journal.entries
-
-let lastAppliedAt = 0
 try {
-    const result = await pool.query(
-        `SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1`,
-    )
-    if (result.rows.length > 0) {
-        lastAppliedAt = Number(result.rows[0].created_at)
+    const migrations = readMigrationFiles({ migrationsFolder: "./drizzle" })
+    let applied: { hash: string; created_at: string }[] = []
+    try {
+        const result = await pool.query<{ hash: string; created_at: string }>(
+            `SELECT hash, created_at FROM drizzle.__drizzle_migrations ORDER BY created_at`,
+        )
+        applied = result.rows
+    } catch (error) {
+        if ((error as { code?: string }).code !== "42P01") throw error
     }
-} catch {
-    // таблица ещё не существует — все миграции новые
-}
 
-const pending = entries.filter((e) => e.when > lastAppliedAt)
-
-if (pending.length === 0) {
-    console.log("No new migrations.")
-} else {
-    console.log(`Running ${pending.length} migration(s):`)
-    for (const e of pending) {
-        console.log(`  → ${e.tag}`)
+    const knownHashes = new Set(migrations.map((migration) => migration.hash))
+    if (applied.some((migration) => !knownHashes.has(migration.hash))) {
+        throw new Error(
+            "This database has an incompatible migration history. The new init requires an empty database; do not apply it to an old installation.",
+        )
     }
+
+    const lastAppliedAt = Number(applied.at(-1)?.created_at ?? 0)
+    const pending = migrations.filter((migration) => migration.folderMillis > lastAppliedAt)
+    console.log(pending.length ? `Running ${pending.length} migration(s).` : "No new migrations.")
+    await migrate(drizzle(pool), { migrationsFolder: "./drizzle" })
+    if (pending.length) console.log("Done.")
+} finally {
+    await pool.end()
 }
-
-await migrate(db, { migrationsFolder: "./drizzle" })
-
-if (pending.length > 0) {
-    console.log("Done.")
-}
-
-await pool.end()

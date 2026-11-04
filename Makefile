@@ -42,10 +42,10 @@ stop:
 ps:
 	docker compose ps
 
-# Создать первого администратора (отредактировать scripts/seed-admin.sql перед запуском)
+# Создать администратора (экспортировать USER_EMAIL, USER_PASSWORD и при необходимости USER_NAME)
 create-user:
 	docker compose build migrate
-	docker compose --profile migrate run --rm migrate node scripts/seed-admin.mjs
+	docker compose --profile migrate run --rm -e USER_EMAIL -e USER_PASSWORD -e USER_NAME migrate npm run db:create-admin
 
 # Форматировать весь код (prettier)
 lint:

@@ -1,6 +1,6 @@
 {
-    "id": "464366e2-74d9-4bce-97b4-e71904d32494",
-    "prevId": "23a10c0f-885e-4664-9af3-93e50a330e0b",
+    "id": "9b000ca6-6baf-44ac-bd20-5d3391667f38",
+    "prevId": "00000000-0000-0000-0000-000000000000",
     "version": "7",
     "dialect": "postgresql",
     "tables": {
@@ -101,7 +101,23 @@
                     "notNull": false
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "artifact_materials_material_id_idx": {
+                    "name": "artifact_materials_material_id_idx",
+                    "columns": [
+                        {
+                            "expression": "material_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "artifact_materials_artifact_id_artifacts_id_fk": {
                     "name": "artifact_materials_artifact_id_artifacts_id_fk",
@@ -185,7 +201,29 @@
                     "default": "now()"
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "artifact_sections_artifact_id_position_idx": {
+                    "name": "artifact_sections_artifact_id_position_idx",
+                    "columns": [
+                        {
+                            "expression": "artifact_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "position",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "artifact_sections_artifact_id_artifacts_id_fk": {
                     "name": "artifact_sections_artifact_id_artifacts_id_fk",
@@ -354,7 +392,50 @@
                     "notNull": false
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "comments_status_created_at_idx": {
+                    "name": "comments_status_created_at_idx",
+                    "columns": [
+                        {
+                            "expression": "status",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "created_at",
+                            "isExpression": false,
+                            "asc": false,
+                            "nulls": "first"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                },
+                "comments_entity_id_created_at_idx": {
+                    "name": "comments_entity_id_created_at_idx",
+                    "columns": [
+                        {
+                            "expression": "entity_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "created_at",
+                            "isExpression": false,
+                            "asc": false,
+                            "nulls": "first"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "comments_entity_id_entities_id_fk": {
                     "name": "comments_entity_id_entities_id_fk",
@@ -431,7 +512,38 @@
                     "default": "now()"
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "entities_person_id_idx": {
+                    "name": "entities_person_id_idx",
+                    "columns": [
+                        {
+                            "expression": "person_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                },
+                "entities_artifact_id_idx": {
+                    "name": "entities_artifact_id_idx",
+                    "columns": [
+                        {
+                            "expression": "artifact_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "entities_person_id_people_id_fk": {
                     "name": "entities_person_id_people_id_fk",
@@ -481,7 +593,23 @@
                     "notNull": true
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "entity_topics_topic_id_idx": {
+                    "name": "entity_topics_topic_id_idx",
+                    "columns": [
+                        {
+                            "expression": "topic_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "entity_topics_entity_id_entities_id_fk": {
                     "name": "entity_topics_entity_id_entities_id_fk",
@@ -530,7 +658,23 @@
                     "notNull": true
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "event_topics_topic_id_idx": {
+                    "name": "event_topics_topic_id_idx",
+                    "columns": [
+                        {
+                            "expression": "topic_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "event_topics_event_id_events_id_fk": {
                     "name": "event_topics_event_id_events_id_fk",
@@ -623,7 +767,35 @@
                     "default": "now()"
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "events_entity_id_year_from_id_idx": {
+                    "name": "events_entity_id_year_from_id_idx",
+                    "columns": [
+                        {
+                            "expression": "entity_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "year_from",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "events_entity_id_entities_id_fk": {
                     "name": "events_entity_id_entities_id_fk",
@@ -647,6 +819,55 @@
             "checkConstraints": {},
             "isRLSEnabled": false
         },
+        "public.material_sources": {
+            "name": "material_sources",
+            "schema": "",
+            "columns": {
+                "material_id": {
+                    "name": "material_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "source_id": {
+                    "name": "source_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {
+                "material_sources_material_id_materials_id_fk": {
+                    "name": "material_sources_material_id_materials_id_fk",
+                    "tableFrom": "material_sources",
+                    "tableTo": "materials",
+                    "columnsFrom": ["material_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "cascade",
+                    "onUpdate": "no action"
+                },
+                "material_sources_source_id_sources_id_fk": {
+                    "name": "material_sources_source_id_sources_id_fk",
+                    "tableFrom": "material_sources",
+                    "tableTo": "sources",
+                    "columnsFrom": ["source_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "cascade",
+                    "onUpdate": "no action"
+                }
+            },
+            "compositePrimaryKeys": {
+                "material_sources_material_id_source_id_pk": {
+                    "name": "material_sources_material_id_source_id_pk",
+                    "columns": ["material_id", "source_id"]
+                }
+            },
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
         "public.material_topics": {
             "name": "material_topics",
             "schema": "",
@@ -664,7 +885,23 @@
                     "notNull": true
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "material_topics_topic_id_idx": {
+                    "name": "material_topics_topic_id_idx",
+                    "columns": [
+                        {
+                            "expression": "topic_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "material_topics_material_id_materials_id_fk": {
                     "name": "material_topics_material_id_materials_id_fk",
@@ -776,12 +1013,6 @@
                     "primaryKey": false,
                     "notNull": false
                 },
-                "source_url": {
-                    "name": "source_url",
-                    "type": "text",
-                    "primaryKey": false,
-                    "notNull": false
-                },
                 "position": {
                     "name": "position",
                     "type": "integer",
@@ -803,7 +1034,89 @@
                     "default": "now()"
                 }
             },
-            "indexes": {},
+            "indexes": {
+                "materials_entity_id_created_at_idx": {
+                    "name": "materials_entity_id_created_at_idx",
+                    "columns": [
+                        {
+                            "expression": "entity_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "created_at",
+                            "isExpression": false,
+                            "asc": false,
+                            "nulls": "first"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                },
+                "materials_entity_id_status_position_id_idx": {
+                    "name": "materials_entity_id_status_position_id_idx",
+                    "columns": [
+                        {
+                            "expression": "entity_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "status",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "position",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                },
+                "materials_type_status_created_at_idx": {
+                    "name": "materials_type_status_created_at_idx",
+                    "columns": [
+                        {
+                            "expression": "material_type",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "status",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "created_at",
+                            "isExpression": false,
+                            "asc": false,
+                            "nulls": "first"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
             "foreignKeys": {
                 "materials_entity_id_entities_id_fk": {
                     "name": "materials_entity_id_entities_id_fk",
@@ -917,6 +1230,120 @@
             "checkConstraints": {},
             "isRLSEnabled": false
         },
+        "public.person_materials": {
+            "name": "person_materials",
+            "schema": "",
+            "columns": {
+                "person_id": {
+                    "name": "person_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "material_id": {
+                    "name": "material_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                }
+            },
+            "indexes": {
+                "person_materials_material_id_idx": {
+                    "name": "person_materials_material_id_idx",
+                    "columns": [
+                        {
+                            "expression": "material_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
+            "foreignKeys": {
+                "person_materials_person_id_people_id_fk": {
+                    "name": "person_materials_person_id_people_id_fk",
+                    "tableFrom": "person_materials",
+                    "tableTo": "people",
+                    "columnsFrom": ["person_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "cascade",
+                    "onUpdate": "no action"
+                },
+                "person_materials_material_id_materials_id_fk": {
+                    "name": "person_materials_material_id_materials_id_fk",
+                    "tableFrom": "person_materials",
+                    "tableTo": "materials",
+                    "columnsFrom": ["material_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "cascade",
+                    "onUpdate": "no action"
+                }
+            },
+            "compositePrimaryKeys": {
+                "person_materials_person_id_material_id_pk": {
+                    "name": "person_materials_person_id_material_id_pk",
+                    "columns": ["person_id", "material_id"]
+                }
+            },
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
+        "public.person_sources": {
+            "name": "person_sources",
+            "schema": "",
+            "columns": {
+                "person_id": {
+                    "name": "person_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "source_id": {
+                    "name": "source_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {
+                "person_sources_person_id_people_id_fk": {
+                    "name": "person_sources_person_id_people_id_fk",
+                    "tableFrom": "person_sources",
+                    "tableTo": "people",
+                    "columnsFrom": ["person_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "cascade",
+                    "onUpdate": "no action"
+                },
+                "person_sources_source_id_sources_id_fk": {
+                    "name": "person_sources_source_id_sources_id_fk",
+                    "tableFrom": "person_sources",
+                    "tableTo": "sources",
+                    "columnsFrom": ["source_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "cascade",
+                    "onUpdate": "no action"
+                }
+            },
+            "compositePrimaryKeys": {
+                "person_sources_person_id_source_id_pk": {
+                    "name": "person_sources_person_id_source_id_pk",
+                    "columns": ["person_id", "source_id"]
+                }
+            },
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
         "public.showcases": {
             "name": "showcases",
             "schema": "",
@@ -952,6 +1379,44 @@
             "checkConstraints": {},
             "isRLSEnabled": false
         },
+        "public.sources": {
+            "name": "sources",
+            "schema": "",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "serial",
+                    "primaryKey": true,
+                    "notNull": true
+                },
+                "label": {
+                    "name": "label",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "url": {
+                    "name": "url",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {},
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
         "public.topics": {
             "name": "topics",
             "schema": "",
@@ -974,6 +1439,19 @@
                     "primaryKey": false,
                     "notNull": true
                 },
+                "is_system": {
+                    "name": "is_system",
+                    "type": "boolean",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": false
+                },
+                "parent_id": {
+                    "name": "parent_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": false
+                },
                 "created_at": {
                     "name": "created_at",
                     "type": "timestamp",
@@ -990,7 +1468,17 @@
                 }
             },
             "indexes": {},
-            "foreignKeys": {},
+            "foreignKeys": {
+                "topics_parent_id_topics_id_fk": {
+                    "name": "topics_parent_id_topics_id_fk",
+                    "tableFrom": "topics",
+                    "tableTo": "topics",
+                    "columnsFrom": ["parent_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "set null",
+                    "onUpdate": "no action"
+                }
+            },
             "compositePrimaryKeys": {},
             "uniqueConstraints": {
                 "topics_code_unique": {
@@ -1091,7 +1579,7 @@
         "public.material_type": {
             "name": "material_type",
             "schema": "public",
-            "values": ["article", "photo", "document"]
+            "values": ["article", "news", "photo", "group_photo", "document"]
         },
         "public.role": {
             "name": "role",

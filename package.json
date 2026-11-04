@@ -7,6 +7,7 @@
         "build": "next build",
         "start": "next start",
         "db:migrate": "tsx src/db/migrate.mts",
+        "db:create-admin": "node scripts/create-user.mjs",
         "lint": "eslint src",
         "lint:fix": "eslint src --fix",
         "format": "prettier --write ."

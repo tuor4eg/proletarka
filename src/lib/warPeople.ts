@@ -3,7 +3,6 @@ import { db } from "@/db"
 import { entities, people, events, eventTopics, topics } from "@/db/schema"
 import { fetchFirstPhotoMap } from "@/db/queries"
 import type { WarPeopleTabKey } from "@/lib/warSections"
-import { WAR_YEAR_FROM } from "@/lib/constants"
 
 const WAR_RELATED_TOPIC_CODES = [
     "war",
@@ -16,6 +15,7 @@ export const WAR_HOME_FRONT_WORKERS_TOPIC_CODE = "war-home-front-workers" as con
 export const WAR_PRISONERS_TOPIC_CODE = "war-prisoners" as const
 export const WAR_234_DIVISION_TOPIC_CODE = "war-234-division" as const
 export const WAR_PARTISANS_TOPIC_CODE = "war-partisans" as const
+export const CIVIL_WAR_TOPIC_CODE = "civil-war" as const
 
 type WarRelatedTopicCode = (typeof WAR_RELATED_TOPIC_CODES)[number]
 
@@ -30,7 +30,7 @@ export type WarPerson = {
     shortBio: string | null
 }
 
-type WarPersonComputed = WarPerson & {
+export type WarPersonComputed = WarPerson & {
     hasWar: boolean
     hasWarKilled: boolean
     hasDismissed: boolean
@@ -120,12 +120,13 @@ function hasFactoryLaterThanWar(person: WarPersonComputed) {
     )
 }
 
-function hasDismissedBeforeWarStart(person: WarPersonComputed) {
+function hasDismissedBeforeOrInFirstWarYear(person: WarPersonComputed) {
     return (
         person.firstFactoryYear !== null &&
         person.firstDismissedYear !== null &&
+        person.firstWarYear !== null &&
         person.firstFactoryYear <= person.firstDismissedYear &&
-        person.firstDismissedYear < WAR_YEAR_FROM
+        person.firstDismissedYear <= person.firstWarYear
     )
 }
 
@@ -210,7 +211,7 @@ async function getPeopleForExactTopicCode(topicCode: string): Promise<WarTopicPe
     }
 }
 
-function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
+export function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
     return {
         "not-returned": people.filter(
             (person) =>
@@ -224,21 +225,21 @@ function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
                 person.hasWar &&
                 person.hasWarKilled &&
                 person.hasDismissed &&
-                hasDismissedBeforeWarStart(person),
+                hasDismissedBeforeOrInFirstWarYear(person),
         ),
         "former-workers-survived": people.filter(
             (person) =>
                 person.hasWar &&
                 !person.hasWarKilled &&
                 person.hasDismissed &&
-                hasDismissedBeforeWarStart(person),
+                hasDismissedBeforeOrInFirstWarYear(person),
         ),
         "factory-to-front": people.filter(
             (person) =>
                 person.hasWar &&
                 !person.hasWarKilled &&
                 hasFactoryBeforeOrInWarYear(person) &&
-                !hasDismissedBeforeWarStart(person),
+                !hasDismissedBeforeOrInFirstWarYear(person),
         ),
         "joined-after-war": people.filter(
             (person) => person.hasWar && !person.hasWarKilled && hasFactoryLaterThanWar(person),

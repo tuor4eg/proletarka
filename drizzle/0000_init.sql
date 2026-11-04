@@ -1,43 +1,133 @@
--- types
-DO $$ BEGIN
-  CREATE TYPE "public"."role" AS ENUM('admin');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-  CREATE TYPE "public"."status" AS ENUM('draft', 'published');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-  CREATE TYPE "public"."entity_type" AS ENUM('person');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-  CREATE TYPE "public"."material_type" AS ENUM('article', 'photo', 'document');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
--- users
-CREATE TABLE IF NOT EXISTS "users" (
+CREATE TYPE "public"."admin_action" AS ENUM('create', 'update', 'delete', 'publish', 'unpublish');--> statement-breakpoint
+CREATE TYPE "public"."admin_entity_type" AS ENUM('person', 'artifact', 'artifactSection', 'material', 'topic');--> statement-breakpoint
+CREATE TYPE "public"."artifact_type" AS ENUM('general', 'stand', 'rarity', 'fund');--> statement-breakpoint
+CREATE TYPE "public"."comment_status" AS ENUM('pending', 'approved', 'hidden');--> statement-breakpoint
+CREATE TYPE "public"."entity_type" AS ENUM('person', 'artifact');--> statement-breakpoint
+CREATE TYPE "public"."material_type" AS ENUM('article', 'news', 'photo', 'group_photo', 'document');--> statement-breakpoint
+CREATE TYPE "public"."role" AS ENUM('admin');--> statement-breakpoint
+CREATE TYPE "public"."status" AS ENUM('draft', 'published');--> statement-breakpoint
+CREATE TABLE "admin_logs" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"email" text NOT NULL,
-	"name" text NOT NULL,
-	"password" text NOT NULL,
-	"role" "role" DEFAULT 'admin' NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "users_email_unique" UNIQUE("email")
+	"user_id" integer NOT NULL,
+	"action" "admin_action" NOT NULL,
+	"entity_type" "admin_entity_type" NOT NULL,
+	"entity_id" integer,
+	"entity_title" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
-
--- topics
-CREATE TABLE IF NOT EXISTS "topics" (
+--> statement-breakpoint
+CREATE TABLE "artifact_materials" (
+	"artifact_id" integer NOT NULL,
+	"material_id" integer NOT NULL,
+	"section_id" integer,
+	"position" integer,
+	CONSTRAINT "artifact_materials_artifact_id_material_id_pk" PRIMARY KEY("artifact_id","material_id")
+);
+--> statement-breakpoint
+CREATE TABLE "artifact_sections" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"artifact_id" integer NOT NULL,
+	"title" text NOT NULL,
+	"description" text,
+	"position" integer DEFAULT 0 NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "artifacts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"code" text NOT NULL,
 	"title" text NOT NULL,
+	"description" text,
+	"years_label" text,
+	"year_from" integer,
+	"year_to" integer,
+	"artifact_type" "artifact_type" DEFAULT 'general' NOT NULL,
+	"cover_image_path" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "topics_code_unique" UNIQUE("code")
+	CONSTRAINT "artifacts_code_unique" UNIQUE("code")
 );
-
--- people
-CREATE TABLE IF NOT EXISTS "people" (
+--> statement-breakpoint
+CREATE TABLE "comments" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"entity_id" integer NOT NULL,
+	"status" "comment_status" DEFAULT 'pending' NOT NULL,
+	"author" text,
+	"body" text NOT NULL,
+	"ip_hash" text,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"moderated_at" timestamp,
+	"moderated_by" integer
+);
+--> statement-breakpoint
+CREATE TABLE "entities" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"type" "entity_type" NOT NULL,
+	"person_id" integer,
+	"artifact_id" integer,
+	"code" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "entities_code_unique" UNIQUE("code")
+);
+--> statement-breakpoint
+CREATE TABLE "entity_topics" (
+	"entity_id" integer NOT NULL,
+	"topic_id" integer NOT NULL,
+	CONSTRAINT "entity_topics_entity_id_topic_id_pk" PRIMARY KEY("entity_id","topic_id")
+);
+--> statement-breakpoint
+CREATE TABLE "event_topics" (
+	"event_id" integer NOT NULL,
+	"topic_id" integer NOT NULL,
+	CONSTRAINT "event_topics_event_id_topic_id_pk" PRIMARY KEY("event_id","topic_id")
+);
+--> statement-breakpoint
+CREATE TABLE "events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"code" text NOT NULL,
+	"entity_id" integer NOT NULL,
+	"text" text NOT NULL,
+	"year_from" integer,
+	"year_to" integer,
+	"years_label" text,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "events_code_unique" UNIQUE("code")
+);
+--> statement-breakpoint
+CREATE TABLE "material_sources" (
+	"material_id" integer NOT NULL,
+	"source_id" integer NOT NULL,
+	CONSTRAINT "material_sources_material_id_source_id_pk" PRIMARY KEY("material_id","source_id")
+);
+--> statement-breakpoint
+CREATE TABLE "material_topics" (
+	"material_id" integer NOT NULL,
+	"topic_id" integer NOT NULL,
+	CONSTRAINT "material_topics_material_id_topic_id_pk" PRIMARY KEY("material_id","topic_id")
+);
+--> statement-breakpoint
+CREATE TABLE "materials" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"code" text NOT NULL,
+	"title" text NOT NULL,
+	"summary" text,
+	"content" text,
+	"material_type" "material_type" DEFAULT 'article' NOT NULL,
+	"status" "status" DEFAULT 'draft' NOT NULL,
+	"entity_id" integer,
+	"section_id" integer,
+	"year_from" integer,
+	"year_to" integer,
+	"cover_image_path" text,
+	"position" integer,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "materials_code_unique" UNIQUE("code")
+);
+--> statement-breakpoint
+CREATE TABLE "people" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"code" text NOT NULL,
 	"name" text NOT NULL,
@@ -50,152 +140,110 @@ CREATE TABLE IF NOT EXISTS "people" (
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "people_code_unique" UNIQUE("code")
 );
-
--- entities
-CREATE TABLE IF NOT EXISTS "entities" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"type" "entity_type" NOT NULL,
-	"person_id" integer REFERENCES "people"("id"),
-	"code" text NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "entities_code_unique" UNIQUE("code")
+--> statement-breakpoint
+CREATE TABLE "person_materials" (
+	"person_id" integer NOT NULL,
+	"material_id" integer NOT NULL,
+	CONSTRAINT "person_materials_person_id_material_id_pk" PRIMARY KEY("person_id","material_id")
 );
-
--- materials
-CREATE TABLE IF NOT EXISTS "materials" (
+--> statement-breakpoint
+CREATE TABLE "person_sources" (
+	"person_id" integer NOT NULL,
+	"source_id" integer NOT NULL,
+	CONSTRAINT "person_sources_person_id_source_id_pk" PRIMARY KEY("person_id","source_id")
+);
+--> statement-breakpoint
+CREATE TABLE "showcases" (
+	"section_code" text PRIMARY KEY NOT NULL,
+	"artifact_id" integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "sources" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"label" text NOT NULL,
+	"url" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "topics" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"code" text NOT NULL,
 	"title" text NOT NULL,
-	"summary" text,
-	"content" text,
-	"material_type" "material_type" DEFAULT 'article' NOT NULL,
-	"status" "status" DEFAULT 'draft' NOT NULL,
-	"entity_id" integer REFERENCES "entities"("id"),
-	"year_from" integer,
-	"year_to" integer,
-	"cover_image_path" text,
-	"source_url" text,
+	"is_system" boolean DEFAULT false NOT NULL,
+	"parent_id" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "materials_code_unique" UNIQUE("code")
+	CONSTRAINT "topics_code_unique" UNIQUE("code")
 );
-
--- material_topics
-CREATE TABLE IF NOT EXISTS "material_topics" (
-	"material_id" integer NOT NULL REFERENCES "materials"("id"),
-	"topic_id" integer NOT NULL REFERENCES "topics"("id"),
-	PRIMARY KEY ("material_id", "topic_id")
+--> statement-breakpoint
+CREATE TABLE "users" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"email" text NOT NULL,
+	"name" text NOT NULL,
+	"password" text NOT NULL,
+	"role" "role" DEFAULT 'admin' NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
-
--- seed: topics
-INSERT INTO "topics" ("code", "title") VALUES
-  ('people',        'Люди'),
-  ('war',           'Война'),
-  ('documents',     'Документы'),
-  ('photos',        'Фото'),
-  ('factory-today', 'Завод сегодня')
-ON CONFLICT (code) DO NOTHING;
-
--- seed: people
-INSERT INTO "people" ("code", "name", "short_bio", "birth_year", "death_year", "years_label") VALUES
-  (
-    'evdokimov-nikolay',
-    'Евдокимов Николай Петрович',
-    'Токарь высшего разряда, ветеран труда. Проработал на заводе 38 лет, обучил более сорока учеников.',
-    1923,
-    2001,
-    NULL
-  ),
-  (
-    'sinitsyna-mariya',
-    'Синицына Мария Ивановна',
-    'Начальник планово-экономического отдела. Пришла на завод в 1955 году, вышла на пенсию в 1987-м.',
-    NULL,
-    NULL,
-    'не позднее 1935 — после 1990'
-  )
-ON CONFLICT (code) DO NOTHING;
-
--- seed: entities
-INSERT INTO "entities" ("type", "person_id", "code")
-SELECT 'person', (SELECT id FROM people WHERE code = 'evdokimov-nikolay'), 'entity-evdokimov-nikolay'
-WHERE NOT EXISTS (SELECT 1 FROM entities WHERE code = 'entity-evdokimov-nikolay');
-
-INSERT INTO "entities" ("type", "person_id", "code")
-SELECT 'person', (SELECT id FROM people WHERE code = 'sinitsyna-mariya'), 'entity-sinitsyna-mariya'
-WHERE NOT EXISTS (SELECT 1 FROM entities WHERE code = 'entity-sinitsyna-mariya');
-
--- seed: materials
-INSERT INTO "materials" ("code", "title", "summary", "content", "material_type", "status", "entity_id", "year_from", "year_to") VALUES
-  (
-    'evdokimov-vospominaniya',
-    'Воспоминания о Николае Евдокимове',
-    'Коллеги вспоминают токаря, который учил всех работать с душой.',
-    'Николай Петрович пришёл на завод в 1941 году, сразу после школы. Говорил, что станок для него — как музыкальный инструмент: нужно чувствовать материал. За три с лишним десятилетия он обучил более сорока учеников, многие из которых стали мастерами своего цеха.',
-    'article',
-    'published',
-    (SELECT id FROM entities WHERE code = 'entity-evdokimov-nikolay'),
-    1941,
-    1979
-  ),
-  (
-    'evdokimov-photo-1965',
-    'Евдокимов у станка, 1965 год',
-    'Фотография из заводского архива.',
-    NULL,
-    'photo',
-    'published',
-    (SELECT id FROM entities WHERE code = 'entity-evdokimov-nikolay'),
-    1965,
-    NULL
-  ),
-  (
-    'sinitsyna-plan-1960',
-    'Как Синицына спасла план 1960 года',
-    'История о том, как плановый отдел под руководством Марии Ивановны не дал заводу сорвать квартальный план.',
-    'В марте 1960 года поставки металла задержались на две недели. Мария Ивановна за трое суток пересчитала весь производственный план, перераспределила мощности между цехами и нашла резервы, о которых никто не знал. Завод выполнил план в срок.',
-    'article',
-    'published',
-    (SELECT id FROM entities WHERE code = 'entity-sinitsyna-mariya'),
-    1960,
-    NULL
-  ),
-  (
-    'ceh3-vojna',
-    'Цех № 3 в годы войны',
-    'В 1943 году цех перешёл на выпуск военной продукции. Работали в три смены.',
-    'С началом перестройки производства рабочие цеха № 3 освоили новую номенклатуру изделий за несколько недель. Документы об этом периоде частично сохранились в заводском архиве.',
-    'article',
-    'published',
-    NULL,
-    1943,
-    1945
-  )
-ON CONFLICT (code) DO NOTHING;
-
--- seed: material_topics
-INSERT INTO "material_topics" ("material_id", "topic_id")
-SELECT m.id, t.id FROM materials m, topics t
-WHERE m.code = 'evdokimov-vospominaniya' AND t.code = 'people'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO "material_topics" ("material_id", "topic_id")
-SELECT m.id, t.id FROM materials m, topics t
-WHERE m.code = 'evdokimov-photo-1965' AND t.code = 'people'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO "material_topics" ("material_id", "topic_id")
-SELECT m.id, t.id FROM materials m, topics t
-WHERE m.code = 'evdokimov-photo-1965' AND t.code = 'photos'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO "material_topics" ("material_id", "topic_id")
-SELECT m.id, t.id FROM materials m, topics t
-WHERE m.code = 'sinitsyna-plan-1960' AND t.code = 'people'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO "material_topics" ("material_id", "topic_id")
-SELECT m.id, t.id FROM materials m, topics t
-WHERE m.code = 'ceh3-vojna' AND t.code = 'war'
-ON CONFLICT DO NOTHING;
+--> statement-breakpoint
+ALTER TABLE "admin_logs" ADD CONSTRAINT "admin_logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "artifact_materials" ADD CONSTRAINT "artifact_materials_artifact_id_artifacts_id_fk" FOREIGN KEY ("artifact_id") REFERENCES "public"."artifacts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "artifact_materials" ADD CONSTRAINT "artifact_materials_material_id_materials_id_fk" FOREIGN KEY ("material_id") REFERENCES "public"."materials"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "artifact_materials" ADD CONSTRAINT "artifact_materials_section_id_artifact_sections_id_fk" FOREIGN KEY ("section_id") REFERENCES "public"."artifact_sections"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "artifact_sections" ADD CONSTRAINT "artifact_sections_artifact_id_artifacts_id_fk" FOREIGN KEY ("artifact_id") REFERENCES "public"."artifacts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_entity_id_entities_id_fk" FOREIGN KEY ("entity_id") REFERENCES "public"."entities"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_moderated_by_users_id_fk" FOREIGN KEY ("moderated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "entities" ADD CONSTRAINT "entities_person_id_people_id_fk" FOREIGN KEY ("person_id") REFERENCES "public"."people"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "entities" ADD CONSTRAINT "entities_artifact_id_artifacts_id_fk" FOREIGN KEY ("artifact_id") REFERENCES "public"."artifacts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "entity_topics" ADD CONSTRAINT "entity_topics_entity_id_entities_id_fk" FOREIGN KEY ("entity_id") REFERENCES "public"."entities"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "entity_topics" ADD CONSTRAINT "entity_topics_topic_id_topics_id_fk" FOREIGN KEY ("topic_id") REFERENCES "public"."topics"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "event_topics" ADD CONSTRAINT "event_topics_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "event_topics" ADD CONSTRAINT "event_topics_topic_id_topics_id_fk" FOREIGN KEY ("topic_id") REFERENCES "public"."topics"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_entity_id_entities_id_fk" FOREIGN KEY ("entity_id") REFERENCES "public"."entities"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "material_sources" ADD CONSTRAINT "material_sources_material_id_materials_id_fk" FOREIGN KEY ("material_id") REFERENCES "public"."materials"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "material_sources" ADD CONSTRAINT "material_sources_source_id_sources_id_fk" FOREIGN KEY ("source_id") REFERENCES "public"."sources"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "material_topics" ADD CONSTRAINT "material_topics_material_id_materials_id_fk" FOREIGN KEY ("material_id") REFERENCES "public"."materials"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "material_topics" ADD CONSTRAINT "material_topics_topic_id_topics_id_fk" FOREIGN KEY ("topic_id") REFERENCES "public"."topics"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materials" ADD CONSTRAINT "materials_entity_id_entities_id_fk" FOREIGN KEY ("entity_id") REFERENCES "public"."entities"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materials" ADD CONSTRAINT "materials_section_id_artifact_sections_id_fk" FOREIGN KEY ("section_id") REFERENCES "public"."artifact_sections"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "person_materials" ADD CONSTRAINT "person_materials_person_id_people_id_fk" FOREIGN KEY ("person_id") REFERENCES "public"."people"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "person_materials" ADD CONSTRAINT "person_materials_material_id_materials_id_fk" FOREIGN KEY ("material_id") REFERENCES "public"."materials"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "person_sources" ADD CONSTRAINT "person_sources_person_id_people_id_fk" FOREIGN KEY ("person_id") REFERENCES "public"."people"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "person_sources" ADD CONSTRAINT "person_sources_source_id_sources_id_fk" FOREIGN KEY ("source_id") REFERENCES "public"."sources"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "showcases" ADD CONSTRAINT "showcases_artifact_id_artifacts_id_fk" FOREIGN KEY ("artifact_id") REFERENCES "public"."artifacts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "topics" ADD CONSTRAINT "topics_parent_id_topics_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."topics"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "artifact_materials_material_id_idx" ON "artifact_materials" USING btree ("material_id");--> statement-breakpoint
+CREATE INDEX "artifact_sections_artifact_id_position_idx" ON "artifact_sections" USING btree ("artifact_id","position");--> statement-breakpoint
+CREATE INDEX "comments_status_created_at_idx" ON "comments" USING btree ("status","created_at" DESC NULLS FIRST);--> statement-breakpoint
+CREATE INDEX "comments_entity_id_created_at_idx" ON "comments" USING btree ("entity_id","created_at" DESC NULLS FIRST);--> statement-breakpoint
+CREATE INDEX "entities_person_id_idx" ON "entities" USING btree ("person_id");--> statement-breakpoint
+CREATE INDEX "entities_artifact_id_idx" ON "entities" USING btree ("artifact_id");--> statement-breakpoint
+CREATE INDEX "entity_topics_topic_id_idx" ON "entity_topics" USING btree ("topic_id");--> statement-breakpoint
+CREATE INDEX "event_topics_topic_id_idx" ON "event_topics" USING btree ("topic_id");--> statement-breakpoint
+CREATE INDEX "events_entity_id_year_from_id_idx" ON "events" USING btree ("entity_id","year_from","id");--> statement-breakpoint
+CREATE INDEX "material_topics_topic_id_idx" ON "material_topics" USING btree ("topic_id");--> statement-breakpoint
+CREATE INDEX "materials_entity_id_created_at_idx" ON "materials" USING btree ("entity_id","created_at" DESC NULLS FIRST);--> statement-breakpoint
+CREATE INDEX "materials_entity_id_status_position_id_idx" ON "materials" USING btree ("entity_id","status","position","id");--> statement-breakpoint
+CREATE INDEX "materials_type_status_created_at_idx" ON "materials" USING btree ("material_type","status","created_at" DESC NULLS FIRST);--> statement-breakpoint
+CREATE INDEX "person_materials_material_id_idx" ON "person_materials" USING btree ("material_id");
+--> statement-breakpoint
+INSERT INTO "topics" ("code", "title", "is_system")
+VALUES
+    ('war', 'Война', true),
+    ('factory', 'Завод', true),
+    ('civil-war', 'Гражданская война', true);
+--> statement-breakpoint
+INSERT INTO "topics" ("code", "title", "parent_id", "is_system")
+SELECT child.code, child.title, parent.id, true
+FROM (VALUES
+    ('war-mobilization', 'Мобилизация', 'war'),
+    ('war-demobilization', 'Демобилизация', 'war'),
+    ('war-killed', 'Погиб', 'war'),
+    ('factory-hired', 'Прием', 'factory'),
+    ('factory-dismissed', 'Увольнение', 'factory'),
+    ('war-home-front-workers', 'Труженики тыла', 'war'),
+    ('war-prisoners', 'Побывавшие в плену', 'war'),
+    ('war-234-division', '234 дивизия', 'war'),
+    ('war-partisans', 'Партизаны', 'war')
+) AS child(code, title, parent_code)
+JOIN "topics" parent ON parent.code = child.parent_code;
