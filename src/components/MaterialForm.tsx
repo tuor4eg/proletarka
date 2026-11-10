@@ -34,9 +34,9 @@ export const STATUSES = [
 ] as const
 
 export const MATERIAL_TYPES = [
+    { value: "photo", label: "Фото" },
     { value: "article", label: "Статья" },
     { value: "news", label: "Новость" },
-    { value: "photo", label: "Фото" },
     { value: "group_photo", label: "Групповое фото" },
     { value: "document", label: "Документ" },
 ] as const

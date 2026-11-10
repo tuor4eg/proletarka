@@ -11,6 +11,7 @@ const GROUPED_TIMELINE_CODES = new Set([
     "war-mobilization",
     "war-demobilization",
     "war-killed",
+    "war-missing",
 ] as const)
 
 function getTimelineTopicSpecificity(topicCode: string) {
@@ -20,13 +21,14 @@ function getTimelineTopicSpecificity(topicCode: string) {
 function getTimelineItemPriority(topicCode: string) {
     if (topicCode === "war-mobilization") return 0
     if (topicCode === "war-demobilization") return 2
-    if (topicCode === "war-killed") return 3
+    if (topicCode === "war-killed" || topicCode === "war-missing") return 3
     return 1
 }
 
 function getGroupedTimelineLabel(topicCode: WarTimelineGroupedEvent["topicCode"]) {
     if (topicCode === "war-mobilization") return "Призваны на военную службу"
     if (topicCode === "war-demobilization") return "Демобилизованы"
+    if (topicCode === "war-missing") return "Пропали без вести"
     return "Погибли"
 }
 

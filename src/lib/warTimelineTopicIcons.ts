@@ -5,6 +5,7 @@ const WAR_TIMELINE_TOPIC_ICONS: Partial<Record<string, LucideIcon>> = {
     "war-mobilization": PersonStanding,
     "war-demobilization": Undo2,
     "war-killed": BadgeAlert,
+    "war-missing": BadgeAlert,
 }
 
 export function getWarTimelineTopicIcon(topicCode: string): LucideIcon | null {

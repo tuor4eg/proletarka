@@ -8,6 +8,7 @@ const WAR_RELATED_TOPIC_CODES = [
     "war",
     "war-mobilization",
     "war-killed",
+    "war-missing",
     "factory",
     "factory-dismissed",
 ] as const
@@ -33,6 +34,7 @@ export type WarPerson = {
 export type WarPersonComputed = WarPerson & {
     hasWar: boolean
     hasWarKilled: boolean
+    hasWarMissing: boolean
     hasDismissed: boolean
     firstWarYear: number | null
     firstFactoryYear: number | null
@@ -62,6 +64,7 @@ function getInitialComputedPerson(row: WarPerson): WarPersonComputed {
         ...row,
         hasWar: false,
         hasWarKilled: false,
+        hasWarMissing: false,
         hasDismissed: false,
         firstWarYear: null,
         firstFactoryYear: null,
@@ -74,7 +77,11 @@ function applyTopicToPerson(
     topicCode: WarRelatedTopicCode,
     yearFrom: number | null,
 ) {
-    if (topicCode === "war-mobilization" || topicCode === "war-killed") {
+    if (
+        topicCode === "war-mobilization" ||
+        topicCode === "war-killed" ||
+        topicCode === "war-missing"
+    ) {
         person.hasWar = true
         if (yearFrom !== null) {
             person.firstWarYear =
@@ -101,6 +108,10 @@ function applyTopicToPerson(
 
     if (topicCode === "war-killed") {
         person.hasWarKilled = true
+    }
+
+    if (topicCode === "war-missing") {
+        person.hasWarMissing = true
     }
 }
 
@@ -211,38 +222,43 @@ async function getPeopleForExactTopicCode(topicCode: string): Promise<WarTopicPe
     }
 }
 
+function isKilledOrMissing(person: WarPersonComputed) {
+    return person.hasWarKilled || person.hasWarMissing
+}
+
 export function buildWarPeopleBuckets(people: WarPersonComputed[]): WarPeopleBuckets {
     return {
         "not-returned": people.filter(
             (person) =>
                 person.hasWar &&
-                person.hasWarKilled &&
+                isKilledOrMissing(person) &&
                 hasFactoryBeforeOrInWarYear(person) &&
                 !person.hasDismissed,
         ),
         "former-workers": people.filter(
             (person) =>
                 person.hasWar &&
-                person.hasWarKilled &&
+                isKilledOrMissing(person) &&
                 person.hasDismissed &&
                 hasDismissedBeforeOrInFirstWarYear(person),
         ),
         "former-workers-survived": people.filter(
             (person) =>
                 person.hasWar &&
-                !person.hasWarKilled &&
+                !isKilledOrMissing(person) &&
                 person.hasDismissed &&
                 hasDismissedBeforeOrInFirstWarYear(person),
         ),
         "factory-to-front": people.filter(
             (person) =>
                 person.hasWar &&
-                !person.hasWarKilled &&
+                !isKilledOrMissing(person) &&
                 hasFactoryBeforeOrInWarYear(person) &&
                 !hasDismissedBeforeOrInFirstWarYear(person),
         ),
         "joined-after-war": people.filter(
-            (person) => person.hasWar && !person.hasWarKilled && hasFactoryLaterThanWar(person),
+            (person) =>
+                person.hasWar && !isKilledOrMissing(person) && hasFactoryLaterThanWar(person),
         ),
     }
 }

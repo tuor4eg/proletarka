@@ -26,7 +26,7 @@ export type WarTimelineEvent = {
 export type WarTimelineGroupedEvent = {
     kind: "group"
     id: string
-    topicCode: "war-mobilization" | "war-demobilization" | "war-killed"
+    topicCode: "war-mobilization" | "war-demobilization" | "war-killed" | "war-missing"
     label: string
     yearFrom: number | null
     people: WarTimelinePerson[]

@@ -85,7 +85,9 @@ export default async function NewMaterialPage({ searchParams }: Props) {
                 people={selectedPeople}
                 selectedPersonIds={numericPersonId ? [numericPersonId] : []}
                 defaultEntityId={entityId ? Number(entityId) : undefined}
-                defaultMaterialType={materialType}
+                defaultMaterialType={
+                    materialType ?? (sourceEntity?.type === "person" ? "photo" : undefined)
+                }
                 materialTypeLocked={Boolean(materialType)}
                 defaultSectionId={sectionId ? Number(sectionId) : undefined}
                 backstack={createBackstack}
