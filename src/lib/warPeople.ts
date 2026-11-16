@@ -14,6 +14,7 @@ const WAR_RELATED_TOPIC_CODES = [
 ] as const
 export const WAR_HOME_FRONT_WORKERS_TOPIC_CODE = "war-home-front-workers" as const
 export const WAR_PRISONERS_TOPIC_CODE = "war-prisoners" as const
+export const WAR_OCCUPATION_TOPIC_CODE = "war-occupation" as const
 export const WAR_234_DIVISION_TOPIC_CODE = "war-234-division" as const
 export const WAR_PARTISANS_TOPIC_CODE = "war-partisans" as const
 export const CIVIL_WAR_TOPIC_CODE = "civil-war" as const
@@ -149,7 +150,10 @@ function isWarRelatedTopicCode(topicCode: string): topicCode is WarRelatedTopicC
     return (WAR_RELATED_TOPIC_CODES as readonly string[]).includes(topicCode)
 }
 
-async function getPeopleForExactTopicCode(topicCode: string): Promise<WarTopicPeopleResult> {
+async function getPeopleForExactTopicCode(
+    topicCode: string,
+    includedTopicCodes: readonly string[] = [topicCode],
+): Promise<WarTopicPeopleResult> {
     const [topicRow] = await db
         .select({ id: topics.id })
         .from(topics)
@@ -182,7 +186,7 @@ async function getPeopleForExactTopicCode(topicCode: string): Promise<WarTopicPe
         .innerJoin(events, eq(events.entityId, entities.id))
         .innerJoin(eventTopics, eq(eventTopics.eventId, events.id))
         .innerJoin(topics, eq(topics.id, eventTopics.topicId))
-        .where(eq(topics.code, topicCode))
+        .where(inArray(topics.code, [...includedTopicCodes]))
 
     const peopleMap = new Map<number, WarPerson>()
 
@@ -401,5 +405,10 @@ export async function getWarPeopleBuckets() {
 }
 
 export async function getWarTopicPeople(topicCode: string) {
-    return getPeopleForExactTopicCode(topicCode)
+    const includedTopicCodes =
+        topicCode === WAR_PRISONERS_TOPIC_CODE
+            ? [WAR_PRISONERS_TOPIC_CODE, WAR_OCCUPATION_TOPIC_CODE]
+            : [topicCode]
+
+    return getPeopleForExactTopicCode(topicCode, includedTopicCodes)
 }
