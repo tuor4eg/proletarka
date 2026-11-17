@@ -13,6 +13,7 @@ import { fetchMaterialSourcesMap, type SourceLink } from "@/db/queries"
 import { warPeopleTabGroups } from "@/lib/warSections"
 import {
     CIVIL_WAR_TOPIC_CODE,
+    FINNISH_WAR_TOPIC_CODE,
     getWarPeopleBuckets,
     getWarTopicPeople,
     WAR_234_DIVISION_TOPIC_CODE,
@@ -81,6 +82,7 @@ export default async function WarPage() {
         homeFrontWorkers,
         prisoners,
         civilWar,
+        finnishWar,
     ] = await Promise.all([
         getWarTimeline(warTopic.id),
         db
@@ -98,6 +100,7 @@ export default async function WarPage() {
         getWarTopicPeople(WAR_HOME_FRONT_WORKERS_TOPIC_CODE),
         getWarTopicPeople(WAR_PRISONERS_TOPIC_CODE),
         getWarTopicPeople(CIVIL_WAR_TOPIC_CODE),
+        getWarTopicPeople(FINNISH_WAR_TOPIC_CODE),
     ])
 
     const showcaseMeta = showcaseRow[0]
@@ -403,7 +406,7 @@ export default async function WarPage() {
                         className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
                     >
                         <img
-                            src="/cards/civil-war.png"
+                            src="/cards/civil-war.webp"
                             alt=""
                             className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
                         />
@@ -422,6 +425,45 @@ export default async function WarPage() {
                             </div>
                             <div className="flex min-h-16 min-w-16 shrink-0 items-center justify-center rounded-full border border-paper-border bg-paper px-4 text-3xl font-semibold tabular-nums tracking-[-0.06em] text-ink">
                                 {civilWar.count}
+                            </div>
+                        </div>
+                    </Link>
+                </section>
+
+                <section className="border-t border-paper-border pt-8 mb-10">
+                    <div className="mb-4 flex items-baseline justify-between gap-3">
+                        <h2 className="text-lg font-semibold text-ink">Участники финской войны</h2>
+                        <span className="text-xs text-ink-muted tabular-nums">
+                            {finnishWar.count}
+                        </span>
+                    </div>
+                    <p className="mb-4 text-sm leading-relaxed text-ink-muted">
+                        Работники и жители, чьи судьбы связаны с финской войной 1939–1940 годов.
+                    </p>
+                    <Link
+                        href="/war/finnish-war"
+                        className="group relative block overflow-hidden rounded-[2rem] border border-paper-border bg-paper-dark px-6 py-6 sm:px-7 sm:py-7"
+                    >
+                        <img
+                            src="/cards/finnish_war.webp"
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-paper-dark/35" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,0,0,0.08),transparent_45%),linear-gradient(135deg,rgba(255,255,255,0.22),transparent_62%)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+                        <div className="relative flex items-start justify-between gap-5">
+                            <div className="max-w-lg">
+                                <p className="text-xl font-semibold leading-tight text-ink sm:text-2xl">
+                                    Открыть список
+                                </p>
+                                <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-secondary">
+                                    {finnishWar.count > 0
+                                        ? "Имена тех, чья память связана с финской войной."
+                                        : "Этот список ещё ждёт своих имён и свидетельств."}
+                                </p>
+                            </div>
+                            <div className="flex min-h-16 min-w-16 shrink-0 items-center justify-center rounded-full border border-paper-border bg-paper px-4 text-3xl font-semibold tabular-nums tracking-[-0.06em] text-ink">
+                                {finnishWar.count}
                             </div>
                         </div>
                     </Link>

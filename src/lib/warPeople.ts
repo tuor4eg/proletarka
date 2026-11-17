@@ -18,6 +18,7 @@ export const WAR_OCCUPATION_TOPIC_CODE = "war-occupation" as const
 export const WAR_234_DIVISION_TOPIC_CODE = "war-234-division" as const
 export const WAR_PARTISANS_TOPIC_CODE = "war-partisans" as const
 export const CIVIL_WAR_TOPIC_CODE = "civil-war" as const
+export const FINNISH_WAR_TOPIC_CODE = "finnish-war" as const
 
 type WarRelatedTopicCode = (typeof WAR_RELATED_TOPIC_CODES)[number]
 

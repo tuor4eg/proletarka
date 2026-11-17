@@ -22,6 +22,7 @@ const RESERVED_SYSTEM_TOPIC_CODES = new Set([
     "war-occupation",
     "war-partisans",
     "civil-war",
+    "finnish-war",
     "factory-hired",
     "factory-dismissed",
 ])
