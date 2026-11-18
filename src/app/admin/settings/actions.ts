@@ -5,19 +5,11 @@ import { eq } from "drizzle-orm"
 import { compare, hash } from "bcryptjs"
 import { db } from "@/db"
 import { users, showcases } from "@/db/schema"
-import { getSession } from "@/lib/session"
+import { requireAdmin } from "@/lib/adminAuth"
 import { flashParam } from "@/lib/flash"
 
-async function currentUser() {
-    const session = await getSession()
-    if (!session) redirect("/admin/login")
-    const [user] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1)
-    if (!user) redirect("/admin/login")
-    return user
-}
-
 export async function updateProfile(formData: FormData) {
-    const user = await currentUser()
+    const user = await requireAdmin()
     const name = (formData.get("name") as string).trim()
     const email = (formData.get("email") as string).trim().toLowerCase()
 
@@ -26,12 +18,19 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function updatePassword(formData: FormData) {
-    const user = await currentUser()
+    const user = await requireAdmin()
+    const [credentials] = await db
+        .select({ password: users.password })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1)
+    if (!credentials) redirect("/admin/login")
+
     const current = formData.get("current") as string
     const next = formData.get("next") as string
     const confirm = formData.get("confirm") as string
 
-    if (!(await compare(current, user.password)))
+    if (!(await compare(current, credentials.password)))
         redirect(`/admin/settings${flashParam("Неверный текущий пароль", "error")}`)
     if (next.length < 8)
         redirect(
@@ -48,7 +47,7 @@ export async function updatePassword(formData: FormData) {
 }
 
 export async function setShowcases(formData: FormData) {
-    await currentUser()
+    await requireAdmin()
 
     const showcaseEntries = Array.from(formData.entries()).filter(([key]) =>
         key.startsWith("showcase:"),

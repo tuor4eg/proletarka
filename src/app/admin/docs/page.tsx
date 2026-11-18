@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 
 type DocBlock = {
@@ -853,6 +854,7 @@ function TopicCard({ section, topic }: { section: DocSection; topic: DocTopic })
 }
 
 export default async function AdminDocsPage({ searchParams }: { searchParams: SearchParams }) {
+    await requireAdmin()
     const { section = overview.id, topic } = await searchParams
     const activeSection = sections.find((item) => item.id === section) ?? null
     const activeTopic = activeSection?.detailTopics?.find((item) => item.id === topic) ?? null

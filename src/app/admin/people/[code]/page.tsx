@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { eq, desc, and, inArray } from "drizzle-orm"
@@ -36,6 +37,7 @@ type Props = {
 }
 
 export default async function EditPersonPage({ params, searchParams }: Props) {
+    await requireAdmin()
     const { code } = await params
     const { backstack } = await searchParams
     const currentBackstack = parseBackstack(backstack)

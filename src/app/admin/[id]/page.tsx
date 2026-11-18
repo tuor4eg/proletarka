@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import { notFound } from "next/navigation"
 import { eq, inArray } from "drizzle-orm"
 import { db } from "@/db"
@@ -24,6 +25,7 @@ type Props = {
 }
 
 export default async function EditMaterialPage({ params, searchParams }: Props) {
+    await requireAdmin()
     const { id } = await params
     const { backstack } = await searchParams
     const numericId = Number(id)

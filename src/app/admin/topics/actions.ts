@@ -1,5 +1,6 @@
 "use server"
 
+import { requireAdmin } from "@/lib/adminAuth"
 import { redirect } from "next/navigation"
 import { eq, count } from "drizzle-orm"
 import { db } from "@/db"
@@ -61,6 +62,7 @@ async function parseAndValidateParentId(
 }
 
 export async function createTopic(formData: FormData) {
+    await requireAdmin()
     const title = (formData.get("title") as string).trim()
     const customCodeRaw = (formData.get("customCode") as string)?.trim()
     const parentResult = await parseAndValidateParentId(formData.get("parentId"))
@@ -104,6 +106,7 @@ export async function createTopic(formData: FormData) {
 }
 
 export async function updateTopic(id: number, formData: FormData) {
+    await requireAdmin()
     const title = (formData.get("title") as string).trim()
     const [[currentTopic], [{ childCount }]] = await Promise.all([
         db
@@ -140,6 +143,7 @@ export async function updateTopic(id: number, formData: FormData) {
 }
 
 export async function deleteTopic(id: number) {
+    await requireAdmin()
     const [[{ childCount }], [topicToDelete], usageCounts] = await Promise.all([
         db.select({ childCount: count() }).from(topics).where(eq(topics.parentId, id)),
         db

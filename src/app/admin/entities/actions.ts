@@ -1,5 +1,6 @@
 "use server"
 
+import { requireAdmin } from "@/lib/adminAuth"
 import { redirect } from "next/navigation"
 import { eq, inArray } from "drizzle-orm"
 import { db } from "@/db"
@@ -18,6 +19,7 @@ import {
 export { getEventsByEntityId }
 
 export async function createEntity(formData: FormData) {
+    await requireAdmin()
     const personValues = await parsePersonForm(formData)
     const code = generateCode(personValues.name)
 
@@ -36,6 +38,7 @@ export async function createEntity(formData: FormData) {
 }
 
 export async function updateEntity(personId: number, formData: FormData) {
+    await requireAdmin()
     const [current] = await db
         .select({ mainPhotoPath: people.mainPhotoPath })
         .from(people)
@@ -73,6 +76,7 @@ export async function updateEntity(personId: number, formData: FormData) {
 }
 
 export async function deleteEntity(entityId: number, personId: number) {
+    await requireAdmin()
     const [personToDelete] = await db
         .select({ name: people.name })
         .from(people)

@@ -1,5 +1,6 @@
 "use server"
 
+import { requireAdmin } from "@/lib/adminAuth"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { eq } from "drizzle-orm"
@@ -68,6 +69,7 @@ export async function createMaterial(
     _prev: ActionResult,
     formData: FormData,
 ): Promise<ActionResult> {
+    await requireAdmin()
     const backstack = (formData.get("backstack") as string) || undefined
     const values = await parseFormData(formData)
     const topicIds = parseTopicIds(formData, values.materialType)
@@ -129,6 +131,7 @@ export async function updateMaterial(
     _prev: ActionResult,
     formData: FormData,
 ): Promise<ActionResult> {
+    await requireAdmin()
     const [current] = await db
         .select({
             coverImagePath: materials.coverImagePath,
@@ -215,6 +218,7 @@ export async function updateMaterial(
 }
 
 export async function toggleMaterialStatus(id: number, currentStatus: string) {
+    await requireAdmin()
     const newStatus = currentStatus === "published" ? "draft" : "published"
     const [material] = await db
         .select({ title: materials.title })
@@ -236,6 +240,7 @@ export async function toggleMaterialStatus(id: number, currentStatus: string) {
 }
 
 export async function deleteMaterial(id: number) {
+    await requireAdmin()
     const [current] = await db
         .select({ coverImagePath: materials.coverImagePath, title: materials.title })
         .from(materials)

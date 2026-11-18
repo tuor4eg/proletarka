@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { desc, asc, ilike, eq, and, count, inArray } from "drizzle-orm"
 import { db } from "@/db"
@@ -36,6 +37,7 @@ type SearchParams = Promise<{
 }>
 
 export default async function AdminMaterialsPage({ searchParams }: { searchParams: SearchParams }) {
+    await requireAdmin()
     const { q, status, type, sort = "date_desc", page: pageParam, backstack } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
     const currentParams = new URLSearchParams()

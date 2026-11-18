@@ -1,5 +1,6 @@
 "use server"
 
+import { requireAdmin } from "@/lib/adminAuth"
 import { redirect } from "next/navigation"
 import { eq, asc, max, and } from "drizzle-orm"
 import { db } from "@/db"
@@ -25,6 +26,7 @@ function parseArtifactType(raw: string): ArtifactType {
 }
 
 export async function createArtifact(formData: FormData) {
+    await requireAdmin()
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
@@ -91,6 +93,7 @@ export async function createArtifact(formData: FormData) {
 }
 
 export async function updateArtifact(artifactId: number, formData: FormData) {
+    await requireAdmin()
     const title = (formData.get("title") as string).trim()
     const description = (formData.get("description") as string) || null
     const yearsLabel = (formData.get("yearsLabel") as string) || null
@@ -161,6 +164,7 @@ export async function updateArtifact(artifactId: number, formData: FormData) {
 }
 
 export async function deleteArtifact(entityId: number) {
+    await requireAdmin()
     const [entityRow] = await db
         .select({ artifactId: entities.artifactId })
         .from(entities)
@@ -182,6 +186,7 @@ export async function deleteArtifact(entityId: number) {
 }
 
 export async function updateMaterialPositions(items: { id: number; position: number }[]) {
+    await requireAdmin()
     await db.transaction(async (tx) => {
         for (const { id, position } of items) {
             await tx.update(materials).set({ position }).where(eq(materials.id, id))
@@ -190,6 +195,7 @@ export async function updateMaterialPositions(items: { id: number; position: num
 }
 
 export async function createSection(artifactId: number, formData: FormData) {
+    await requireAdmin()
     const title = (formData.get("title") as string).trim()
     if (!title) return
 
@@ -216,6 +222,7 @@ export async function createSection(artifactId: number, formData: FormData) {
 }
 
 export async function updateSection(sectionId: number, formData: FormData) {
+    await requireAdmin()
     const title = (formData.get("title") as string).trim()
     if (!title) return
     const description = (formData.get("description") as string | null)?.trim() || null
@@ -242,6 +249,7 @@ export async function updateSection(sectionId: number, formData: FormData) {
 }
 
 export async function deleteSection(sectionId: number) {
+    await requireAdmin()
     const [section] = await db
         .select({ artifactId: artifactSections.artifactId, title: artifactSections.title })
         .from(artifactSections)
@@ -262,6 +270,7 @@ export async function deleteSection(sectionId: number) {
 }
 
 export async function updateSectionPositions(items: { id: number; position: number }[]) {
+    await requireAdmin()
     await db.transaction(async (tx) => {
         for (const { id, position } of items) {
             await tx.update(artifactSections).set({ position }).where(eq(artifactSections.id, id))
@@ -270,6 +279,7 @@ export async function updateSectionPositions(items: { id: number; position: numb
 }
 
 export async function shiftSection(sectionId: number, direction: "up" | "down") {
+    await requireAdmin()
     const [section] = await db
         .select()
         .from(artifactSections)
@@ -313,6 +323,7 @@ export async function shiftSection(sectionId: number, direction: "up" | "down") 
 }
 
 export async function updateMaterialSection(materialId: number, sectionId: number | null) {
+    await requireAdmin()
     await db
         .update(materials)
         .set({ sectionId, updatedAt: new Date() })
@@ -324,6 +335,7 @@ export async function linkMaterial(
     materialId: number,
     sectionId: number | null,
 ) {
+    await requireAdmin()
     await db
         .insert(artifactMaterials)
         .values({ artifactId, materialId, sectionId })
@@ -339,6 +351,7 @@ export async function linkMaterial(
 }
 
 export async function unlinkMaterial(artifactId: number, materialId: number) {
+    await requireAdmin()
     await db
         .delete(artifactMaterials)
         .where(
@@ -361,6 +374,7 @@ export async function updateLinkedMaterialPositions(
     artifactId: number,
     items: { materialId: number; position: number }[],
 ) {
+    await requireAdmin()
     for (const { materialId, position } of items) {
         await db
             .update(artifactMaterials)
@@ -379,6 +393,7 @@ export async function updateLinkedMaterialSection(
     materialId: number,
     sectionId: number | null,
 ) {
+    await requireAdmin()
     await db
         .update(artifactMaterials)
         .set({ sectionId })

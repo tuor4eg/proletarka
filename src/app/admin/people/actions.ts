@@ -1,5 +1,6 @@
 "use server"
 
+import { requireAdmin } from "@/lib/adminAuth"
 import { redirect } from "next/navigation"
 import { eq, inArray, and } from "drizzle-orm"
 import { db } from "@/db"
@@ -29,6 +30,7 @@ export type EventInput = {
 }
 
 export async function getEventsByEntityId(entityId: number) {
+    await requireAdmin()
     const rows = await db
         .select({
             id: events.id,
@@ -73,6 +75,7 @@ export async function getEventsByEntityId(entityId: number) {
 }
 
 export async function createEvents(entityId: number, inputs: EventInput[]) {
+    await requireAdmin()
     if (inputs.length === 0) return
 
     await db.transaction(async (tx) => {
@@ -108,10 +111,12 @@ export async function createEvents(entityId: number, inputs: EventInput[]) {
 }
 
 export async function deleteEvent(eventId: number) {
+    await requireAdmin()
     await db.delete(events).where(eq(events.id, eventId))
 }
 
 export async function parsePersonForm(formData: FormData) {
+    await requireAdmin()
     const birthYearRaw = formData.get("birthYear") as string
     const deathYearRaw = formData.get("deathYear") as string
 
@@ -126,6 +131,7 @@ export async function parsePersonForm(formData: FormData) {
 }
 
 export async function createPerson(formData: FormData) {
+    await requireAdmin()
     const personValues = await parsePersonForm(formData)
     const sourceItems = parseSourcesForm(formData)
 
@@ -148,6 +154,7 @@ export async function createPerson(formData: FormData) {
 }
 
 export async function updatePerson(personId: number, formData: FormData) {
+    await requireAdmin()
     const [current] = await db
         .select({ mainPhotoPath: people.mainPhotoPath })
         .from(people)
@@ -189,6 +196,7 @@ export async function updatePerson(personId: number, formData: FormData) {
 }
 
 export async function deletePerson(entityId: number, personId: number) {
+    await requireAdmin()
     const [personToDelete] = await db
         .select({ name: people.name, code: people.code })
         .from(people)
@@ -262,6 +270,7 @@ export async function linkGroupPhotoToPerson(
     personCode: string,
     formData: FormData,
 ) {
+    await requireAdmin()
     const materialIdRaw = formData.get("materialId") as string
     const materialId = Number(materialIdRaw)
 
@@ -301,6 +310,7 @@ export async function unlinkGroupPhotoFromPerson(
     personCode: string,
     materialId: number,
 ) {
+    await requireAdmin()
     const linkedPeople = await db
         .select({ personId: personMaterials.personId })
         .from(personMaterials)

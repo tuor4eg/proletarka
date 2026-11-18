@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { count, eq, isNull } from "drizzle-orm"
@@ -102,6 +103,7 @@ function EmptyRelatedState() {
 }
 
 export default async function EditTopicPage({ params, searchParams }: Props) {
+    await requireAdmin()
     const { id } = await params
     const usageParams = await searchParams
     const numericId = Number(id)

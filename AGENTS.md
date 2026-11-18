@@ -1,111 +1,55 @@
 # AGENTS.md
 
-## Standing Authorization
+## Авторизация и область работы
 
-This file is a standing user instruction for this repository.
+Это постоянные инструкции пользователя для репозитория `proletarka`.
+Пользователь разрешает использовать локальных специализированных агентов по правилам ниже.
+Выполняй авторизованную задачу до завершения без повторного согласования плана и каждого этапа. Если пользователь явно выбрал пошаговое согласование, соблюдай его.
+Это разрешение не расширяет область задачи и не заменяет необходимую авторизацию для разрушительных или внешних действий.
 
-The user explicitly authorizes and requests Codex to use local specialized agents whenever the routing rules below apply.
+## Маршрутизация
 
-When in doubt, use an agent.
+Основной агент самостоятельно выполняет локальные изменения с понятным решением: исправления, UI, запросы, небольшие рефакторинги и правки текста.
+Специалистов подключай для следующих задач:
 
-## Local Agent Source
+- `architect` — новые границы системы, существенные изменения модели данных, неоднозначные архитектурные решения; консультация до реализации.
+- `implementer` — реализация самостоятельной подзадачи с чёткими границами и критерием готовности.
+- `reviewer` — запрошенное ревью, аудит или оценка существующего кода; независимая проверка рискованных изменений, включая авторизацию, миграции и целостность данных.
+- `doc_writer` — полноценные инструкции, руководства и существенные изменения документации. Небольшие правки текста выполняй напрямую.
 
-Specialized agents are defined by files in the repository-local `.codex/agents/` directory.
+Обязательной цепочки из всех ролей нет. Само изменение фильтра, счётчика или UI не требует архитектора, если модель и правила уже определены.
+Это единственный источник правил маршрутизации; файлы ролей описывают работу выбранного специалиста.
 
-Codex must treat these files as the source of truth for agent behavior:
+## Локальные определения
+
+Перед первым использованием роли прочитай соответствующий файл:
 
 - `.codex/agents/architect.md`
 - `.codex/agents/implementer.md`
 - `.codex/agents/reviewer.md`
 - `.codex/agents/doc_writer.md`
 
-When a routing rule requires a role, Codex must first read the corresponding file from `.codex/agents/` and follow those instructions for that role.
+Повторно используй загруженное определение в рамках задачи. Не заменяй существующую роль произвольным агентом.
+Если файл отсутствует, сообщи об этом и используй описание роли из раздела «Маршрутизация».
 
-Do not create generic ad-hoc agents when a matching `.codex/agents/` role file exists. Reuse the local agent definition from `.codex/agents/` instead.
+## Контекст и делегация
 
-If a required `.codex/agents/` file is missing, Codex must say that the local agent definition is missing and then proceed with the role description from this `AGENTS.md` as a fallback.
+- Читай `PROJECT_CONTEXT.md`, когда нужны продуктовые ограничения или архитектурный контекст; для локальной правки достаточно соответствующего кода.
+- Передавай агенту краткий бриф: цель, границы файлов и ответственности, нужные инварианты, критерий готовности и владелец проверок.
+- Для независимой подзадачи используй новый контекст с этим брифом, без полной истории чата, если она не нужна для решения.
+- Не поручай нескольким агентам одну работу. Основной агент отвечает за интеграцию и итоговый ответ.
 
-## Mandatory Agent Routing
+## Скиллы
 
-For every non-trivial task, Codex must route work through the specialized local agents defined in `.codex/agents/`.
+Загружай только скиллы, прямо относящиеся к задаче. Связанные справочники читай выборочно; неизменённые материалы повторно в рамках задачи не загружай.
 
-Codex may work directly without a specialized agent only for:
+Для явно запрошенного аудита безопасности используй [security-audit](.codex/skills/security-audit/SKILL.md); обычное ревью не требует этого процесса.
 
-- answering a simple question without code changes;
-- making a tiny mechanical edit of 1-3 lines;
-- running a simple command requested by the user;
-- fixing an immediate syntax, type, or runtime error caused by Codex's own last change.
+## Проверка и результат
 
-If Codex skips agent routing, the task must clearly fit one of these exceptions.
+Назначь одного владельца каждой проверки. Используй результаты выполненных проверок; повторяй успешные только после значимых изменений или при новых сомнениях.
+Проверки выбирай по риску: для запросов и данных проверяй соответствующие сценарии, для документации — содержание и согласованность. Тесты приложения для одной правки инструкций не нужны.
 
-## Roles
-
-The role names below map to local agent definition files in `.codex/agents/`.
-
-- `architect` — `.codex/agents/architect.md` — structure, naming, data model, boundaries, feature design, route design, database shape.
-- `implementer` — `.codex/agents/implementer.md` — code implementation, refactors, migrations, UI changes, query changes.
-- `reviewer` — `.codex/agents/reviewer.md` — code review, business logic, edge cases, regressions, maintainability, validation of existing changes.
-- `doc_writer` — `.codex/agents/doc_writer.md` — documentation, admin guides, UI wording, non-technical explanations.
-
-Do not overload one agent with work that belongs to another.
-
-## Required Routing Rules
-
-### Feature Work
-
-If the task adds or changes user-visible behavior, Codex must:
-
-1. consult `architect` first, unless the change is tiny and purely mechanical;
-2. use `implementer` for code changes;
-3. review the result locally before responding.
-
-### Data Model, Database, and Query Logic
-
-If the task touches database schema, migrations, topic logic, list membership, filtering, counts, or relations, Codex must:
-
-1. consult `architect`;
-2. use `implementer`;
-3. run relevant verification, such as lint, typecheck, and a targeted data/query check when possible.
-
-### Bug Fixes
-
-If the bug is non-trivial or affects business logic, Codex must:
-
-1. inspect or reproduce the issue locally;
-2. use `implementer` for the fix;
-3. use `reviewer` or perform an explicit review pass before the final response.
-
-Tiny bugs caused by Codex's immediately preceding edit may be fixed directly, but Codex must still explain the cause.
-
-### Reviews and Validation
-
-If the user asks to review, validate, check, audit, or assess existing code, Codex must use `reviewer`.
-
-### Documentation and Wording
-
-If the task is primarily documentation, admin instructions, explanatory text, or UI wording, Codex must use `doc_writer`.
-
-## Delegation Expectations
-
-When using agents:
-
-- Use the matching local definition from `.codex/agents/` for the required role.
-- Reuse an already-loaded role definition during the same task instead of inventing a new generic agent.
-- Give each agent a narrow, concrete task.
-- Do not ask one agent to do another role's work.
-- Do not duplicate work between Codex and an agent.
-- Codex remains responsible for final integration, verification, and the final answer.
-
-## Scope
-
-Keep changes focused.
-Do not rewrite unrelated code or documentation unless the task requires it.
-
-## Uncertainty
-
-Do not invent behavior that is not confirmed by code, UI, data, or task context.
-If something is unclear, state it directly and proceed with the most useful grounded result.
-
-## Final Response
-
-Codex must mention which agents were used and for what, unless the task was tiny enough to skip agent routing under the explicit exceptions above.
+Сохраняй изменения в рамках задачи. Не переписывай соседний код и не добавляй абстракции без необходимости.
+Подтверждай выводы кодом, UI или данными; явно отмечай непроверенные предположения.
+В итоговом ответе кратко укажи результат, проверки, существенные ограничения и использованных агентов с их задачами.

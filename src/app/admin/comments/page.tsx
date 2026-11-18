@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { Suspense } from "react"
 import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm"
@@ -48,6 +49,7 @@ function statusLabel(status: CommentStatus) {
 }
 
 export default async function AdminCommentsPage({ searchParams }: { searchParams: SearchParams }) {
+    await requireAdmin()
     const { q, status, targetType, sort = "date_desc", page: pageParam } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
 

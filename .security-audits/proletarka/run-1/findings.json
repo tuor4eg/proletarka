@@ -1,0 +1,176 @@
+[
+    {
+        "verdict": "confirmed",
+        "title": "SEC-01: Unauthenticated disclosure of draft material metadata",
+        "description": "Four administrative search GET handlers do not authenticate callers and are outside the /admin proxy matcher. Materials and group-photo queries omit published-only predicates, disclosing draft titles, IDs and relationships; group-photo responses also include status. Source code and a disposable fixture GET harness confirm the handler-level flow. No production HTTP or database query was performed; no body/file/credential disclosure is claimed.",
+        "root_cause": "GET in src/app/api/admin/group-photos/search/route.ts does not require administrator authorization before querying and returning draft metadata, allowing unauthenticated disclosure.",
+        "intended_behavior": "Administrative search should allow a verified administrator to find both published and draft materials while refusing anonymous callers before database access; public material pages hide drafts.",
+        "trace": [
+            {
+                "kind": "entrypoint",
+                "file": "src/app/api/admin/group-photos/search/route.ts",
+                "line": 6,
+                "scope": "GET",
+                "description": "Accepts request query without reading a session or checking administrator identity."
+            },
+            {
+                "kind": "propagation",
+                "file": "src/proxy.ts",
+                "line": 36,
+                "scope": "config",
+                "description": "Matcher covers /admin/:path*, so /api/admin/group-photos/search is outside its authentication guard."
+            },
+            {
+                "kind": "propagation",
+                "file": "src/app/api/admin/group-photos/search/route.ts",
+                "line": 25,
+                "scope": "GET",
+                "description": "Queries material id, title and status, filtering group_photo/search but not requiring published status."
+            },
+            {
+                "kind": "propagation",
+                "file": "src/app/api/admin/group-photos/search/route.ts",
+                "line": 45,
+                "scope": "GET",
+                "description": "Queries linked person names for the returned material IDs."
+            },
+            {
+                "kind": "sink",
+                "file": "src/app/api/admin/group-photos/search/route.ts",
+                "line": 87,
+                "scope": "GET",
+                "description": "Serializes the grouped draft metadata as a JSON response."
+            }
+        ],
+        "conditions": [
+            {
+                "kind": "network_routing",
+                "description": "Request reaches the application API without an additional infrastructure authentication layer; no NGINX configuration was supplied."
+            },
+            {
+                "kind": "data_state",
+                "description": "A draft group_photo matching the query exists. Related materials endpoint leaks matching draft metadata as well."
+            }
+        ],
+        "execution": {
+            "attacker_perspective": "Unauthenticated visitor able to send read requests to the application.",
+            "payloads": [
+                "GET /api/admin/group-photos/search?q=Audit (no Cookie; isolated fixture host only)",
+                "GET /api/admin/materials/search?q=Audit (no Cookie; isolated fixture host only)"
+            ],
+            "instructions": [
+                "In an isolated non-production copy create disposable Audit Draft material fixtures.",
+                "Request the administrative search GET without a cookie.",
+                "Compare returned draft metadata against the public material page publication boundary. The performed harness used a fixture DB rather than a live HTTP application."
+            ],
+            "expected_result": "Before the fix the handler returns matching draft IDs/titles/relationships and group-photo status. After the fix anonymous requests receive 401/403 before database access."
+        },
+        "remediation": {
+            "strategy": "Require a valid, existing administrator through a shared guard at the beginning of all four admin search handlers; retain draft search for authenticated editors. Add negative authentication checks and verify zero DB reads on rejection."
+        },
+        "severity": {
+            "likelihood": {
+                "score": "high",
+                "reason": "Unauthenticated GET and predictable endpoint; infrastructure may add separate restrictions."
+            },
+            "impact": {
+                "score": "medium",
+                "reason": "Limited disclosure of unpublished editorial metadata, without material bodies or credentials."
+            },
+            "overall_severity": "medium"
+        },
+        "confidence": {
+            "score": "high",
+            "reason": "Independent source review confirmed matcher and predicates; original GET executed with a disposable fixture DB. Real production data, NGINX and HTTP routing were not tested."
+        }
+    },
+    {
+        "verdict": "confirmed",
+        "title": "SEC-02: Copied session JWT survives logout and password change",
+        "description": "JWT sessions expire seven days after issue but are not bound to server revocation state. Logout deletes only the current browser cookie; password change updates only the password hash. Someone already holding a valid copy can retain administrator access until the original expiry unless the signing secret is externally rotated. A disposable-key fixture harness confirmed token acceptance after logout; password-change behavior was traced statically.",
+        "root_cause": "getSession in src/lib/session.ts does not check server-side revocation or password/session version, allowing a previously copied token to remain usable after logout or password change.",
+        "intended_behavior": "Administrators should be able to end a session or revoke compromised access on password change, rather than merely deleting a local copy of the credential.",
+        "trace": [
+            {
+                "kind": "entrypoint",
+                "file": "src/lib/session.ts",
+                "line": 18,
+                "scope": "createSession",
+                "description": "Issues a signed JWT with userId/role and the seven-day expiration constant."
+            },
+            {
+                "kind": "propagation",
+                "file": "src/app/admin/settings/actions.ts",
+                "line": 43,
+                "scope": "updatePassword",
+                "description": "Changes only the stored bcrypt password hash without invalidating outstanding tokens."
+            },
+            {
+                "kind": "propagation",
+                "file": "src/lib/session.ts",
+                "line": 47,
+                "scope": "deleteSession",
+                "description": "Logout removes only the cookie from the current client cookie store."
+            },
+            {
+                "kind": "propagation",
+                "file": "src/lib/session.ts",
+                "line": 40,
+                "scope": "getSession",
+                "description": "A copied token still passes signature/expiry validation without querying revocation state."
+            },
+            {
+                "kind": "sink",
+                "file": "src/proxy.ts",
+                "line": 23,
+                "scope": "proxy",
+                "description": "A still-valid signed token is accepted for access to administrative routes."
+            }
+        ],
+        "conditions": [
+            {
+                "kind": "authentication_level",
+                "description": "Attacker already possesses an unexpired copy of a genuine administrator JWT. No independent token-theft or forgery path was established."
+            },
+            {
+                "kind": "system_configuration",
+                "description": "The signing secret has not been rotated, and no additional infrastructure control independently rejects the caller."
+            },
+            {
+                "kind": "timing_dependency",
+                "description": "Access persists only for the remaining lifetime up to seven days from issue, not seven new days after logout/reset."
+            }
+        ],
+        "execution": {
+            "attacker_perspective": "Holder of a previously copied valid session credential.",
+            "payloads": [
+                "GET /admin/materials with Cookie: session=<DISPOSABLE_FIXTURE_JWT_ONLY>; non-production fixture environment only"
+            ],
+            "instructions": [
+                "Issue a JWT using the actual session module with a disposable fixture signing key and cookie store.",
+                "Save a copy, invoke deleteSession, and verify the fixture cookie store is empty.",
+                "Restore the copied token in the fixture store and call getSession: it accepts the user again.",
+                "A future staging-only test can check an old second-client session after a fixture account password change; no production token or password was used."
+            ],
+            "expected_result": "Before remediation the copied JWT remains accepted until its original exp. After server-side revocation or password-version invalidation it is rejected while a fresh valid session works."
+        },
+        "remediation": {
+            "strategy": "Implement revocable server sessions or enforce a sessionVersion on protected access and increment it on password change/global revocation. For revoking only the current session on logout use a per-session identifier/store. Ensure existing-user/admin checks occur in the shared authorization boundary."
+        },
+        "severity": {
+            "likelihood": {
+                "score": "medium",
+                "reason": "Requires prior compromise of a valid session, not anonymous access."
+            },
+            "impact": {
+                "score": "high",
+                "reason": "Retains administrator privileges after an attempted account/session recovery."
+            },
+            "overall_severity": "medium"
+        },
+        "confidence": {
+            "score": "high",
+            "reason": "Independently reviewed issuance, password update, logout and validators; isolated execution confirmed logout-copy acceptance. Password-update invalidation absence is static; live production not tested."
+        }
+    }
+]

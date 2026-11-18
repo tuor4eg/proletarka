@@ -1,5 +1,7 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import { redirect } from "next/navigation"
 
-export default function AdminPage() {
+export default async function AdminPage() {
+    await requireAdmin()
     redirect("/admin/people")
 }

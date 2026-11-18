@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import { notFound } from "next/navigation"
 import { eq, asc, sql } from "drizzle-orm"
 import Link from "next/link"
@@ -45,6 +46,7 @@ type Props = {
 }
 
 export default async function EditArtifactPage({ params, searchParams }: Props) {
+    await requireAdmin()
     const { code } = await params
     const { backstack } = await searchParams
     const currentBackstack = parseBackstack(backstack)

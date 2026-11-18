@@ -1,9 +1,11 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import { createEntity } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { ImageUpload } from "@/components/ImageUpload"
 import { SubmitButton } from "@/components/SubmitButton"
 
-export default function NewEntityPage() {
+export default async function NewEntityPage() {
+    await requireAdmin()
     return (
         <div className="py-6">
             <h1 className="text-xl font-bold mb-6">Новый человек</h1>

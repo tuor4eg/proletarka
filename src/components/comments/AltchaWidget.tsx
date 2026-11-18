@@ -1,6 +1,8 @@
 "use client"
 
-import { createElement, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ElementType } from "react"
+
+const AltchaElement = "altcha-widget" as ElementType
 
 type Props = {
     challengeUrl?: string
@@ -60,18 +62,20 @@ export function AltchaWidget({
         )
     }
 
-    return createElement("altcha-widget", {
-        ref: widgetRef,
-        challenge: challengeUrl,
-        name,
-        auto: "onsubmit",
-        language: "ru",
-        type: "switch",
-        workers: 2,
-        hidefooter: true,
-        style: {
-            display: hidden ? "none" : "block",
-            maxWidth: "220px",
-        },
-    })
+    return (
+        <AltchaElement
+            ref={widgetRef}
+            challenge={challengeUrl}
+            name={name}
+            auto="onsubmit"
+            language="ru"
+            type="switch"
+            workers={2}
+            hidefooter={true}
+            style={{
+                display: hidden ? "none" : "block",
+                maxWidth: "220px",
+            }}
+        />
+    )
 }

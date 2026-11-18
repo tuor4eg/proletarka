@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { CornerDownRight, FolderTree } from "lucide-react"
 import { asc, count } from "drizzle-orm"
@@ -25,6 +26,7 @@ type TopicListItem = {
 type SearchParams = Promise<{ page?: string }>
 
 export default async function TopicsPage({ searchParams }: { searchParams: SearchParams }) {
+    await requireAdmin()
     const { page: pageParam } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
 

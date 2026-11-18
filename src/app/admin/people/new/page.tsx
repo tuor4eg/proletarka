@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import { createPerson } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { ImageUpload } from "@/components/ImageUpload"
@@ -5,7 +6,8 @@ import { SubmitButton } from "@/components/SubmitButton"
 import { CodeField } from "@/components/CodeField"
 import { SourcesInput } from "@/components/SourcesInput"
 
-export default function NewPersonPage() {
+export default async function NewPersonPage() {
+    await requireAdmin()
     return (
         <div className="py-6">
             <h1 className="text-xl font-bold mb-6">Новый человек</h1>

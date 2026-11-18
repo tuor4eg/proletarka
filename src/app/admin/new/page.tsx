@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { eq } from "drizzle-orm"
 import { ArrowLeft } from "lucide-react"
@@ -19,6 +20,7 @@ type Props = {
 }
 
 export default async function NewMaterialPage({ searchParams }: Props) {
+    await requireAdmin()
     const { entityId, materialType, sectionId, personId, backstack } = await searchParams
     const numericPersonId = personId ? Number(personId) : null
     const currentBackstack = parseBackstack(backstack)

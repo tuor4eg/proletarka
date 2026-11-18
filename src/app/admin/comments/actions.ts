@@ -1,18 +1,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { db } from "@/db"
 import { comments, type CommentStatus } from "@/db/schema"
 import { getCommentTargetByEntityId } from "@/app/comments/queries"
-import { getSession } from "@/lib/session"
-
-async function requireAdminSession() {
-    const session = await getSession()
-    if (!session) redirect("/admin/login")
-    return session
-}
+import { requireAdmin, type AdminUser } from "@/lib/adminAuth"
 
 async function revalidateCommentPaths(entityId: number) {
     const target = await getCommentTargetByEntityId(entityId)
@@ -23,15 +16,13 @@ async function revalidateCommentPaths(entityId: number) {
     }
 }
 
-async function setCommentStatus(id: number, status: CommentStatus) {
-    const session = await requireAdminSession()
-
+async function setCommentStatus(id: number, status: CommentStatus, user: AdminUser) {
     const [updated] = await db
         .update(comments)
         .set({
             status,
             moderatedAt: new Date(),
-            moderatedBy: session.userId,
+            moderatedBy: user.id,
         })
         .where(eq(comments.id, id))
         .returning({
@@ -45,15 +36,17 @@ async function setCommentStatus(id: number, status: CommentStatus) {
 }
 
 export async function approveComment(id: number) {
-    await setCommentStatus(id, "approved")
+    const user = await requireAdmin()
+    await setCommentStatus(id, "approved", user)
 }
 
 export async function hideComment(id: number) {
-    await setCommentStatus(id, "hidden")
+    const user = await requireAdmin()
+    await setCommentStatus(id, "hidden", user)
 }
 
 export async function deleteComment(id: number) {
-    await requireAdminSession()
+    await requireAdmin()
 
     const [deleted] = await db.delete(comments).where(eq(comments.id, id)).returning({
         id: comments.id,

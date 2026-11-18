@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import { isNull } from "drizzle-orm"
 import { db } from "@/db"
 import { topics } from "@/db/schema"
@@ -7,6 +8,7 @@ import { SubmitButton } from "@/components/SubmitButton"
 import { CodeField } from "@/components/CodeField"
 
 export default async function NewTopicPage() {
+    await requireAdmin()
     const parentOptions = await db
         .select({ id: topics.id, title: topics.title })
         .from(topics)

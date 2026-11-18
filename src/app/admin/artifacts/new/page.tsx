@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import { type ArtifactType } from "@/db/schema"
 import { createArtifact } from "../actions"
 import { inputClass, Field } from "@/components/MaterialForm"
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export default async function NewArtifactPage({ searchParams }: Props) {
+    await requireAdmin()
     const { type } = await searchParams
     const allTopics = await fetchTopicTree()
     const defaultType = ARTIFACT_TYPES.includes(type as ArtifactType) ? type : undefined

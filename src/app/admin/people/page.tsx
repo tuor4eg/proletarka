@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { eq, ilike, asc, desc, and, sql, count } from "drizzle-orm"
 import { Suspense } from "react"
@@ -12,6 +13,7 @@ import { buildBackstackHref, parseBackstack, pushBackstack } from "@/lib/adminBa
 const PAGE_SIZE = 20
 
 export default async function PeoplePage({ searchParams }: { searchParams: SearchParams }) {
+    await requireAdmin()
     const { q, sort = "title_asc", letter, page: pageParam, backstack } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
     const currentParams = new URLSearchParams()

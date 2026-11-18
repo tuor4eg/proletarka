@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { Suspense } from "react"
 import { desc, asc, count, eq, and } from "drizzle-orm"
@@ -49,6 +50,7 @@ export default async function LogsPage({
 }: {
     searchParams: Promise<Record<string, string | undefined>>
 }) {
+    await requireAdmin()
     const { page: pageParam, action, entityType, userId, sort = "desc" } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
     const orderBy = sort === "asc" ? asc(adminLogs.createdAt) : desc(adminLogs.createdAt)

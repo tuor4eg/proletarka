@@ -1,9 +1,18 @@
+import { getAdminAccess } from "@/lib/adminAuth"
 import { NextRequest, NextResponse } from "next/server"
 import { and, asc, eq, ilike, inArray, notInArray, or } from "drizzle-orm"
 import { db } from "@/db"
 import { materials, people, personMaterials } from "@/db/schema"
 
 export async function GET(request: NextRequest) {
+    const access = await getAdminAccess()
+    if ("status" in access) {
+        return NextResponse.json(
+            { error: access.status === 401 ? "Unauthorized" : "Forbidden" },
+            { status: access.status },
+        )
+    }
+
     const { searchParams } = request.nextUrl
     const q = searchParams.get("q")?.trim() ?? ""
     const excludePersonId = Number(searchParams.get("excludePersonId"))

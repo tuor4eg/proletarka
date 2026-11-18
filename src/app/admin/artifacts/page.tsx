@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { eq, asc, desc, ilike, and, count, inArray } from "drizzle-orm"
 import { db } from "@/db"
@@ -31,6 +32,7 @@ type SearchParams = Promise<{
 }>
 
 export default async function ArtifactsPage({ searchParams }: { searchParams: SearchParams }) {
+    await requireAdmin()
     const { q, type, sort = "title_asc", page: pageParam, backstack } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
     const currentParams = new URLSearchParams()

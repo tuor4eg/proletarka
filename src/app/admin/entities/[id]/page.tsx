@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { eq, desc } from "drizzle-orm"
@@ -19,6 +20,7 @@ type Props = {
 }
 
 export default async function EditEntityPage({ params }: Props) {
+    await requireAdmin()
     const { id } = await params
     const numericId = Number(id)
 

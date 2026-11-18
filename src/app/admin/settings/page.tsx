@@ -1,9 +1,7 @@
-import { eq } from "drizzle-orm"
-import { redirect } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/db"
-import { users, artifacts, showcases } from "@/db/schema"
-import { getSession } from "@/lib/session"
+import { artifacts, showcases } from "@/db/schema"
+import { requireAdmin } from "@/lib/adminAuth"
 import { inputClass, Field } from "@/components/MaterialForm"
 import { updateProfile, updatePassword, setShowcases } from "./actions"
 import { SubmitButton } from "@/components/SubmitButton"
@@ -23,12 +21,7 @@ const tabClass = (active: boolean) =>
     }`
 
 export default async function SettingsPage({ searchParams }: { searchParams: SearchParams }) {
-    const session = await getSession()
-    if (!session) redirect("/admin/login")
-
-    const [user] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1)
-    if (!user) redirect("/admin/login")
-
+    const user = await requireAdmin()
     const { tab = "profile" } = await searchParams
 
     return (

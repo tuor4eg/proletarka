@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/adminAuth"
 import Link from "next/link"
 import { eq, ilike, asc, desc, and, sql, count } from "drizzle-orm"
 import { Suspense } from "react"
@@ -11,6 +12,7 @@ import type { SearchParams } from "@/lib/types"
 const PAGE_SIZE = 20
 
 export default async function EntitiesPage({ searchParams }: { searchParams: SearchParams }) {
+    await requireAdmin()
     const { q, sort = "title_asc", letter, page: pageParam } = await searchParams
     const page = Math.max(1, Number(pageParam) || 1)
 
